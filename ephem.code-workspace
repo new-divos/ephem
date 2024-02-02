@@ -10,6 +10,10 @@
 		"editor.minimap.enabled": false,
 		"editor.accessibilitySupport": "off",
 
+		"rust-analyzer.linkedProjects": [
+			".\\Cargo.toml"
+		],
+
 		"workbench.colorCustomizations": {
 			"activityBar.activeBackground": "#1b94f0",
 			"activityBar.background": "#1b94f0",
@@ -29,6 +33,7 @@
 			"titleBar.inactiveBackground": "#0d79cc99",
 			"titleBar.inactiveForeground": "#e7e7e799"
 		},
-		"peacock.color": "#0d79cc"
+		"peacock.color": "#0d79cc",
+		"rust-analyzer.showUnlinkedFileNotification": false,
 	}
 }

@@ -5,3 +5,4 @@ edition = "2021"
 publish = ["ephem"]
 
 [dependencies]
+num-traits = "^0"
