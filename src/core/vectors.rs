@@ -158,23 +158,23 @@ impl CartesianBuilder {
         Self { x: 0.0, y: 0.0, z: 1.0 }
     }
 
-    /// Sets the X-coordinate and returns a mutable reference to the builder for chaining.
+    /// Sets the X-coordinate and returns a builder for chaining.
     #[inline]
-    pub fn x(&mut self, value: f64) -> &mut Self {
+    pub fn x(mut self, value: f64) -> Self {
         self.x = value;
         self
     }
 
-    /// Sets the Y-coordinate and returns a mutable reference to the builder for chaining.
+    /// Sets the Y-coordinate and returns a builder for chaining.
     #[inline]
-    pub fn y(&mut self, value: f64) -> &mut Self {
+    pub fn y(mut self, value: f64) -> Self {
         self.y = value;
         self
     }
 
-    /// Sets the Z-coordinate and returns a mutable reference to the builder for chaining.
+    /// Sets the Z-coordinate and returns a builder for chaining.
     #[inline]
-    pub fn z(&mut self, value: f64) -> &mut Self {
+    pub fn z(mut self, value: f64) -> Self {
         self.z = value;
         self
     }
