@@ -24,22 +24,21 @@ pub trait CoordinateSystem {}
 /// three `f64` values. The choice of coordinate system is determined by the type parameter `S`, which
 /// must implement the `CoordinateSystem` trait.
 #[derive(Copy, Clone, Debug, PartialEq)]
-pub struct Vec3d<S: CoordinateSystem> (
+pub struct Vec3d<S: CoordinateSystem>(
     /// Array representing the three coordinates of the vector.
     [f64; 3],
-
     /// PhantomData marker to tie the coordinate system type to the vector.
-    PhantomData<S>
+    PhantomData<S>,
 );
 
 /// Struct representing the Cartesian coordinate system.
 pub struct Cartesian;
 
 /// The `Cartesian` struct implements the `CoordinateSystem` trait, indicating that it adheres
-/// to the requirements set by the trait. 
+/// to the requirements set by the trait.
 impl CoordinateSystem for Cartesian {}
 
-/// It also includes constants defining the indices for commonly used Cartesian 
+/// It also includes constants defining the indices for commonly used Cartesian
 /// coordinates (X, Y, and Z).
 impl Cartesian {
     /// Constant representing the X-coordinate index in Cartesian coordinates.
@@ -89,9 +88,7 @@ impl Vec3dNorm for Vec3d<Cartesian> {
     /// The magnitude of the vector as a floating-point number.
     #[inline]
     fn norm(&self) -> f64 {
-        (
-            self.0[0] * self.0[0] + self.0[1] * self.0[1] + self.0[2] * self.0[2]
-        ).sqrt()
+        (self.0[0] * self.0[0] + self.0[1] * self.0[1] + self.0[2] * self.0[2]).sqrt()
     }
 }
 
@@ -107,7 +104,11 @@ impl Into<(f64, f64, f64)> for Vec3d<Cartesian> {
     /// A tuple representing the X, Y, and Z components of the vector.
     #[inline]
     fn into(self) -> (f64, f64, f64) {
-        (self.0[Cartesian::X_IDX], self.0[Cartesian::Y_IDX], self.0[Cartesian::Z_IDX])
+        (
+            self.0[Cartesian::X_IDX],
+            self.0[Cartesian::Y_IDX],
+            self.0[Cartesian::Z_IDX],
+        )
     }
 }
 
@@ -124,14 +125,18 @@ pub struct CartesianBuilder {
     y: f64,
 
     /// Z component of the cartesian vector.
-    z: f64
+    z: f64,
 }
 
 impl CartesianBuilder {
     /// Creates a new builder instance with default values (0.0 for each coordinate).
     #[inline]
     pub fn new() -> Self {
-        Self { x: 0.0, y: 0.0, z: 0.0 }
+        Self {
+            x: 0.0,
+            y: 0.0,
+            z: 0.0,
+        }
     }
 
     /// Creates a builder instance with specified cartesian coordinates.
@@ -143,19 +148,31 @@ impl CartesianBuilder {
     /// Creates a builder instance representing the unit vector along the X-axis.
     #[inline]
     pub fn unit_x() -> Self {
-        Self { x: 1.0, y: 0.0, z: 0.0 }
+        Self {
+            x: 1.0,
+            y: 0.0,
+            z: 0.0,
+        }
     }
 
     /// Creates a builder instance representing the unit vector along the Y-axis.
     #[inline]
     pub fn unit_y() -> Self {
-        Self { x: 0.0, y: 1.0, z: 0.0 }
+        Self {
+            x: 0.0,
+            y: 1.0,
+            z: 0.0,
+        }
     }
 
     /// Creates a builder instance representing the unit vector along the Z-axis.
     #[inline]
     pub fn unit_z() -> Self {
-        Self { x: 0.0, y: 0.0, z: 1.0 }
+        Self {
+            x: 0.0,
+            y: 0.0,
+            z: 1.0,
+        }
     }
 
     /// Sets the X-coordinate and returns a builder for chaining.
@@ -182,10 +199,7 @@ impl CartesianBuilder {
     /// Builds and returns a `Vec3d<Cartesian>` instance using the configured coordinates.
     #[inline]
     pub fn build(self) -> Vec3d<Cartesian> {
-        Vec3d::<Cartesian>(
-            [self.x, self.y, self.z],
-            PhantomData::<Cartesian> {}
-        )
+        Vec3d::<Cartesian>([self.x, self.y, self.z], PhantomData::<Cartesian> {})
     }
 }
 
@@ -201,10 +215,10 @@ impl Default for CartesianBuilder {
 pub struct Cylindrical;
 
 /// The `Cylindrical` struct implements the `CoordinateSystem` trait, indicating that it adheres
-/// to the requirements set by the trait. 
+/// to the requirements set by the trait.
 impl CoordinateSystem for Cylindrical {}
 
-/// It also includes constants defining the indices for commonly used Cylindrical 
+/// It also includes constants defining the indices for commonly used Cylindrical
 /// coordinates (Radius, Azimuth, and Altitude).
 impl Cylindrical {
     /// Constant representing the Radius-coordinate index in Cylindrical coordinates.
@@ -254,10 +268,9 @@ impl Vec3dNorm for Vec3d<Cylindrical> {
     /// The magnitude of the vector as a floating-point number.
     #[inline]
     fn norm(&self) -> f64 {
-        (
-            self.0[Cylindrical::RADIUS_IDX] * self.0[Cylindrical::RADIUS_IDX] +
-            self.0[Cylindrical::ALTITUDE_IDX] * self.0[Cylindrical::ALTITUDE_IDX]
-        ).sqrt()
+        (self.0[Cylindrical::RADIUS_IDX] * self.0[Cylindrical::RADIUS_IDX]
+            + self.0[Cylindrical::ALTITUDE_IDX] * self.0[Cylindrical::ALTITUDE_IDX])
+            .sqrt()
     }
 }
 
@@ -276,7 +289,7 @@ impl Into<(f64, f64, f64)> for Vec3d<Cylindrical> {
         (
             self.0[Cylindrical::RADIUS_IDX],
             self.0[Cylindrical::AZIMUTH_IDX],
-            self.0[Cylindrical::ALTITUDE_IDX]
+            self.0[Cylindrical::ALTITUDE_IDX],
         )
     }
 }
@@ -301,32 +314,40 @@ impl CylindricalBuilder {
     /// Creates a new `CylindricalBuilder` instance with default values (0.0 for each component).
     #[inline]
     pub fn new() -> Self {
-        Self { radius: 0.0, azimuth: 0.0, altitude: 0.0 }
+        Self {
+            radius: 0.0,
+            azimuth: 0.0,
+            altitude: 0.0,
+        }
     }
 
     /// Creates a `CylindricalBuilder` instance with specified coordinates.
     #[inline]
     pub fn with(radius: f64, azimuth: f64, altitude: f64) -> Self {
-        Self { radius, azimuth, altitude }
+        Self {
+            radius,
+            azimuth,
+            altitude,
+        }
     }
 
-    /// Sets the radius component and returns a mutable reference to the builder for chaining.
+    /// Sets the radius component and returns a builder for chaining.
     #[inline]
-    pub fn radius(&mut self, value: f64) -> &mut Self {
+    pub fn radius(mut self, value: f64) -> Self {
         self.radius = value;
         self
     }
 
-    /// Sets the azimuth component and returns a mutable reference to the builder for chaining.
+    /// Sets the azimuth component and returns a builder for chaining.
     #[inline]
-    pub fn azimuth(&mut self, value: f64) -> &mut Self {
+    pub fn azimuth(mut self, value: f64) -> Self {
         self.azimuth = value;
         self
     }
 
-    /// Sets the altitude component and returns a mutable reference to the builder for chaining.
+    /// Sets the altitude component and returns a builder for chaining.
     #[inline]
-    pub fn altitude(&mut self, value: f64) -> &mut Self {
+    pub fn altitude(mut self, value: f64) -> Self {
         self.altitude = value;
         self
     }
@@ -334,9 +355,9 @@ impl CylindricalBuilder {
     /// Builds and returns a `Vec3d<Cylindrical>` instance using the configured coordinates.
     #[inline]
     pub fn build(self) -> Vec3d<Cylindrical> {
-        Vec3d::<Cylindrical> (
+        Vec3d::<Cylindrical>(
             [self.radius, self.azimuth, self.altitude],
-            PhantomData::<Cylindrical> {}
+            PhantomData::<Cylindrical> {},
         )
     }
 }
@@ -353,10 +374,10 @@ impl Default for CylindricalBuilder {
 pub struct Spherical;
 
 /// The `Spherical` struct implements the `CoordinateSystem` trait, indicating that it adheres
-/// to the requirements set by the trait. 
+/// to the requirements set by the trait.
 impl CoordinateSystem for Spherical {}
 
-/// It also includes constants defining the indices for commonly used Spherical 
+/// It also includes constants defining the indices for commonly used Spherical
 /// coordinates (Radius, Azimuth, and Latitude).
 impl Spherical {
     /// Constant representing the Radius-coordinate index in Spherical coordinates.
@@ -425,20 +446,20 @@ impl Into<(f64, f64, f64)> for Vec3d<Spherical> {
         (
             self.0[Spherical::RADIUS_IDX],
             self.0[Spherical::AZIMUTH_IDX],
-            self.0[Spherical::LATITUDE_IDX]
+            self.0[Spherical::LATITUDE_IDX],
         )
     }
 }
 
-/// Trait representing a position in spherical coordinates.
+/// Trait representing a spatial direction in spherical coordinates.
 ///
-/// The `SphericalPosition` trait defines methods to access the azimuth and latitude components
+/// The `SpatialDirection` trait defines methods to access the azimuth and latitude components
 /// of a position represented in spherical coordinates.
-pub trait SphericalPosition {
-    /// Returns the azimuth component of the position.
+pub trait SpatialDirection {
+    /// Returns the azimuth component of the spatial direction.
     fn azimuth(&self) -> f64;
 
-    /// Returns the latitude component of the position.
+    /// Returns the latitude component of the spatial direction.
     fn latitude(&self) -> f64;
 }
 
@@ -455,59 +476,63 @@ pub struct SphericalBuilder {
     azimuth: f64,
 
     /// Latitude component of the spherical vector.
-    latitude: f64
+    latitude: f64,
 }
 
 impl SphericalBuilder {
     /// Creates a new `SphericalBuilder` instance with default values (0.0 for each component).
     #[inline]
     pub fn new() -> Self {
-        Self { radius: 0.0, azimuth: 0.0, latitude: 0.0 }
-    } 
+        Self {
+            radius: 0.0,
+            azimuth: 0.0,
+            latitude: 0.0,
+        }
+    }
 
     /// Creates a `SphericalBuilder` instance with specified coordinates.
     #[inline]
     pub fn with(radius: f64, azimuth: f64, latitude: f64) -> Self {
-        Self { radius, azimuth, latitude }
+        Self {
+            radius,
+            azimuth,
+            latitude,
+        }
     }
 
-    /// Creates a `SphericalBuilder` instance with a specified radius and position implementing
-    /// the `SphericalPosition` trait.
+    /// Constructs a spherical position with the given radius and direction.
     #[inline]
-    pub fn with_pos<P: SphericalPosition>(radius: f64, position: &P) -> Self {
-        Self::with(radius, position.azimuth(), position.latitude())
+    pub fn make<S: SpatialDirection>(radius: f64, direction: &S) -> Self {
+        Self::with(radius, direction.azimuth(), direction.latitude())
     }
 
     /// Creates a unit `SphericalBuilder` instance with the specified azimuth and latitude.
     #[inline]
     pub fn unit(azimuth: f64, latitude: f64) -> Self {
-        Self { radius: 1.0, azimuth, latitude }
+        Self {
+            radius: 1.0,
+            azimuth,
+            latitude,
+        }
     }
 
-    /// Creates a unit `SphericalBuilder` instance using a position implementing the
-    /// `SphericalPosition` trait.
+    /// Sets the radius component and returns a builder for chaining.
     #[inline]
-    pub fn unit_pos<P: SphericalPosition>(position: &P) -> Self {
-        Self::unit(position.azimuth(), position.latitude())
-    }
-
-    /// Sets the radius component and returns a mutable reference to the builder for chaining.
-    #[inline]
-    pub fn radius(&mut self, value: f64) -> &mut Self {
+    pub fn radius(mut self, value: f64) -> Self {
         self.radius = value;
         self
     }
 
-    /// Sets the azimuth component and returns a mutable reference to the builder for chaining.
+    /// Sets the azimuth component and returns a builder for chaining.
     #[inline]
-    pub fn azimuth(&mut self, value: f64) -> &mut Self {
+    pub fn azimuth(mut self, value: f64) -> Self {
         self.azimuth = value;
         self
     }
 
-    /// Sets the latitude component and returns a mutable reference to the builder for chaining.
+    /// Sets the latitude component and returns a builder for chaining.
     #[inline]
-    pub fn latitude(&mut self, value: f64) -> &mut Self {
+    pub fn latitude(mut self, value: f64) -> Self {
         self.latitude = value;
         self
     }
@@ -515,9 +540,9 @@ impl SphericalBuilder {
     /// Builds and returns a `Vec3d<Spherical>` instance using the configured coordinates.
     #[inline]
     pub fn build(self) -> Vec3d<Spherical> {
-        Vec3d::<Spherical> (
+        Vec3d::<Spherical>(
             [self.radius, self.azimuth, self.latitude],
-            PhantomData::<Spherical> {}
+            PhantomData::<Spherical> {},
         )
     }
 }
@@ -527,5 +552,13 @@ impl Default for SphericalBuilder {
     #[inline]
     fn default() -> Self {
         Self::new()
+    }
+}
+
+impl<S: SpatialDirection> From<&S> for SphericalBuilder {
+    /// Constructs a unit spherical position with the given position.
+    #[inline]
+    fn from(direction: &S) -> Self {
+        Self::unit(direction.azimuth(), direction.latitude())
     }
 }

@@ -1,39 +1,39 @@
 {
-	"folders": [
-		{
-			"name": "ephem",
-			"path": "."
-		}
-	],
+  "folders": [
+    {
+      "name": "ephem",
+      "path": "."
+    }
+  ],
 
-	"settings": {
-		"editor.minimap.enabled": false,
-		"editor.accessibilitySupport": "off",
+  "settings": {
+    "editor.minimap.enabled": false,
+    "editor.accessibilitySupport": "off",
+    "editor.formatOnSave": true,
 
-		"rust-analyzer.linkedProjects": [
-			".\\Cargo.toml"
-		],
+    "rust-analyzer.linkedProjects": [".\\Cargo.toml"],
+    "cargo.automaticCheck": false,
 
-		"workbench.colorCustomizations": {
-			"activityBar.activeBackground": "#1b94f0",
-			"activityBar.background": "#1b94f0",
-			"activityBar.foreground": "#e7e7e7",
-			"activityBar.inactiveForeground": "#e7e7e799",
-			"activityBarBadge.background": "#b30c6b",
-			"activityBarBadge.foreground": "#e7e7e7",
-			"commandCenter.border": "#e7e7e799",
-			"sash.hoverBorder": "#1b94f0",
-			"statusBar.background": "#0d79cc",
-			"statusBar.foreground": "#e7e7e7",
-			"statusBarItem.hoverBackground": "#1b94f0",
-			"statusBarItem.remoteBackground": "#0d79cc",
-			"statusBarItem.remoteForeground": "#e7e7e7",
-			"titleBar.activeBackground": "#0d79cc",
-			"titleBar.activeForeground": "#e7e7e7",
-			"titleBar.inactiveBackground": "#0d79cc99",
-			"titleBar.inactiveForeground": "#e7e7e799"
-		},
-		"peacock.color": "#0d79cc",
-		"rust-analyzer.showUnlinkedFileNotification": false,
-	}
+    "workbench.colorCustomizations": {
+      "activityBar.activeBackground": "#1b94f0",
+      "activityBar.background": "#1b94f0",
+      "activityBar.foreground": "#e7e7e7",
+      "activityBar.inactiveForeground": "#e7e7e799",
+      "activityBarBadge.background": "#b30c6b",
+      "activityBarBadge.foreground": "#e7e7e7",
+      "commandCenter.border": "#e7e7e799",
+      "sash.hoverBorder": "#1b94f0",
+      "statusBar.background": "#0d79cc",
+      "statusBar.foreground": "#e7e7e7",
+      "statusBarItem.hoverBackground": "#1b94f0",
+      "statusBarItem.remoteBackground": "#0d79cc",
+      "statusBarItem.remoteForeground": "#e7e7e7",
+      "titleBar.activeBackground": "#0d79cc",
+      "titleBar.activeForeground": "#e7e7e7",
+      "titleBar.inactiveBackground": "#0d79cc99",
+      "titleBar.inactiveForeground": "#e7e7e799"
+    },
+    "peacock.color": "#0d79cc",
+    "rust-analyzer.showUnlinkedFileNotification": false
+  }
 }
