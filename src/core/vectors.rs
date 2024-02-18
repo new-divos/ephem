@@ -1,4 +1,4 @@
-use std::convert::Into;
+use std::convert::From;
 use std::marker::PhantomData;
 
 /// Trait representing the ability to calculate the norm (magnitude) of a three-dimensional vector.
@@ -16,7 +16,16 @@ pub trait Vec3dNorm {
 /// Types implementing this trait are expected to provide functionalities related to spatial
 /// coordinates, transformations, and other operations specific to the coordinate system they
 /// represent.
-pub trait CoordinateSystem {}
+pub trait CoordinateSystem {
+    /// Constant representing the first coordinate index.
+    const E1_IDX: usize;
+
+    /// Constant representing the second coordinate index.
+    const E2_IDX: usize;
+
+    /// Constant representing the third coordinate index.
+    const E3_IDX: usize;
+}
 
 /// Three-dimensional vector struct parameterized by a coordinate system.
 ///
@@ -31,12 +40,26 @@ pub struct Vec3d<S: CoordinateSystem>(
     PhantomData<S>,
 );
 
+/// Implementation of converting a 3-dimensional vector to a tuple of coordinates.
+///
+/// This implementation converts a 3-dimensional vector (`Vec3d`) representing coordinates
+/// in a specified coordinate system (`CoordinateSystem`) to a tuple of `(f64, f64, f64)`.
+/// The elements of the tuple correspond to the coordinates in the vector according to the
+/// indices defined in the coordinate system.
+impl<S: CoordinateSystem> From<Vec3d<S>> for (f64, f64, f64) {
+    #[inline]
+    /// Converts the given 3-dimensional vector to a tuple of coordinates.
+    fn from(vector: Vec3d<S>) -> Self {
+        (
+            vector.0[S::E1_IDX],
+            vector.0[S::E2_IDX],
+            vector.0[S::E3_IDX],
+        )
+    }
+}
+
 /// Struct representing the Cartesian coordinate system.
 pub struct Cartesian;
-
-/// The `Cartesian` struct implements the `CoordinateSystem` trait, indicating that it adheres
-/// to the requirements set by the trait.
-impl CoordinateSystem for Cartesian {}
 
 /// It also includes constants defining the indices for commonly used Cartesian
 /// coordinates (X, Y, and Z).
@@ -49,6 +72,19 @@ impl Cartesian {
 
     /// Constant representing the Z-coordinate index in Cartesian coordinates.
     const Z_IDX: usize = 2;
+}
+
+/// The `Cartesian` struct implements the `CoordinateSystem` trait, indicating that it adheres
+/// to the requirements set by the trait.
+impl CoordinateSystem for Cartesian {
+    /// Constant representing the first coordinate index in Cartesian coordinates.
+    const E1_IDX: usize = Self::X_IDX;
+
+    /// Constant representing the second coordinate index in Cartesian coordinates.
+    const E2_IDX: usize = Self::Y_IDX;
+
+    /// Constant representing the third coordinate index in Cartesian coordinates.
+    const E3_IDX: usize = Self::Z_IDX;
 }
 
 /// Additional methods for three-dimensional vectors in the Cartesian coordinate system.
@@ -89,26 +125,6 @@ impl Vec3dNorm for Vec3d<Cartesian> {
     #[inline]
     fn norm(&self) -> f64 {
         (self.0[0] * self.0[0] + self.0[1] * self.0[1] + self.0[2] * self.0[2]).sqrt()
-    }
-}
-
-/// Implementation of the `Into` trait for converting a `Vec3d<Cartesian>` into a tuple.
-///
-/// This allows seamless conversion of a Cartesian vector into a tuple of its components.
-#[allow(clippy::from_over_into)]
-impl Into<(f64, f64, f64)> for Vec3d<Cartesian> {
-    /// Converts the three-dimensional vector into a tuple of its components.
-    ///
-    /// # Returns
-    ///
-    /// A tuple representing the X, Y, and Z components of the vector.
-    #[inline]
-    fn into(self) -> (f64, f64, f64) {
-        (
-            self.0[Cartesian::X_IDX],
-            self.0[Cartesian::Y_IDX],
-            self.0[Cartesian::Z_IDX],
-        )
     }
 }
 
@@ -214,10 +230,6 @@ impl Default for CartesianBuilder {
 /// Struct representing the Cylindrical coordinate system.
 pub struct Cylindrical;
 
-/// The `Cylindrical` struct implements the `CoordinateSystem` trait, indicating that it adheres
-/// to the requirements set by the trait.
-impl CoordinateSystem for Cylindrical {}
-
 /// It also includes constants defining the indices for commonly used Cylindrical
 /// coordinates (Radius, Azimuth, and Altitude).
 impl Cylindrical {
@@ -229,6 +241,19 @@ impl Cylindrical {
 
     /// Constant representing the Altitude-coordinate index in Cylindrical coordinates.
     const ALTITUDE_IDX: usize = 2;
+}
+
+/// The `Cylindrical` struct implements the `CoordinateSystem` trait, indicating that it adheres
+/// to the requirements set by the trait.
+impl CoordinateSystem for Cylindrical {
+    /// Constant representing the first coordinate index in Cylindrical coordinates.
+    const E1_IDX: usize = Self::RADIUS_IDX;
+
+    /// Constant representing the second coordinate index in Cylindrical coordinates.
+    const E2_IDX: usize = Self::AZIMUTH_IDX;
+
+    /// Constant representing the third coordinate index in Cylindrical coordinates.
+    const E3_IDX: usize = Self::ALTITUDE_IDX;
 }
 
 /// Additional methods for three-dimensional vectors in the cylindrical coordinate system.
@@ -271,26 +296,6 @@ impl Vec3dNorm for Vec3d<Cylindrical> {
         (self.0[Cylindrical::RADIUS_IDX] * self.0[Cylindrical::RADIUS_IDX]
             + self.0[Cylindrical::ALTITUDE_IDX] * self.0[Cylindrical::ALTITUDE_IDX])
             .sqrt()
-    }
-}
-
-/// Implementation of the `Into` trait for converting a `Vec3d<Cylindrical>` into a tuple.
-///
-/// This allows seamless conversion of a cylindrical vector into a tuple of its components.
-#[allow(clippy::from_over_into)]
-impl Into<(f64, f64, f64)> for Vec3d<Cylindrical> {
-    /// Converts the three-dimensional vector into a tuple of its components.
-    ///
-    /// # Returns
-    ///
-    /// A tuple representing the radius, azimuth, and altitude components of the vector.
-    #[inline]
-    fn into(self) -> (f64, f64, f64) {
-        (
-            self.0[Cylindrical::RADIUS_IDX],
-            self.0[Cylindrical::AZIMUTH_IDX],
-            self.0[Cylindrical::ALTITUDE_IDX],
-        )
     }
 }
 
@@ -373,10 +378,6 @@ impl Default for CylindricalBuilder {
 /// Struct representing the Spherical coordinate system.
 pub struct Spherical;
 
-/// The `Spherical` struct implements the `CoordinateSystem` trait, indicating that it adheres
-/// to the requirements set by the trait.
-impl CoordinateSystem for Spherical {}
-
 /// It also includes constants defining the indices for commonly used Spherical
 /// coordinates (Radius, Azimuth, and Latitude).
 impl Spherical {
@@ -388,6 +389,19 @@ impl Spherical {
 
     /// Constant representing the Latitude-coordinate index in Spherical coordinates.
     const LATITUDE_IDX: usize = 2;
+}
+
+/// The `Spherical` struct implements the `CoordinateSystem` trait, indicating that it adheres
+/// to the requirements set by the trait.
+impl CoordinateSystem for Spherical {
+    /// Constant representing the first coordinate index in Spherical coordinates.
+    const E1_IDX: usize = Self::RADIUS_IDX;
+
+    /// Constant representing the second coordinate index in Spherical coordinates.
+    const E2_IDX: usize = Self::AZIMUTH_IDX;
+
+    /// Constant representing the third coordinate index in Spherical coordinates.
+    const E3_IDX: usize = Self::LATITUDE_IDX;
 }
 
 /// Additional methods for three-dimensional vectors in the spherical coordinate system.
@@ -428,26 +442,6 @@ impl Vec3dNorm for Vec3d<Spherical> {
     #[inline]
     fn norm(&self) -> f64 {
         self.0[Spherical::RADIUS_IDX].abs()
-    }
-}
-
-/// Implementation of the `Into` trait for converting a `Vec3d<Spherical>` into a tuple.
-///
-/// This allows seamless conversion of a spherical vector into a tuple of its components.
-#[allow(clippy::from_over_into)]
-impl Into<(f64, f64, f64)> for Vec3d<Spherical> {
-    /// Converts the three-dimensional vector into a tuple of its components.
-    ///
-    /// # Returns
-    ///
-    /// A tuple representing the radius, azimuth, and latitude components of the vector.
-    #[inline]
-    fn into(self) -> (f64, f64, f64) {
-        (
-            self.0[Spherical::RADIUS_IDX],
-            self.0[Spherical::AZIMUTH_IDX],
-            self.0[Spherical::LATITUDE_IDX],
-        )
     }
 }
 

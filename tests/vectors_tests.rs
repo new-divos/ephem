@@ -47,6 +47,71 @@ impl TestDirection {
     }
 }
 
+/// Generates random Cartesian coordinates within a specified range.
+///
+/// This function generates random Cartesian coordinates `(x, y, z)` within the range
+/// defined by `shared::MIN_VALUE` and `shared::MAX_VALUE` using the provided random number generator `rng`.
+///
+/// # Arguments
+///
+/// * `rng` - A mutable reference to a random number generator implementing the `Rng` trait.
+///
+/// # Returns
+///
+/// A tuple containing the generated Cartesian coordinates `(x, y, z)`.
+#[inline]
+fn gen_cartesian<R: Rng + ?Sized>(rng: &mut R) -> (f64, f64, f64) {
+    (
+        (shared::MAX_VALUE - shared::MIN_VALUE) * rng.gen::<f64>() + shared::MIN_VALUE,
+        (shared::MAX_VALUE - shared::MIN_VALUE) * rng.gen::<f64>() + shared::MIN_VALUE,
+        (shared::MAX_VALUE - shared::MIN_VALUE) * rng.gen::<f64>() + shared::MIN_VALUE,
+    )
+}
+
+/// Generates random cylindrical coordinates within a specified range.
+///
+/// This function generates random cylindrical coordinates `(radius, azimuth, altitude)` within the range
+/// defined by `shared::MIN_VALUE` and `shared::MAX_VALUE` for radius and altitude, and 0 to 2π for azimuth,
+/// using the provided random number generator `rng`.
+///
+/// # Arguments
+///
+/// * `rng` - A mutable reference to a random number generator implementing the `Rng` trait.
+///
+/// # Returns
+///
+/// A tuple containing the generated cylindrical coordinates `(radius, azimuth, altitude)`.
+#[inline]
+fn gen_cylindrical<R: Rng + ?Sized>(rng: &mut R) -> (f64, f64, f64) {
+    (
+        (shared::MAX_VALUE - shared::MIN_VALUE) * rng.gen::<f64>() + shared::MIN_VALUE,
+        PI2 * rng.gen::<f64>(),
+        (shared::MAX_VALUE - shared::MIN_VALUE) * rng.gen::<f64>() + shared::MIN_VALUE,
+    )
+}
+
+/// Generates random spherical coordinates within a specified range.
+///
+/// This function generates random spherical coordinates `(radius, azimuth, latitude)` within the range
+/// defined by `shared::MIN_VALUE` and `shared::MAX_VALUE` for radius, 0 to 2π for azimuth,
+/// and -π/2 to π/2 for latitude, using the provided random number generator `rng`.
+///
+/// # Arguments
+///
+/// * `rng` - A mutable reference to a random number generator implementing the `Rng` trait.
+///
+/// # Returns
+///
+/// A tuple containing the generated spherical coordinates `(radius, azimuth, latitude)`.
+#[inline]
+fn gen_spherical<R: Rng + ?Sized>(rng: &mut R) -> (f64, f64, f64) {
+    (
+        (shared::MAX_VALUE - shared::MIN_VALUE) * rng.gen::<f64>() + shared::MIN_VALUE,
+        PI2 * rng.gen::<f64>(),
+        PI * rng.gen::<f64>() - FRAC_PI_2,
+    )
+}
+
 /// Test case for creating Cartesian vectors using the CartesianBuilder.
 ///
 /// This test verifies the correctness of creating Cartesian vectors with various methods provided
@@ -89,9 +154,7 @@ fn create_cartesian_vec3d_test() {
     // Test building vectors with random values
     let mut rng = rand::thread_rng();
     for _ in 0..shared::ITERATIONS {
-        let x = (shared::MAX_VALUE - shared::MIN_VALUE) * rng.gen::<f64>() + shared::MIN_VALUE;
-        let y = (shared::MAX_VALUE - shared::MIN_VALUE) * rng.gen::<f64>() + shared::MIN_VALUE;
-        let z = (shared::MAX_VALUE - shared::MIN_VALUE) * rng.gen::<f64>() + shared::MIN_VALUE;
+        let (x, y, z) = gen_cartesian(&mut rng);
 
         // Test building a vector with specified values
         let v1 = CartesianBuilder::with(x, y, z).build();
@@ -133,10 +196,7 @@ fn create_cylindrical_vec3d_test() {
     // Test building vectors with random values
     let mut rng = rand::thread_rng();
     for _ in 0..shared::ITERATIONS {
-        let radius = (shared::MAX_VALUE - shared::MIN_VALUE) * rng.gen::<f64>() + shared::MIN_VALUE;
-        let azimuth = PI2 * rng.gen::<f64>();
-        let altitude =
-            (shared::MAX_VALUE - shared::MIN_VALUE) * rng.gen::<f64>() + shared::MIN_VALUE;
+        let (radius, azimuth, altitude) = gen_cylindrical(&mut rng);
 
         // Test building a vector with specified values
         let v1 = CylindricalBuilder::with(radius, azimuth, altitude).build();
@@ -182,9 +242,7 @@ fn create_spherical_vec3d_test() {
     // Test building vectors with random values
     let mut rng = rand::thread_rng();
     for _ in 0..shared::ITERATIONS {
-        let radius = (shared::MAX_VALUE - shared::MIN_VALUE) * rng.gen::<f64>() + shared::MIN_VALUE;
-        let azimuth = PI2 * rng.gen::<f64>();
-        let latitude = PI * rng.gen::<f64>() - FRAC_PI_2;
+        let (radius, azimuth, latitude) = gen_spherical(&mut rng);
 
         // Test building a vector with specified values
         let v1 = SphericalBuilder::with(radius, azimuth, latitude).build();
@@ -238,5 +296,53 @@ fn create_spherical_vec3d_with_position_test() {
         assert_eq!(u.radius(), 1.0);
         assert_eq!(u.azimuth(), direction.azimuth());
         assert_eq!(u.latitude(), direction.latitude());
+    }
+}
+
+/// Test function for converting vectors into tuples.
+///
+/// This function tests the conversion of vectors (`Vec3d`) into tuples of coordinates for various coordinate systems.
+/// It generates vectors with random values and verifies that the conversion produces tuples with corresponding values.
+///
+/// # Panics
+///
+/// This test will panic if any of the assertions fail.
+#[test]
+fn convert_vec3d_into_tuple_test() {
+    // Test converting Cartesian vectors into tuples
+    let mut rng = rand::thread_rng();
+    for _ in 0..shared::ITERATIONS {
+        let (x, y, z) = gen_cartesian(&mut rng);
+
+        let v = CartesianBuilder::with(x, y, z).build();
+        let (x_t, y_t, z_t) = v.into();
+
+        assert_eq!(x_t, x);
+        assert_eq!(y_t, y);
+        assert_eq!(z_t, z);
+    }
+
+    // Test converting cylindrical vectors into tuples
+    for _ in 0..shared::ITERATIONS {
+        let (radius, azimuth, altitude) = gen_cylindrical(&mut rng);
+
+        let v = CylindricalBuilder::with(radius, azimuth, altitude).build();
+        let (radius_t, azimuth_t, altitude_t) = v.into();
+
+        assert_eq!(radius_t, radius);
+        assert_eq!(azimuth_t, azimuth);
+        assert_eq!(altitude_t, altitude);
+    }
+
+    // Test converting spherical vectors into tuples
+    for _ in 0..shared::ITERATIONS {
+        let (radius, azimuth, latitude) = gen_spherical(&mut rng);
+
+        let v = SphericalBuilder::with(radius, azimuth, latitude).build();
+        let (radius_t, azimuth_t, latitude_t) = v.into();
+
+        assert_eq!(radius_t, radius);
+        assert_eq!(azimuth_t, azimuth);
+        assert_eq!(latitude_t, latitude);
     }
 }
