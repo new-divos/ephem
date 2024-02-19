@@ -1,6 +1,10 @@
 use std::convert::From;
 use std::marker::PhantomData;
 
+use crate::core::consts::PI2;
+
+use super::FloatExt;
+
 /// Trait representing the ability to calculate the norm (magnitude) of a three-dimensional vector.
 ///
 /// The `Vec3dNorm` trait defines a method for computing the norm of a vector in three-dimensional space.
@@ -25,6 +29,18 @@ pub trait CoordinateSystem {
 
     /// Constant representing the third coordinate index.
     const E3_IDX: usize;
+}
+
+pub trait ToCartesian {
+    fn to_c(&self) -> Vec3d<Cartesian>;
+}
+
+pub trait ToCylindrical {
+    fn to_y(&self) -> Vec3d<Cylindrical>;
+}
+
+pub trait ToSpherical {
+    fn to_s(&self) -> Vec3d<Spherical>;
 }
 
 /// Three-dimensional vector struct parameterized by a coordinate system.
@@ -125,6 +141,61 @@ impl Vec3dNorm for Vec3d<Cartesian> {
     #[inline]
     fn norm(&self) -> f64 {
         (self.0[0] * self.0[0] + self.0[1] * self.0[1] + self.0[2] * self.0[2]).sqrt()
+    }
+}
+
+impl ToCylindrical for Vec3d<Cartesian> {
+    fn to_y(&self) -> Vec3d<Cylindrical> {
+        let x = self.0[Cartesian::X_IDX];
+        let y = self.0[Cartesian::Y_IDX];
+
+        let phi = if x == 0.0 && y == 0.0 {
+            0.0
+        } else {
+            y.atan2(x)
+        };
+
+        Vec3d::<Cylindrical>(
+            [x.hypot(y), phi.fmod(PI2), self.0[Cartesian::Z_IDX]],
+            PhantomData::<Cylindrical> {},
+        )
+    }
+}
+
+impl ToSpherical for Vec3d<Cartesian> {
+    fn to_s(&self) -> Vec3d<Spherical> {
+        let x = self.0[Cartesian::X_IDX];
+        let y = self.0[Cartesian::Y_IDX];
+        let z = self.0[Cartesian::Z_IDX];
+
+        let rho_sq = x * x + y * y;
+        let r = (rho_sq + z * z).sqrt();
+
+        let phi = if x == 0.0 && y == 0.0 {
+            0.0
+        } else {
+            y.atan2(x)
+        };
+
+        let rho = rho_sq.sqrt();
+        let theta = if rho == 0.0 && z == 0.0 {
+            0.0
+        } else {
+            z.atan2(rho)
+        };
+
+        Vec3d::<Spherical>([r, phi.fmod(PI2), theta], PhantomData::<Spherical> {})
+    }
+}
+
+impl<S> From<Vec3d<S>> for Vec3d<Cartesian>
+where
+    S: CoordinateSystem,
+    Vec3d<S>: ToCartesian,
+{
+    #[inline]
+    fn from(vector: Vec3d<S>) -> Self {
+        vector.to_c()
     }
 }
 
@@ -299,6 +370,48 @@ impl Vec3dNorm for Vec3d<Cylindrical> {
     }
 }
 
+impl ToCartesian for Vec3d<Cylindrical> {
+    fn to_c(&self) -> Vec3d<Cartesian> {
+        let (sa, ca) = self.0[Cylindrical::AZIMUTH_IDX].sin_cos();
+        let rho = self.0[Cylindrical::RADIUS_IDX];
+
+        Vec3d::<Cartesian>(
+            [ca * rho, sa * rho, self.0[Cylindrical::ALTITUDE_IDX]],
+            PhantomData::<Cartesian> {},
+        )
+    }
+}
+
+impl ToSpherical for Vec3d<Cylindrical> {
+    fn to_s(&self) -> Vec3d<Spherical> {
+        let rho = self.0[Cylindrical::RADIUS_IDX];
+        let z = self.0[Cylindrical::ALTITUDE_IDX];
+
+        let r = (rho * rho + z * z).sqrt();
+        let theta = if rho == 0.0 && z == 0.0 {
+            0.0
+        } else {
+            z.atan2(rho)
+        };
+
+        Vec3d::<Spherical>(
+            [r, self.0[Cylindrical::AZIMUTH_IDX], theta],
+            PhantomData::<Spherical> {},
+        )
+    }
+}
+
+impl<S> From<Vec3d<S>> for Vec3d<Cylindrical>
+where
+    S: CoordinateSystem,
+    Vec3d<S>: ToCylindrical,
+{
+    #[inline]
+    fn from(vector: Vec3d<S>) -> Self {
+        vector.to_y()
+    }
+}
+
 /// Builder struct for creating instances of vectors in the cylindrical coordinate system.
 ///
 /// The `CylindricalBuilder` struct facilitates the construction of vectors in the cylindrical
@@ -442,6 +555,39 @@ impl Vec3dNorm for Vec3d<Spherical> {
     #[inline]
     fn norm(&self) -> f64 {
         self.0[Spherical::RADIUS_IDX].abs()
+    }
+}
+
+impl ToCartesian for Vec3d<Spherical> {
+    fn to_c(&self) -> Vec3d<Cartesian> {
+        let (sa, ca) = self.0[Spherical::AZIMUTH_IDX].sin_cos();
+        let (sl, cl) = self.0[Spherical::LATITUDE_IDX].sin_cos();
+        let r = self.0[Spherical::RADIUS_IDX];
+        let rho = r * cl;
+
+        Vec3d::<Cartesian>([ca * rho, sa * rho, r * sl], PhantomData::<Cartesian> {})
+    }
+}
+
+impl ToCylindrical for Vec3d<Spherical> {
+    fn to_y(&self) -> Vec3d<Cylindrical> {
+        let (sl, cl) = self.0[Spherical::LATITUDE_IDX].sin_cos();
+        let r = self.0[Spherical::RADIUS_IDX];
+
+        Vec3d::<Cylindrical>(
+            [cl * r, self.0[Spherical::AZIMUTH_IDX], sl * r],
+            PhantomData::<Cylindrical> {},
+        )
+    }
+}
+
+impl<S> From<Vec3d<S>> for Vec3d<Spherical>
+where
+    S: CoordinateSystem,
+    Vec3d<S>: ToSpherical,
+{
+    fn from(vector: Vec3d<S>) -> Self {
+        vector.to_s()
     }
 }
 
