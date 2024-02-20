@@ -2,6 +2,8 @@
 
 use std::f64::consts::{FRAC_PI_2, PI};
 
+use approx::assert_relative_eq;
+
 use rand::Rng;
 
 use ephem::core::consts::PI2;
@@ -344,5 +346,156 @@ fn convert_vec3d_into_tuple_test() {
         assert_eq!(radius_t, radius);
         assert_eq!(azimuth_t, azimuth);
         assert_eq!(latitude_t, latitude);
+    }
+}
+
+#[test]
+fn convert_vec3d_test() {
+    let mut rng = rand::thread_rng();
+    for _ in 0..shared::ITERATIONS {
+        let (x, y, z) = gen_cartesian(&mut rng);
+        let c = CartesianBuilder::with(x, y, z).build();
+
+        let y = c.to_y();
+        let t: Vec3d<Cartesian> = y.into();
+
+        assert_relative_eq!(
+            t.x(),
+            c.x(),
+            epsilon = f64::EPSILON,
+            max_relative = shared::EPSILON
+        );
+        assert_relative_eq!(
+            t.y(),
+            c.y(),
+            epsilon = f64::EPSILON,
+            max_relative = shared::EPSILON
+        );
+        assert_relative_eq!(
+            t.z(),
+            c.z(),
+            epsilon = f64::EPSILON,
+            max_relative = shared::EPSILON
+        );
+
+        let s = c.to_s();
+        let t: Vec3d<Cartesian> = s.into();
+
+        assert_relative_eq!(
+            t.x(),
+            c.x(),
+            epsilon = f64::EPSILON,
+            max_relative = shared::EPSILON
+        );
+        assert_relative_eq!(
+            t.y(),
+            c.y(),
+            epsilon = f64::EPSILON,
+            max_relative = shared::EPSILON
+        );
+        assert_relative_eq!(
+            t.z(),
+            c.z(),
+            epsilon = f64::EPSILON,
+            max_relative = shared::EPSILON
+        );
+    }
+
+    for _ in 0..shared::ITERATIONS {
+        let (radius, azimuth, altitude) = gen_cylindrical(&mut rng);
+        let y = CylindricalBuilder::with(radius.abs(), azimuth, altitude).build();
+
+        let c = y.to_c();
+        let t: Vec3d<Cylindrical> = c.into();
+
+        assert_relative_eq!(
+            t.radius(),
+            y.radius(),
+            epsilon = f64::EPSILON,
+            max_relative = shared::EPSILON
+        );
+        assert_relative_eq!(
+            t.azimuth(),
+            y.azimuth(),
+            epsilon = f64::EPSILON,
+            max_relative = shared::EPSILON
+        );
+        assert_relative_eq!(
+            t.altitude(),
+            y.altitude(),
+            epsilon = f64::EPSILON,
+            max_relative = shared::EPSILON
+        );
+
+        let s = y.to_s();
+        let t: Vec3d<Cylindrical> = s.into();
+
+        assert_relative_eq!(
+            t.radius(),
+            y.radius(),
+            epsilon = f64::EPSILON,
+            max_relative = shared::EPSILON
+        );
+        assert_relative_eq!(
+            t.azimuth(),
+            y.azimuth(),
+            epsilon = f64::EPSILON,
+            max_relative = shared::EPSILON
+        );
+        assert_relative_eq!(
+            t.altitude(),
+            y.altitude(),
+            epsilon = f64::EPSILON,
+            max_relative = shared::EPSILON
+        );
+    }
+
+    for _ in 0..shared::ITERATIONS {
+        let (radius, azimuth, latitude) = gen_spherical(&mut rng);
+        let s = SphericalBuilder::with(radius.abs(), azimuth, latitude).build();
+
+        let y = s.to_y();
+        let t: Vec3d<Spherical> = y.into();
+
+        assert_relative_eq!(
+            t.radius(),
+            s.radius(),
+            epsilon = f64::EPSILON,
+            max_relative = shared::EPSILON
+        );
+        assert_relative_eq!(
+            t.azimuth(),
+            s.azimuth(),
+            epsilon = f64::EPSILON,
+            max_relative = shared::EPSILON
+        );
+        assert_relative_eq!(
+            t.latitude(),
+            s.latitude(),
+            epsilon = f64::EPSILON,
+            max_relative = shared::EPSILON
+        );
+
+        let c = s.to_c();
+        let t: Vec3d<Spherical> = c.into();
+
+        assert_relative_eq!(
+            t.radius(),
+            s.radius(),
+            epsilon = f64::EPSILON,
+            max_relative = shared::EPSILON
+        );
+        assert_relative_eq!(
+            t.azimuth(),
+            s.azimuth(),
+            epsilon = f64::EPSILON,
+            max_relative = shared::EPSILON
+        );
+        assert_relative_eq!(
+            t.latitude(),
+            s.latitude(),
+            epsilon = f64::EPSILON,
+            max_relative = shared::EPSILON
+        );
     }
 }

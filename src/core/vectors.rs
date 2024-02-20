@@ -48,7 +48,7 @@ pub trait ToSpherical {
 /// The `Vec3d` struct represents a three-dimensional vector with coordinates stored as an array of
 /// three `f64` values. The choice of coordinate system is determined by the type parameter `S`, which
 /// must implement the `CoordinateSystem` trait.
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Vec3d<S: CoordinateSystem>(
     /// Array representing the three coordinates of the vector.
     [f64; 3],
@@ -75,6 +75,7 @@ impl<S: CoordinateSystem> From<Vec3d<S>> for (f64, f64, f64) {
 }
 
 /// Struct representing the Cartesian coordinate system.
+#[derive(Debug)]
 pub struct Cartesian;
 
 /// It also includes constants defining the indices for commonly used Cartesian
@@ -299,6 +300,7 @@ impl Default for CartesianBuilder {
 }
 
 /// Struct representing the Cylindrical coordinate system.
+#[derive(Debug)]
 pub struct Cylindrical;
 
 /// It also includes constants defining the indices for commonly used Cylindrical
@@ -489,6 +491,7 @@ impl Default for CylindricalBuilder {
 }
 
 /// Struct representing the Spherical coordinate system.
+#[derive(Debug)]
 pub struct Spherical;
 
 /// It also includes constants defining the indices for commonly used Spherical
