@@ -1,5 +1,6 @@
 use std::convert::From;
 use std::marker::PhantomData;
+use std::ops::{Add, AddAssign, Mul, MulAssign, Sub, SubAssign};
 
 use crate::core::consts::PI2;
 
@@ -71,6 +72,19 @@ impl<S: CoordinateSystem> From<Vec3d<S>> for (f64, f64, f64) {
             vector.0[S::E2_IDX],
             vector.0[S::E3_IDX],
         )
+    }
+}
+
+impl<S> Mul<Vec3d<S>> for f64
+where
+    S: CoordinateSystem,
+    Vec3d<S>: Mul<f64, Output = Vec3d<S>>,
+{
+    type Output = Vec3d<S>;
+
+    #[inline]
+    fn mul(self, rhs: Vec3d<S>) -> Self::Output {
+        rhs.mul(self)
     }
 }
 
@@ -197,6 +211,81 @@ where
     #[inline]
     fn from(vector: Vec3d<S>) -> Self {
         vector.to_c()
+    }
+}
+
+impl Add for Vec3d<Cartesian> {
+    type Output = Self;
+
+    #[inline]
+    fn add(self, rhs: Self) -> Self::Output {
+        Vec3d::<Cartesian>(
+            [
+                self.0[Cartesian::X_IDX] + rhs.0[Cartesian::X_IDX],
+                self.0[Cartesian::Y_IDX] + rhs.0[Cartesian::Y_IDX],
+                self.0[Cartesian::Z_IDX] + rhs.0[Cartesian::Z_IDX],
+            ],
+            PhantomData::<Cartesian> {},
+        )
+    }
+}
+
+impl AddAssign for Vec3d<Cartesian> {
+    #[inline]
+    fn add_assign(&mut self, rhs: Self) {
+        self.0[Cartesian::X_IDX] += rhs.0[Cartesian::X_IDX];
+        self.0[Cartesian::Y_IDX] += rhs.0[Cartesian::Y_IDX];
+        self.0[Cartesian::Z_IDX] += rhs.0[Cartesian::Z_IDX];
+    }
+}
+
+impl Sub for Vec3d<Cartesian> {
+    type Output = Self;
+
+    #[inline]
+    fn sub(self, rhs: Self) -> Self::Output {
+        Vec3d::<Cartesian>(
+            [
+                self.0[Cartesian::X_IDX] - rhs.0[Cartesian::X_IDX],
+                self.0[Cartesian::Y_IDX] - rhs.0[Cartesian::Y_IDX],
+                self.0[Cartesian::Z_IDX] - rhs.0[Cartesian::Z_IDX],
+            ],
+            PhantomData::<Cartesian> {},
+        )
+    }
+}
+
+impl SubAssign for Vec3d<Cartesian> {
+    #[inline]
+    fn sub_assign(&mut self, rhs: Self) {
+        self.0[Cartesian::X_IDX] -= rhs.0[Cartesian::X_IDX];
+        self.0[Cartesian::Y_IDX] -= rhs.0[Cartesian::Y_IDX];
+        self.0[Cartesian::Z_IDX] -= rhs.0[Cartesian::Z_IDX];
+    }
+}
+
+impl Mul<f64> for Vec3d<Cartesian> {
+    type Output = Self;
+
+    #[inline]
+    fn mul(self, rhs: f64) -> Self::Output {
+        Vec3d::<Cartesian>(
+            [
+                self.0[Cartesian::X_IDX] * rhs,
+                self.0[Cartesian::Y_IDX] * rhs,
+                self.0[Cartesian::Z_IDX] * rhs,
+            ],
+            PhantomData::<Cartesian> {},
+        )
+    }
+}
+
+impl MulAssign<f64> for Vec3d<Cartesian> {
+    #[inline]
+    fn mul_assign(&mut self, rhs: f64) {
+        self.0[Cartesian::X_IDX] *= rhs;
+        self.0[Cartesian::Y_IDX] *= rhs;
+        self.0[Cartesian::Z_IDX] *= rhs;
     }
 }
 
