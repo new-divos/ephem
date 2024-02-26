@@ -1,19 +1,13 @@
-use std::convert::From;
-use std::marker::PhantomData;
-use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
+use std::{
+    convert::From,
+    f64::consts::PI,
+    marker::PhantomData,
+    ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign},
+};
 
 use crate::core::consts::PI2;
 
 use super::FloatExt;
-
-/// Trait representing the ability to calculate the norm (magnitude) of a three-dimensional vector.
-///
-/// The `Vec3dNorm` trait defines a method for computing the norm of a vector in three-dimensional space.
-/// Types implementing this trait are expected to provide a consistent and accurate calculation of
-/// the vector's magnitude.
-pub trait Vec3dNorm {
-    fn norm(&self) -> f64;
-}
 
 /// Trait representing a coordinate system.
 ///
@@ -42,6 +36,19 @@ pub trait ToCylindrical {
 
 pub trait ToSpherical {
     fn to_s(&self) -> Vec3d<Spherical>;
+}
+
+/// Trait representing the ability to calculate the norm (magnitude) of a three-dimensional vector.
+///
+/// The `Normalizable` trait defines a method for computing the norm of a vector in three-dimensional space.
+/// Types implementing this trait are expected to provide a consistent and accurate calculation of
+/// the vector's magnitude.
+pub trait Normalizable {
+    fn norm(&self) -> f64;
+}
+
+pub trait Canonizable {
+    fn canonic(self) -> Self;
 }
 
 pub trait DotMul<Rhs = Self> {
@@ -174,7 +181,7 @@ impl Vec3d<Cartesian> {
 /// coordinate system.
 ///
 /// This allows the calculation of the magnitude (norm) of a `Vec3d<Cartesian>` vector.
-impl Vec3dNorm for Vec3d<Cartesian> {
+impl Normalizable for Vec3d<Cartesian> {
     /// Computes and returns the magnitude of the three-dimensional vector.
     ///
     /// # Returns
@@ -366,6 +373,25 @@ impl DotMul for Vec3d<Cartesian> {
     }
 }
 
+impl CrossMul for Vec3d<Cartesian> {
+    type Output = Self;
+
+    #[inline]
+    fn cross(self, rhs: Self) -> Self::Output {
+        Vec3d::<Cartesian>(
+            [
+                self.0[Cartesian::Z_IDX] * rhs.0[Cartesian::Y_IDX]
+                    - self.0[Cartesian::Y_IDX] * rhs.0[Cartesian::Z_IDX],
+                self.0[Cartesian::X_IDX] * rhs.0[Cartesian::Z_IDX]
+                    - self.0[Cartesian::Z_IDX] * rhs.0[Cartesian::X_IDX],
+                self.0[Cartesian::Y_IDX] * rhs.0[Cartesian::X_IDX]
+                    - self.0[Cartesian::X_IDX] * rhs.0[Cartesian::Y_IDX],
+            ],
+            PhantomData::<Cartesian> {},
+        )
+    }
+}
+
 /// Builder struct for creating instances of the vectors in Cartesian coordinate system.
 ///
 /// The `CartesianBuilder` struct facilitates the construction of Vec3d instances
@@ -524,7 +550,7 @@ impl Vec3d<Cylindrical> {
 /// coordinate system.
 ///
 /// This allows the calculation of the norm (magnitude) of a `Vec3d<Cylindrical>` vector.
-impl Vec3dNorm for Vec3d<Cylindrical> {
+impl Normalizable for Vec3d<Cylindrical> {
     /// Computes and returns the magnitude of the three-dimensional vector.
     ///
     /// # Returns
@@ -535,6 +561,23 @@ impl Vec3dNorm for Vec3d<Cylindrical> {
         (self.0[Cylindrical::RADIUS_IDX] * self.0[Cylindrical::RADIUS_IDX]
             + self.0[Cylindrical::ALTITUDE_IDX] * self.0[Cylindrical::ALTITUDE_IDX])
             .sqrt()
+    }
+}
+
+impl Canonizable for Vec3d<Cylindrical> {
+    fn canonic(self) -> Self {
+        let mut radius = self.0[Cylindrical::RADIUS_IDX];
+        let mut azimuth = self.0[Cylindrical::AZIMUTH_IDX];
+
+        if radius < 0.0 {
+            radius = -radius;
+            azimuth += PI;
+        }
+
+        Vec3d::<Cylindrical>(
+            [radius, azimuth.fmod(PI2), self.0[Cylindrical::ALTITUDE_IDX]],
+            PhantomData::<Cylindrical> {},
+        )
     }
 }
 
@@ -577,6 +620,22 @@ where
     #[inline]
     fn from(vector: Vec3d<S>) -> Self {
         vector.to_y()
+    }
+}
+
+impl Neg for Vec3d<Cylindrical> {
+    type Output = Self;
+
+    #[inline]
+    fn neg(self) -> Self::Output {
+        Vec3d::<Cylindrical>(
+            [
+                -self.0[Cylindrical::RADIUS_IDX],
+                self.0[Cylindrical::AZIMUTH_IDX] + PI,
+                -self.0[Cylindrical::ALTITUDE_IDX],
+            ],
+            PhantomData::<Cylindrical> {},
+        )
     }
 }
 
@@ -715,7 +774,7 @@ impl Vec3d<Spherical> {
 /// coordinate system.
 ///
 /// This allows the calculation of the norm (magnitude) of a `Vec3d<Spherical>` vector.
-impl Vec3dNorm for Vec3d<Spherical> {
+impl Normalizable for Vec3d<Spherical> {
     /// Computes and returns the magnitude of the three-dimensional vector.
     ///
     /// # Returns
