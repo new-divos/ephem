@@ -1,6 +1,6 @@
 use std::convert::From;
 use std::marker::PhantomData;
-use std::ops::{Add, AddAssign, Mul, MulAssign, Sub, SubAssign};
+use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
 use crate::core::consts::PI2;
 
@@ -44,6 +44,18 @@ pub trait ToSpherical {
     fn to_s(&self) -> Vec3d<Spherical>;
 }
 
+pub trait DotMul<Rhs = Self> {
+    type Output;
+
+    fn dot(self, rhs: Rhs) -> Self::Output;
+}
+
+pub trait CrossMul<Rhs = Self> {
+    type Output;
+
+    fn cross(self, rhs: Rhs) -> Self::Output;
+}
+
 /// Three-dimensional vector struct parameterized by a coordinate system.
 ///
 /// The `Vec3d` struct represents a three-dimensional vector with coordinates stored as an array of
@@ -56,6 +68,21 @@ pub struct Vec3d<S: CoordinateSystem>(
     /// PhantomData marker to tie the coordinate system type to the vector.
     PhantomData<S>,
 );
+
+impl<S> Vec3d<S>
+where
+    S: CoordinateSystem,
+    Vec3d<S>: Div<f64, Output = Self>,
+{
+    #[inline]
+    pub fn checked_div(self, rhs: f64) -> Option<Self> {
+        if rhs != 0.0 {
+            Some(self / rhs)
+        } else {
+            None
+        }
+    }
+}
 
 /// Implementation of converting a 3-dimensional vector to a tuple of coordinates.
 ///
@@ -78,9 +105,9 @@ impl<S: CoordinateSystem> From<Vec3d<S>> for (f64, f64, f64) {
 impl<S> Mul<Vec3d<S>> for f64
 where
     S: CoordinateSystem,
-    Vec3d<S>: Mul<f64, Output = Vec3d<S>>,
+    Vec3d<S>: Mul<f64, Output = Self>,
 {
-    type Output = Vec3d<S>;
+    type Output = Self;
 
     #[inline]
     fn mul(self, rhs: Vec3d<S>) -> Self::Output {
@@ -214,6 +241,22 @@ where
     }
 }
 
+impl Neg for Vec3d<Cartesian> {
+    type Output = Self;
+
+    #[inline]
+    fn neg(self) -> Self::Output {
+        Vec3d::<Cartesian>(
+            [
+                -self.0[Cartesian::X_IDX],
+                -self.0[Cartesian::Y_IDX],
+                -self.0[Cartesian::Z_IDX],
+            ],
+            PhantomData::<Cartesian> {},
+        )
+    }
+}
+
 impl Add for Vec3d<Cartesian> {
     type Output = Self;
 
@@ -286,6 +329,40 @@ impl MulAssign<f64> for Vec3d<Cartesian> {
         self.0[Cartesian::X_IDX] *= rhs;
         self.0[Cartesian::Y_IDX] *= rhs;
         self.0[Cartesian::Z_IDX] *= rhs;
+    }
+}
+
+impl Div<f64> for Vec3d<Cartesian> {
+    type Output = Self;
+
+    #[inline]
+    fn div(self, rhs: f64) -> Self::Output {
+        Vec3d::<Cartesian>(
+            [
+                self.0[Cartesian::X_IDX] / rhs,
+                self.0[Cartesian::Y_IDX] / rhs,
+                self.0[Cartesian::Z_IDX] / rhs,
+            ],
+            PhantomData::<Cartesian> {},
+        )
+    }
+}
+
+impl DivAssign<f64> for Vec3d<Cartesian> {
+    #[inline]
+    fn div_assign(&mut self, rhs: f64) {
+        self.0[Cartesian::X_IDX] /= rhs;
+        self.0[Cartesian::Y_IDX] /= rhs;
+        self.0[Cartesian::Z_IDX] /= rhs;
+    }
+}
+
+impl DotMul for Vec3d<Cartesian> {
+    type Output = f64;
+
+    #[inline]
+    fn dot(self, rhs: Self) -> Self::Output {
+        self.0[0] * rhs.0[0] + self.0[1] * rhs.0[1] + self.0[2] * rhs.0[2]
     }
 }
 
