@@ -5,9 +5,8 @@ use std::{
     ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign},
 };
 
+use super::{Canonizable, CrossMul, DotMul, FloatExt, Normalizable};
 use crate::core::consts::PI2;
-
-use super::FloatExt;
 
 /// Trait representing a coordinate system.
 ///
@@ -36,31 +35,6 @@ pub trait ToCylindrical {
 
 pub trait ToSpherical {
     fn to_s(&self) -> Vec3d<Spherical>;
-}
-
-/// Trait representing the ability to calculate the norm (magnitude) of a three-dimensional vector.
-///
-/// The `Normalizable` trait defines a method for computing the norm of a vector in three-dimensional space.
-/// Types implementing this trait are expected to provide a consistent and accurate calculation of
-/// the vector's magnitude.
-pub trait Normalizable {
-    fn norm(&self) -> f64;
-}
-
-pub trait Canonizable {
-    fn canonic(self) -> Self;
-}
-
-pub trait DotMul<Rhs = Self> {
-    type Output;
-
-    fn dot(self, rhs: Rhs) -> Self::Output;
-}
-
-pub trait CrossMul<Rhs = Self> {
-    type Output;
-
-    fn cross(self, rhs: Rhs) -> Self::Output;
 }
 
 /// Three-dimensional vector struct parameterized by a coordinate system.
@@ -177,18 +151,21 @@ impl Vec3d<Cartesian> {
     }
 }
 
-/// Implementation of the `Vec3dNorm` trait for three-dimensional vectors in the Cartesian
+/// Implementation of the `Normalizable` trait for three-dimensional vectors in the Cartesian
 /// coordinate system.
 ///
 /// This allows the calculation of the magnitude (norm) of a `Vec3d<Cartesian>` vector.
 impl Normalizable for Vec3d<Cartesian> {
+    /// The type of the result of the norm calculation.
+    type Output = f64;
+
     /// Computes and returns the magnitude of the three-dimensional vector.
     ///
     /// # Returns
     ///
     /// The magnitude of the vector as a floating-point number.
     #[inline]
-    fn norm(&self) -> f64 {
+    fn norm(&self) -> Self::Output {
         (self.0[0] * self.0[0] + self.0[1] * self.0[1] + self.0[2] * self.0[2]).sqrt()
     }
 }
@@ -546,18 +523,21 @@ impl Vec3d<Cylindrical> {
     }
 }
 
-/// Implementation of the `Vec3dNorm` trait for three-dimensional vectors in the cylindrical
+/// Implementation of the `Normalizable` trait for three-dimensional vectors in the cylindrical
 /// coordinate system.
 ///
 /// This allows the calculation of the norm (magnitude) of a `Vec3d<Cylindrical>` vector.
 impl Normalizable for Vec3d<Cylindrical> {
+    /// The type of the result of the norm calculation.
+    type Output = f64;
+
     /// Computes and returns the magnitude of the three-dimensional vector.
     ///
     /// # Returns
     ///
     /// The magnitude of the vector as a floating-point number.
     #[inline]
-    fn norm(&self) -> f64 {
+    fn norm(&self) -> Self::Output {
         (self.0[Cylindrical::RADIUS_IDX] * self.0[Cylindrical::RADIUS_IDX]
             + self.0[Cylindrical::ALTITUDE_IDX] * self.0[Cylindrical::ALTITUDE_IDX])
             .sqrt()
@@ -770,18 +750,21 @@ impl Vec3d<Spherical> {
     }
 }
 
-/// Implementation of the `Vec3dNorm` trait for three-dimensional vectors in the spherical
+/// Implementation of the `Normalizable` trait for three-dimensional vectors in the spherical
 /// coordinate system.
 ///
 /// This allows the calculation of the norm (magnitude) of a `Vec3d<Spherical>` vector.
 impl Normalizable for Vec3d<Spherical> {
+    /// The type of the result of the norm calculation.
+    type Output = f64;
+
     /// Computes and returns the magnitude of the three-dimensional vector.
     ///
     /// # Returns
     ///
     /// The magnitude of the vector as a floating-point number.
     #[inline]
-    fn norm(&self) -> f64 {
+    fn norm(&self) -> Self::Output {
         self.0[Spherical::RADIUS_IDX].abs()
     }
 }
