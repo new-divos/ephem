@@ -25,15 +25,102 @@ pub trait CoordinateSystem {
     const E3_IDX: usize;
 }
 
+/// A trait for converting objects to Cartesian coordinates.
+///
+/// This trait defines a method `to_c` which converts an object to Cartesian coordinates represented by a `Vec3d`
+/// in the Cartesian coordinate system.
+///
+/// # Examples
+///
+/// ```
+/// use ephem::core::vectors::{Cartesian, CartesianBuilder, ToCartesian, Vec3d};
+///
+/// struct MyCoordinate {}
+///
+/// impl ToCartesian for MyCoordinate {
+///     fn to_c(&self) -> Vec3d<Cartesian> {
+///         CartesianBuilder::new().build() // returning a placeholder value
+///     }
+/// }
+///
+/// let coordinate = MyCoordinate {};
+/// let cartesian_vector = coordinate.to_c();
+/// assert_eq!(cartesian_vector.x(), 0.0);
+/// assert_eq!(cartesian_vector.y(), 0.0);
+/// assert_eq!(cartesian_vector.z(), 0.0);
+/// ```
 pub trait ToCartesian {
+    /// Converts the object to Cartesian coordinates.
+    ///
+    /// # Returns
+    ///
+    /// A `Vec3d` representing the Cartesian coordinates.
     fn to_c(&self) -> Vec3d<Cartesian>;
 }
 
+/// A trait for converting objects to cylindrical coordinates.
+///
+/// This trait defines a method `to_y` which converts an object to cylindrical coordinates represented by a `Vec3d`
+/// in the cylindrical coordinate system.
+///
+/// # Examples
+///
+/// ```
+/// use ephem::core::vectors::{Cylindrical, CylindricalBuilder, ToCylindrical, Vec3d};
+///
+/// struct MyCoordinate {}
+///
+/// impl ToCylindrical for MyCoordinate {
+///     fn to_y(&self) -> Vec3d<Cylindrical> {
+///         CylindricalBuilder::new().build() // returning a placeholder value
+///     }
+/// }
+///
+/// let coordinate = MyCoordinate {};
+/// let cylindrical_vector = coordinate.to_y();
+/// assert_eq!(cylindrical_vector.radius(), 0.0);
+/// assert_eq!(cylindrical_vector.azimuth(), 0.0);
+/// assert_eq!(cylindrical_vector.altitude(), 0.0);
+/// ```
 pub trait ToCylindrical {
+    /// Converts the object to cylindrical coordinates.
+    ///
+    /// # Returns
+    ///
+    /// A `Vec3d` representing the cylindrical coordinates.
     fn to_y(&self) -> Vec3d<Cylindrical>;
 }
 
+/// A trait for converting objects to spherical coordinates.
+///
+/// This trait defines a method `to_s` which converts an object to spherical coordinates represented by a `Vec3d`
+/// in the spherical coordinate system.
+///
+/// # Examples
+///
+/// ```
+/// use ephem::core::vectors::{Spherical, SphericalBuilder, ToSpherical, Vec3d};
+///
+/// struct MyCoordinate {}
+///
+/// impl ToSpherical for MyCoordinate {
+///     fn to_s(&self) -> Vec3d<Spherical> {
+///         SphericalBuilder::new().build() // returning a placeholder value
+///     }
+/// }
+///
+/// let coordinate = MyCoordinate {};
+/// let spherical_vector = coordinate.to_s();
+/// assert_eq!(spherical_vector.radius(), 0.0);
+/// assert_eq!(spherical_vector.azimuth(), 0.0);
+/// assert_eq!(spherical_vector.latitude(), 0.0);
+/// ```
 pub trait ToSpherical {
+    /// Converts the object to spherical coordinates.
+    ///
+    /// # Returns
+    ///
+    /// A `Vec3d` representing the spherical coordinates.
     fn to_s(&self) -> Vec3d<Spherical>;
 }
 
@@ -50,11 +137,54 @@ pub struct Vec3d<S: CoordinateSystem>(
     PhantomData<S>,
 );
 
+/// Implementation block for `Vec3d` for division by a scalar with checking for zero divisor.
+///
+/// This implementation block provides a method `checked_div` to divide a `Vec3d` by a scalar value.
+/// It performs division by checking if the divisor is not zero, returning `Some(result)` if division is possible,
+/// and `None` if the divisor is zero.
+///
+/// # Arguments
+///
+/// * `rhs` - The scalar value to divide the `Vec3d` by.
+///
+/// # Returns
+///
+/// * `Some(Self)` - Result of the division if the divisor is not zero.
+/// * `None` - If the divisor is zero.
+///
+/// # Examples
+///
+/// ```
+/// use ephem::core::vectors::{Cartesian, CartesianBuilder, Vec3d};
+///
+/// let vector = CartesianBuilder::with(1.0, 2.0, 3.0).build();
+/// let result = vector.checked_div(2.0);
+/// assert!(result.is_some());
+/// if let Some(result) = result {
+///     assert_eq!(result.x(), 0.5);
+///     assert_eq!(result.y(), 1.0);
+///     assert_eq!(result.z(), 1.5);
+/// }
+///
+/// let vector = CartesianBuilder::with(1.0, 2.0, 3.0).build();
+/// let zero_divisor_result = vector.checked_div(0.0);
+/// assert!(zero_divisor_result.is_none());
+/// ```
 impl<S> Vec3d<S>
 where
     S: CoordinateSystem,
     Vec3d<S>: Div<f64, Output = Self>,
 {
+    /// Divides the `Vec3d` by a scalar value, checking for zero divisor.
+    ///
+    /// # Arguments
+    ///
+    /// * `rhs` - The scalar value to divide the `Vec3d` by.
+    ///
+    /// # Returns
+    ///
+    /// * `Some(Self)` - Result of the division if the divisor is not zero.
+    /// * `None` - If the divisor is zero.
     #[inline]
     pub fn checked_div(self, rhs: f64) -> Option<Self> {
         if rhs != 0.0 {
@@ -83,13 +213,48 @@ impl<S: CoordinateSystem> From<Vec3d<S>> for (f64, f64, f64) {
     }
 }
 
+/// Implementation block for multiplication of a scalar by a `Vec3d`.
+///
+/// This implementation block provides multiplication of a scalar (`f64`) by a `Vec3d` of a specified coordinate system (`S`).
+/// It delegates the multiplication operation to the `mul` method of `Vec3d`.
+///
+/// # Arguments
+///
+/// * `rhs` - The `Vec3d` to be multiplied by the scalar.
+///
+/// # Returns
+///
+/// The result of the multiplication operation, which is a scalar value.
+///
+/// # Examples
+///
+/// ```
+/// use ephem::core::vectors::{Cartesian, CartesianBuilder, Vec3d};
+///
+/// let scalar = 2.0;
+/// let vector = CartesianBuilder::with(1.0, 2.0, 3.0).build();
+/// let result = scalar * vector;
+/// assert_eq!(result.x(), 2.0);
+/// assert_eq!(result.y(), 4.0);
+/// assert_eq!(result.z(), 6.0);
+/// ```
 impl<S> Mul<Vec3d<S>> for f64
 where
     S: CoordinateSystem,
-    Vec3d<S>: Mul<f64, Output = Self>,
+    Vec3d<S>: Mul<f64, Output = Vec3d<S>>,
 {
-    type Output = Self;
+    /// The type of the output when multiplying a scalar by a `Vec3d`.
+    type Output = Vec3d<S>;
 
+    /// Multiplies a scalar by a `Vec3d`.
+    ///
+    /// # Arguments
+    ///
+    /// * `rhs` - The `Vec3d` to be multiplied by the scalar.
+    ///
+    /// # Returns
+    ///
+    /// The result of the multiplication operation, which is a scalar value.
     #[inline]
     fn mul(self, rhs: Vec3d<S>) -> Self::Output {
         rhs.mul(self)

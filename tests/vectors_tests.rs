@@ -6,8 +6,8 @@ use approx::assert_relative_eq;
 
 use rand::Rng;
 
-use ephem::core::consts::PI2;
 use ephem::core::vectors::*;
+use ephem::core::{consts::PI2, DotMul};
 
 mod shared;
 
@@ -349,16 +349,24 @@ fn convert_vec3d_into_tuple_test() {
     }
 }
 
+/// Test function for converting `Vec3d` vectors between different coordinate systems.
+///
+/// This test function generates random vectors in Cartesian, cylindrical, and spherical coordinate systems,
+/// converts them to other coordinate systems, and then converts them back to the original coordinate system.
+/// It ensures that the conversion functions maintain consistency by comparing the converted vectors with the original ones.
 #[test]
 fn convert_vec3d_test() {
     let mut rng = rand::thread_rng();
     for _ in 0..shared::ITERATIONS {
+        // Generate random Cartesian vector
         let (x, y, z) = gen_cartesian(&mut rng);
         let c = CartesianBuilder::with(x, y, z).build();
 
+        // Convert to cylindrical and back to Cartesian
         let y = c.to_y();
         let t: Vec3d<Cartesian> = y.into();
 
+        // Compare components
         assert_relative_eq!(
             t.x(),
             c.x(),
@@ -378,9 +386,11 @@ fn convert_vec3d_test() {
             max_relative = shared::EPSILON
         );
 
+        // Convert to spherical and back to Cartesian
         let s = c.to_s();
         let t: Vec3d<Cartesian> = s.into();
 
+        // Compare components
         assert_relative_eq!(
             t.x(),
             c.x(),
@@ -402,12 +412,15 @@ fn convert_vec3d_test() {
     }
 
     for _ in 0..shared::ITERATIONS {
+        // Generate random Cylindrical vector
         let (radius, azimuth, altitude) = gen_cylindrical(&mut rng);
         let y = CylindricalBuilder::with(radius.abs(), azimuth, altitude).build();
 
+        // Convert to cartesian and back to Cylindrical
         let c = y.to_c();
         let t: Vec3d<Cylindrical> = c.into();
 
+        // Compare components
         assert_relative_eq!(
             t.radius(),
             y.radius(),
@@ -427,9 +440,11 @@ fn convert_vec3d_test() {
             max_relative = shared::EPSILON
         );
 
+        // Convert to spherical and back to Cylindrical
         let s = y.to_s();
         let t: Vec3d<Cylindrical> = s.into();
 
+        // Compare components
         assert_relative_eq!(
             t.radius(),
             y.radius(),
@@ -451,12 +466,15 @@ fn convert_vec3d_test() {
     }
 
     for _ in 0..shared::ITERATIONS {
+        // Generate random Spherical vector
         let (radius, azimuth, latitude) = gen_spherical(&mut rng);
         let s = SphericalBuilder::with(radius.abs(), azimuth, latitude).build();
 
+        // Convert to cylindrical and back to Spherical
         let y = s.to_y();
         let t: Vec3d<Spherical> = y.into();
 
+        // Compare components
         assert_relative_eq!(
             t.radius(),
             s.radius(),
@@ -476,9 +494,11 @@ fn convert_vec3d_test() {
             max_relative = shared::EPSILON
         );
 
+        // Convert to cartesian and back to Spherical
         let c = s.to_c();
         let t: Vec3d<Spherical> = c.into();
 
+        // Compare components
         assert_relative_eq!(
             t.radius(),
             s.radius(),
@@ -497,5 +517,79 @@ fn convert_vec3d_test() {
             epsilon = f64::EPSILON,
             max_relative = shared::EPSILON
         );
+    }
+}
+
+/// Test function for addition of two `Vec3d` vectors.
+///
+/// This test function generates random Cartesian vectors, performs addition between them,
+/// and verifies that the components of the resulting vector are the sum of the corresponding components of the input vectors.
+#[test]
+fn vec3d_addition_test() {
+    let mut rng = rand::thread_rng();
+    for _ in 0..shared::ITERATIONS {
+        // Generate random Cartesian vectors
+        let (x1, y1, z1) = gen_cartesian(&mut rng);
+        let v1 = CartesianBuilder::with(x1, y1, z1).build();
+
+        let (x2, y2, z2) = gen_cartesian(&mut rng);
+        let v2 = CartesianBuilder::with(x2, y2, z2).build();
+
+        // Perform addition
+        let r = v1 + v2;
+
+        // Verify components of the resulting vector
+        assert_eq!(r.x(), x1 + x2);
+        assert_eq!(r.y(), y1 + y2);
+        assert_eq!(r.z(), z1 + z2);
+    }
+}
+
+/// Test function for subtraction of two `Vec3d` vectors.
+///
+/// This test function generates random Cartesian vectors, performs subtraction between them,
+/// and verifies that the components of the resulting vector are the difference of the corresponding components 
+/// of the input vectors.
+#[test]
+fn vec3d_substraction_test() {
+    let mut rng = rand::thread_rng();
+    for _ in 0..shared::ITERATIONS {
+        // Generate random Cartesian vectors
+        let (x1, y1, z1) = gen_cartesian(&mut rng);
+        let v1 = CartesianBuilder::with(x1, y1, z1).build();
+
+        let (x2, y2, z2) = gen_cartesian(&mut rng);
+        let v2 = CartesianBuilder::with(x2, y2, z2).build();
+
+        // Perform subtraction
+        let r = v1 - v2;
+
+        // Verify components of the resulting vector
+        assert_eq!(r.x(), x1 - x2);
+        assert_eq!(r.y(), y1 - y2);
+        assert_eq!(r.z(), z1 - z2);
+    }
+}
+
+/// Test function for dot product multiplication of two `Vec3d` vectors.
+///
+/// This test function generates random Cartesian vectors, performs dot product multiplication between them,
+/// and verifies that the result is equal to the dot product of the corresponding components of the input vectors.
+#[test]
+fn vec3d_dot_multiplication_test() {
+    let mut rng = rand::thread_rng();
+    for _ in 0..shared::ITERATIONS {
+        // Generate random Cartesian vectors
+        let (x1, y1, z1) = gen_cartesian(&mut rng);
+        let v1 = CartesianBuilder::with(x1, y1, z1).build();
+
+        let (x2, y2, z2) = gen_cartesian(&mut rng);
+        let v2 = CartesianBuilder::with(x2, y2, z2).build();
+
+        // Perform dot product multiplication
+        let r = v1.dot(v2);
+
+        // Verify result
+        assert_eq!(r, x1 * x2 + y1 * y2 + z1 * z2);
     }
 }
