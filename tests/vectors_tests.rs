@@ -709,6 +709,69 @@ fn cartesian_vec3d_multiplication_by_scalar_with_assignment_test() {
     }
 }
 
+
+/// Test function to verify division operation of a 3D Cartesian vector by a scalar.
+/// 
+/// This function generates random Cartesian vectors and floating-point scalars, 
+/// and then performs division operation on the vector by the scalar. 
+/// It verifies the correctness of division operation by comparing the components 
+/// of the resulting vector with the expected values obtained by dividing the 
+/// original vector components by the scalar.
+#[test]
+fn cartesian_vec3d_divison_by_scalar_test() {
+    let mut rng = rand::thread_rng();
+    for _ in 0..shared::ITERATIONS {
+        // Generate random Cartesian vector
+        let (x, y, z) = gen_cartesian(&mut rng);
+        let v = CartesianBuilder::with(x, y, z).build();
+
+        // Generate floating point scalar
+        let scalar = (shared::MAX_VALUE - shared::MIN_VALUE) * rng.gen::<f64>() - shared::MIN_VALUE;
+        if scalar.abs() < shared::EPSILON {
+            continue;
+        }
+
+        // Perform division by the scalar
+        let r = v / scalar;
+
+        // Verify components of the resulting vector
+        assert_eq!(r.x(), x / scalar);
+        assert_eq!(r.y(), y / scalar);
+        assert_eq!(r.z(), z / scalar);
+    }
+}
+
+/// Test function to verify division with assignment operation of a 3D Cartesian vector by a scalar.
+/// 
+/// This function generates random Cartesian vectors and floating-point scalars, 
+/// and then performs division with assignment operation on the vector by the scalar. 
+/// It verifies the correctness of division operation by comparing the components 
+/// of the resulting vector with the expected values obtained by dividing the 
+/// original vector components by the scalar.
+#[test]
+fn cartesian_vec3d_divison_by_scalar_with_assignment_test() {
+    let mut rng = rand::thread_rng();
+    for _ in 0..shared::ITERATIONS {
+        // Generate random Cartesian vector
+        let (x, y, z) = gen_cartesian(&mut rng);
+        let mut v = CartesianBuilder::with(x, y, z).build();
+        
+        // Generate floating point scalar
+        let scalar = (shared::MAX_VALUE - shared::MIN_VALUE) * rng.gen::<f64>() - shared::MIN_VALUE;
+        if scalar.abs() < shared::EPSILON {
+            continue;
+        }
+        
+        // Perform multiplication by the scalar with assignment
+        v /= scalar;
+
+        // Verify components of the resulting vector
+        assert_eq!(v.x(), x / scalar);
+        assert_eq!(v.y(), y / scalar);
+        assert_eq!(v.z(), z / scalar);
+    }
+}
+
 /// Test function for dot product multiplication of two `Vec3d` vectors.
 ///
 /// This test function generates random Cartesian vectors, performs dot product multiplication between them,
