@@ -129,13 +129,84 @@ pub trait ToSpherical {
 /// The `Vec3d` struct represents a three-dimensional vector with coordinates stored as an array of
 /// three `f64` values. The choice of coordinate system is determined by the type parameter `S`, which
 /// must implement the `CoordinateSystem` trait.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug)]
 pub struct Vec3d<S: CoordinateSystem>(
     /// Array representing the three coordinates of the vector.
     [f64; 3],
     /// PhantomData marker to tie the coordinate system type to the vector.
     PhantomData<S>,
 );
+
+/// Implementation block for cloning `Vec3d` vectors.
+///
+/// This implementation block provides the implementation of the `Clone` trait for `Vec3d` vectors
+/// of any coordinate system. It enables creating a deep copy of a `Vec3d` vector regardless of its
+/// underlying coordinate system.
+///
+/// # Examples
+///
+/// ```
+/// use ephem::core::vectors::{Cartesian, CartesianBuilder, Vec3d};
+///
+/// let v = CartesianBuilder::with(1.0, 2.0, 3.0).build();
+/// let cloned_v = v.clone();
+/// assert_eq!(cloned_v.x(), 1.0);
+/// assert_eq!(cloned_v.y(), 2.0);
+/// assert_eq!(cloned_v.z(), 3.0);
+/// ```
+impl<S: CoordinateSystem> Clone for Vec3d<S> {
+    /// Creates a deep copy of the vector.
+    ///
+    /// This method creates a new `Vec3d` with the same components as the original vector.
+    ///
+    /// # Returns
+    ///
+    /// A new `Vec3d` with the same components as the original vector.
+    #[inline]
+    fn clone(&self) -> Self {
+        Self([self.0[0], self.0[1], self.0[2]], PhantomData::<S> {})
+    }
+}
+
+/// Implementation block for comparing equality of `Vec3d` vectors.
+///
+/// This implementation block provides the implementation of the `PartialEq` trait for comparing equality of two `Vec3d` vectors.
+/// It checks whether the components of the two vectors are equal.
+///
+/// # Arguments
+///
+/// * `other` - The other vector to compare with.
+///
+/// # Returns
+///
+/// `true` if all components of both vectors are equal, `false` otherwise.
+///
+/// # Examples
+///
+/// ```
+/// use ephem::core::vectors::{Cartesian, CartesianBuilder, Vec3d};
+///
+/// let v1 = CartesianBuilder::with(1.0, 2.0, 3.0).build();
+/// let v2 = CartesianBuilder::with(1.0, 2.0, 3.0).build();
+/// assert_eq!(v1, v2);
+/// let v3 = CartesianBuilder::with(4.0, 5.0, 6.0).build();
+/// assert_ne!(v1, v3);
+/// ```
+impl<S: CoordinateSystem> PartialEq for Vec3d<S> {
+    /// Compares equality of two `Vec3d` vectors.
+    ///
+    /// # Arguments
+    ///
+    /// * `other` - The other vector to compare with.
+    ///
+    /// # Returns
+    ///
+    /// `true` if all components of both vectors are equal, `false` otherwise.
+    #[inline]
+    fn eq(&self, other: &Self) -> bool {
+        self.0[0].eq(&other.0[0]) && self.0[1].eq(&other.0[1]) && self.0[2].eq(&other.0[2])
+    }
+}
 
 /// Implementation block for `Vec3d` for division by a scalar with checking for zero divisor.
 ///
@@ -335,7 +406,17 @@ impl Normalizable for Vec3d<Cartesian> {
     }
 }
 
+/// Implementation block for converting a Cartesian `Vec3d` vector to a cylindrical `Vec3d` vector.
+///
+/// This implementation block provides the implementation of the `to_y` method for converting a Cartesian `Vec3d` vector
+/// to a cylindrical `Vec3d` vector. It calculates the radius and azimuth components of the cylindrical vector
+/// based on the x and y components of the Cartesian vector.
 impl ToCylindrical for Vec3d<Cartesian> {
+    /// Converts a Cartesian `Vec3d` vector to a cylindrical `Vec3d` vector.
+    ///
+    /// # Returns
+    ///
+    /// A cylindrical `Vec3d` vector representing the same position as the original Cartesian vector.
     fn to_y(&self) -> Vec3d<Cylindrical> {
         let x = self.0[Cartesian::X_IDX];
         let y = self.0[Cartesian::Y_IDX];
@@ -353,7 +434,17 @@ impl ToCylindrical for Vec3d<Cartesian> {
     }
 }
 
+/// Implementation block for converting a Cartesian `Vec3d` vector to a spherical `Vec3d` vector.
+///
+/// This implementation block provides the implementation of the `to_s` method for converting a Cartesian `Vec3d` vector
+/// to a spherical `Vec3d` vector. It calculates the radius, azimuth, and latitude components of the spherical vector
+/// based on the x, y, and z components of the Cartesian vector.
 impl ToSpherical for Vec3d<Cartesian> {
+    /// Converts a Cartesian `Vec3d` vector to a spherical `Vec3d` vector.
+    ///
+    /// # Returns
+    ///
+    /// A spherical `Vec3d` vector representing the same position as the original Cartesian vector.
     fn to_s(&self) -> Vec3d<Spherical> {
         let x = self.0[Cartesian::X_IDX];
         let y = self.0[Cartesian::Y_IDX];
@@ -379,18 +470,54 @@ impl ToSpherical for Vec3d<Cartesian> {
     }
 }
 
+/// Implementation block for converting a `Vec3d` vector to a Cartesian `Vec3d` vector.
+///
+/// This implementation block provides the implementation of the `From` trait for converting a `Vec3d` vector
+/// to a Cartesian `Vec3d` vector. It requires that the input vector type `S` implements the `CoordinateSystem` trait
+/// and the `Vec3d<S>` type implements the `ToCartesian` trait, which provides a method to convert the vector
+/// to Cartesian coordinates.
 impl<S> From<Vec3d<S>> for Vec3d<Cartesian>
 where
     S: CoordinateSystem,
     Vec3d<S>: ToCartesian,
 {
+    /// Converts a `Vec3d` vector to a Cartesian `Vec3d` vector.
+    ///
+    /// # Arguments
+    ///
+    /// * `vector` - The input vector of any coordinate system.
+    ///
+    /// # Returns
+    ///
+    /// A Cartesian `Vec3d` vector representing the same position as the input vector.
     #[inline]
     fn from(vector: Vec3d<S>) -> Self {
         vector.to_c()
     }
 }
 
+/// Implementation block for negating a Cartesian `Vec3d` vector.
+///
+/// This implementation block provides the implementation of the `Neg` trait for negating a Cartesian `Vec3d` vector.
+/// It returns a new Cartesian `Vec3d` vector where each component is negated.
+///
+/// # Returns
+///
+/// A new Cartesian `Vec3d` vector with negated components.
+///
+/// # Examples
+///
+/// ```
+/// use ephem::core::vectors::{Cartesian, CartesianBuilder, Vec3d};
+///
+/// let vector = CartesianBuilder::with(1.0, 2.0, 3.0).build();
+/// let negated_vector = -vector;
+/// assert_eq!(negated_vector.x(), -1.0);
+/// assert_eq!(negated_vector.y(), -2.0);
+/// assert_eq!(negated_vector.z(), -3.0);
+/// ```
 impl Neg for Vec3d<Cartesian> {
+    /// The type of the result of the negation operation.
     type Output = Self;
 
     #[inline]
@@ -406,9 +533,46 @@ impl Neg for Vec3d<Cartesian> {
     }
 }
 
+/// Implementation block for adding two Cartesian `Vec3d` vectors.
+///
+/// This implementation block provides the implementation of the `Add` trait for adding two Cartesian `Vec3d` vectors.
+/// It returns a new Cartesian `Vec3d` vector where each component is the sum of the corresponding components
+/// of the two input vectors.
+///
+/// # Arguments
+///
+/// * `rhs` - The right-hand side vector to be added to the left-hand side vector.
+///
+/// # Returns
+///
+/// A new Cartesian `Vec3d` vector with components equal to the sum of the corresponding components of the input vectors.
+///
+/// # Examples
+///
+/// ```
+/// use ephem::core::vectors::{Cartesian, CartesianBuilder, Vec3d};
+///
+/// let v1 = CartesianBuilder::with(1.0, 2.0, 3.0).build();
+/// let v2 = CartesianBuilder::with(4.0, 5.0, 6.0).build();
+/// let sum = v1 + v2;
+/// assert_eq!(sum.x(), 5.0);
+/// assert_eq!(sum.y(), 7.0);
+/// assert_eq!(sum.z(), 9.0);
+/// ```
 impl Add for Vec3d<Cartesian> {
+    /// The type of the result of the addition operation.
     type Output = Self;
 
+    /// Adds two Cartesian `Vec3d` vectors.
+    ///
+    /// # Arguments
+    ///
+    /// * `rhs` - The right-hand side vector to be added to the left-hand side vector.
+    ///
+    /// # Returns
+    ///
+    /// A new Cartesian `Vec3d` vector with components equal to the sum of the corresponding
+    /// components of the input vectors.
     #[inline]
     fn add(self, rhs: Self) -> Self::Output {
         Vec3d::<Cartesian>(
@@ -422,7 +586,34 @@ impl Add for Vec3d<Cartesian> {
     }
 }
 
+/// Implementation block for in-place addition of Cartesian `Vec3d` vectors.
+///
+/// This implementation block provides the implementation of the `AddAssign` trait for performing in-place addition
+/// of Cartesian `Vec3d` vectors. It updates the components of the left-hand side vector by adding the corresponding
+/// components of the right-hand side vector.
+///
+/// # Arguments
+///
+/// * `rhs` - The right-hand side vector to be added to the left-hand side vector.
+///
+/// # Examples
+///
+/// ```
+/// use ephem::core::vectors::{Cartesian, CartesianBuilder, Vec3d};
+///
+/// let mut v1 = CartesianBuilder::with(1.0, 2.0, 3.0).build();
+/// let v2 = CartesianBuilder::with(4.0, 5.0, 6.0).build();
+/// v1 += v2;
+/// assert_eq!(v1.x(), 5.0);
+/// assert_eq!(v1.y(), 7.0);
+/// assert_eq!(v1.z(), 9.0);
+/// ```
 impl AddAssign for Vec3d<Cartesian> {
+    /// Performs in-place addition of Cartesian `Vec3d` vectors.
+    ///
+    /// # Arguments
+    ///
+    /// * `rhs` - The right-hand side vector to be added to the left-hand side vector.
     #[inline]
     fn add_assign(&mut self, rhs: Self) {
         self.0[Cartesian::X_IDX] += rhs.0[Cartesian::X_IDX];
@@ -431,7 +622,35 @@ impl AddAssign for Vec3d<Cartesian> {
     }
 }
 
+/// Implementation block for subtracting Cartesian `Vec3d` vectors.
+///
+/// This implementation block provides the implementation of the `Sub` trait for subtracting two Cartesian `Vec3d` vectors.
+/// It returns a new Cartesian `Vec3d` vector where each component is the difference between the corresponding
+/// components of the two input vectors.
+///
+/// # Arguments
+///
+/// * `rhs` - The right-hand side vector to be subtracted from the left-hand side vector.
+///
+/// # Returns
+///
+/// A new Cartesian `Vec3d` vector with components equal to the difference between the corresponding components
+/// of the input vectors.
+///
+/// # Examples
+///
+/// ```
+/// use ephem::core::vectors::{Cartesian, CartesianBuilder, Vec3d};
+///
+/// let v1 = CartesianBuilder::with(1.0, 2.0, 3.0).build();
+/// let v2 = CartesianBuilder::with(4.0, 5.0, 6.0).build();
+/// let difference = v1 - v2;
+/// assert_eq!(difference.x(), -3.0);
+/// assert_eq!(difference.y(), -3.0);
+/// assert_eq!(difference.z(), -3.0);
+/// ```
 impl Sub for Vec3d<Cartesian> {
+    /// The type of the result of the substraction operation.
     type Output = Self;
 
     #[inline]
@@ -447,7 +666,34 @@ impl Sub for Vec3d<Cartesian> {
     }
 }
 
+/// Implementation block for in-place subtraction of Cartesian `Vec3d` vectors.
+///
+/// This implementation block provides the implementation of the `SubAssign` trait for in-place subtraction of
+/// Cartesian `Vec3d` vectors. It subtracts the components of the right-hand side vector from the components
+/// of the left-hand side vector and updates the left-hand side vector with the result.
+///
+/// # Arguments
+///
+/// * `rhs` - The right-hand side vector whose components are subtracted from the components of the left-hand side vector.
+///
+/// # Examples
+///
+/// ```
+/// use ephem::core::vectors::{Cartesian, CartesianBuilder, Vec3d};
+///
+/// let mut v1 = CartesianBuilder::with(1.0, 2.0, 3.0).build();
+/// let v2 = CartesianBuilder::with(4.0, 5.0, 6.0).build();
+/// v1 -= v2;
+/// assert_eq!(v1.x(), -3.0);
+/// assert_eq!(v1.y(), -3.0);
+/// assert_eq!(v1.z(), -3.0);
+/// ```
 impl SubAssign for Vec3d<Cartesian> {
+    /// Subtracts the components of another Cartesian `Vec3d` vector from the components of this vector.
+    ///
+    /// # Arguments
+    ///
+    /// * `rhs` - The right-hand side vector whose components are subtracted from the components of the left-hand side vector.
     #[inline]
     fn sub_assign(&mut self, rhs: Self) {
         self.0[Cartesian::X_IDX] -= rhs.0[Cartesian::X_IDX];
@@ -456,9 +702,35 @@ impl SubAssign for Vec3d<Cartesian> {
     }
 }
 
+/// Implementation block for scalar multiplication of Cartesian `Vec3d` vectors.
+///
+/// This implementation block provides the implementation of the `Mul` trait for scalar multiplication
+/// of Cartesian `Vec3d` vectors by a floating-point scalar value.
+///
+/// # Arguments
+///
+/// * `rhs` - The floating-point scalar value to multiply with each component of the vector.
+///
+/// # Examples
+///
+/// ```
+/// use ephem::core::vectors::{Cartesian, CartesianBuilder, Vec3d};
+///
+/// let v = CartesianBuilder::with(1.0, 2.0, 3.0).build();
+/// let result = v * 2.0;
+/// assert_eq!(result.x(), 2.0);
+/// assert_eq!(result.y(), 4.0);
+/// assert_eq!(result.z(), 6.0);
+/// ```
 impl Mul<f64> for Vec3d<Cartesian> {
+    /// The type of the result of the multiplication by a floating-point scalar operation.
     type Output = Self;
 
+    /// Multiplies each component of the vector by a floating-point scalar value.
+    ///
+    /// # Arguments
+    ///
+    /// * `rhs` - The floating-point scalar value to multiply with each component of the vector.
     #[inline]
     fn mul(self, rhs: f64) -> Self::Output {
         Vec3d::<Cartesian>(
@@ -472,7 +744,31 @@ impl Mul<f64> for Vec3d<Cartesian> {
     }
 }
 
+/// Implementation block for multiplying `Vec3d<Cartesian>` vectors by a scalar in-place.
+///
+/// This implementation block provides the implementation of the `MulAssign` trait for `Vec3d<Cartesian>`
+/// vectors. It enables multiplying a `Vec3d<Cartesian>` vector by a scalar in-place, modifying the original
+/// vector.
+///
+/// # Examples
+///
+/// ```
+/// use ephem::core::vectors::{Cartesian, CartesianBuilder, Vec3d};
+///
+/// let mut v = CartesianBuilder::with(1.0, 2.0, 3.0).build();
+/// v *= 2.0;
+/// assert_eq!(v.x(), 2.0);
+/// assert_eq!(v.y(), 4.0);
+/// assert_eq!(v.z(), 6.0);
+/// ```
 impl MulAssign<f64> for Vec3d<Cartesian> {
+    /// Multiplies the vector components by the scalar in-place.
+    ///
+    /// This method modifies the components of the vector by multiplying them with the given scalar.
+    ///
+    /// # Arguments
+    ///
+    /// * `rhs` - The scalar value to multiply the vector components by.
     #[inline]
     fn mul_assign(&mut self, rhs: f64) {
         self.0[Cartesian::X_IDX] *= rhs;

@@ -310,7 +310,7 @@ fn create_spherical_vec3d_with_position_test() {
 ///
 /// This test will panic if any of the assertions fail.
 #[test]
-fn convert_vec3d_into_tuple_test() {
+fn vec3d_conversion_into_tuple_test() {
     // Test converting Cartesian vectors into tuples
     let mut rng = rand::thread_rng();
     for _ in 0..shared::ITERATIONS {
@@ -355,7 +355,7 @@ fn convert_vec3d_into_tuple_test() {
 /// converts them to other coordinate systems, and then converts them back to the original coordinate system.
 /// It ensures that the conversion functions maintain consistency by comparing the converted vectors with the original ones.
 #[test]
-fn convert_vec3d_test() {
+fn vec3d_converion_test() {
     let mut rng = rand::thread_rng();
     for _ in 0..shared::ITERATIONS {
         // Generate random Cartesian vector
@@ -520,12 +520,34 @@ fn convert_vec3d_test() {
     }
 }
 
+/// Test function for negating a Cartesian `Vec3d` vector.
+///
+/// This test function verifies the correctness of the negation operation on Cartesian `Vec3d` vectors.
+/// It generates random Cartesian vectors and checks whether the negation operation produces the expected result.
+#[test]
+fn cartesion_vec3d_negation_test() {
+    let mut rng = rand::thread_rng();
+    for _ in 0..shared::ITERATIONS {
+        // Generate random Cartesian vector
+        let (x, y, z) = gen_cartesian(&mut rng);
+        let v = CartesianBuilder::with(x, y, z).build();
+
+        // Perform negation
+        let n = -v;
+
+        // Verify components of the resulting vector
+        assert_eq!(n.x(), -x);
+        assert_eq!(n.y(), -y);
+        assert_eq!(n.z(), -z);
+    }
+}
+
 /// Test function for addition of two `Vec3d` vectors.
 ///
 /// This test function generates random Cartesian vectors, performs addition between them,
 /// and verifies that the components of the resulting vector are the sum of the corresponding components of the input vectors.
 #[test]
-fn vec3d_addition_test() {
+fn cartesian_vec3d_addition_test() {
     let mut rng = rand::thread_rng();
     for _ in 0..shared::ITERATIONS {
         // Generate random Cartesian vectors
@@ -545,13 +567,39 @@ fn vec3d_addition_test() {
     }
 }
 
+/// Test function for in-place addition of Cartesian `Vec3d` vectors.
+///
+/// This test function verifies the correctness of the in-place addition operation on Cartesian `Vec3d` vectors.
+/// It generates random Cartesian vectors, performs in-place addition with another random vector,
+/// and checks whether the resulting vector has the expected components.
+#[test]
+fn cartesian_vec3d_addition_with_assignment_test() {
+    let mut rng = rand::thread_rng();
+    for _ in 0..shared::ITERATIONS {
+        // Generate random Cartesian vectors
+        let (x1, y1, z1) = gen_cartesian(&mut rng);
+        let mut v1 = CartesianBuilder::with(x1, y1, z1).build();
+
+        let (x2, y2, z2) = gen_cartesian(&mut rng);
+        let v2 = CartesianBuilder::with(x2, y2, z2).build();
+
+        // Perform addition with assignment
+        v1 += v2;
+
+        // Verify components of the resulting vector
+        assert_eq!(v1.x(), x1 + x2);
+        assert_eq!(v1.y(), y1 + y2);
+        assert_eq!(v1.z(), z1 + z2);
+    }
+}
+
 /// Test function for subtraction of two `Vec3d` vectors.
 ///
 /// This test function generates random Cartesian vectors, performs subtraction between them,
-/// and verifies that the components of the resulting vector are the difference of the corresponding components 
+/// and verifies that the components of the resulting vector are the difference of the corresponding components
 /// of the input vectors.
 #[test]
-fn vec3d_substraction_test() {
+fn cartesian_vec3d_substraction_test() {
     let mut rng = rand::thread_rng();
     for _ in 0..shared::ITERATIONS {
         // Generate random Cartesian vectors
@@ -571,12 +619,102 @@ fn vec3d_substraction_test() {
     }
 }
 
+/// Test function for performing subtraction with assignment on Cartesian `Vec3d` vectors.
+///
+/// This function tests the subtraction with assignment operation (`-=`) on Cartesian `Vec3d` vectors.
+/// It generates random Cartesian vectors, performs subtraction with assignment, and then verifies
+/// that the components of the resulting vector are correct.
+#[test]
+fn cartesian_vec3d_substraction_with_assignment_test() {
+    let mut rng = rand::thread_rng();
+    for _ in 0..shared::ITERATIONS {
+        // Generate random Cartesian vectors
+        let (x1, y1, z1) = gen_cartesian(&mut rng);
+        let mut v1 = CartesianBuilder::with(x1, y1, z1).build();
+
+        let (x2, y2, z2) = gen_cartesian(&mut rng);
+        let v2 = CartesianBuilder::with(x2, y2, z2).build();
+
+        // Perform subtraction with assignment
+        v1 -= v2;
+
+        // Verify components of the resulting vector
+        assert_eq!(v1.x(), x1 - x2);
+        assert_eq!(v1.y(), y1 - y2);
+        assert_eq!(v1.z(), z1 - z2);
+    }
+}
+
+/// Test function for Cartesian vector multiplication by scalar.
+///
+/// This test function verifies the correctness of the scalar multiplication operation
+/// for Cartesian vectors. It generates random Cartesian vectors and a random scalar,
+/// then performs scalar multiplication by both left-hand side and right-hand side
+/// operations. The resulting vectors are compared against expected values.
+#[test]
+fn cartesian_vec3d_multiplication_by_scalar_test() {
+    let mut rng = rand::thread_rng();
+    for _ in 0..shared::ITERATIONS {
+        // Generate random Cartesian vector
+        let (x, y, z) = gen_cartesian(&mut rng);
+        let v = CartesianBuilder::with(x, y, z).build();
+
+        // Generate floating point scalar
+        let scalar = (shared::MAX_VALUE - shared::MIN_VALUE) * rng.gen::<f64>() - shared::MIN_VALUE;
+
+        // Perform multiplication by the scalar
+        let r = v.clone() * scalar;
+
+        // Verify components of the resulting vector
+        assert_eq!(r.x(), x * scalar);
+        assert_eq!(r.y(), y * scalar);
+        assert_eq!(r.z(), z * scalar);
+
+        // Perform multiplication by the scalar
+        let r = scalar * v;
+
+        // Verify components of the resulting vector
+        assert_eq!(r.x(), scalar * x);
+        assert_eq!(r.y(), scalar * y);
+        assert_eq!(r.z(), scalar * z);
+    }
+}
+
+/// Test function for multiplying `Vec3d<Cartesian>` vectors by a scalar with assignment.
+///
+/// This test function verifies the correct behavior of the multiplication operation with assignment
+/// (`*=`) between a `Vec3d<Cartesian>` vector and a scalar.
+///
+/// It generates random Cartesian vectors and a random scalar value, performs the multiplication
+/// operation with assignment, and then verifies if the resulting vector has its components correctly
+/// multiplied by the scalar.
+#[test]
+fn cartesian_vec3d_multiplication_by_scalar_with_assignment_test() {
+    let mut rng = rand::thread_rng();
+    for _ in 0..shared::ITERATIONS {
+        // Generate random Cartesian vector
+        let (x, y, z) = gen_cartesian(&mut rng);
+        let mut v = CartesianBuilder::with(x, y, z).build();
+        
+        // Generate floating point scalar
+        let scalar = (shared::MAX_VALUE - shared::MIN_VALUE) * rng.gen::<f64>() - shared::MIN_VALUE;
+        
+        // Perform multiplication by the scalar with assignment
+        v *= scalar;
+
+        // Verify components of the resulting vector
+        assert_eq!(v.x(), x * scalar);
+        assert_eq!(v.y(), y * scalar);
+        assert_eq!(v.z(), z * scalar);
+    }
+}
+
 /// Test function for dot product multiplication of two `Vec3d` vectors.
 ///
 /// This test function generates random Cartesian vectors, performs dot product multiplication between them,
 /// and verifies that the result is equal to the dot product of the corresponding components of the input vectors.
 #[test]
-fn vec3d_dot_multiplication_test() {
+fn cartesian_vec3d_dot_multiplication_test() {
     let mut rng = rand::thread_rng();
     for _ in 0..shared::ITERATIONS {
         // Generate random Cartesian vectors
