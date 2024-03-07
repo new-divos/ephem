@@ -29,32 +29,32 @@ pub trait CoordinateSystem {
 ///
 /// This trait defines a method `to_c` which converts an object to Cartesian coordinates represented by a `Vec3d`
 /// in the Cartesian coordinate system.
-///
-/// # Examples
-///
-/// ```
-/// use ephem::core::vectors::{Cartesian, CartesianBuilder, ToCartesian, Vec3d};
-///
-/// struct MyCoordinate {}
-///
-/// impl ToCartesian for MyCoordinate {
-///     fn to_c(&self) -> Vec3d<Cartesian> {
-///         CartesianBuilder::new().build() // returning a placeholder value
-///     }
-/// }
-///
-/// let coordinate = MyCoordinate {};
-/// let cartesian_vector = coordinate.to_c();
-/// assert_eq!(cartesian_vector.x(), 0.0);
-/// assert_eq!(cartesian_vector.y(), 0.0);
-/// assert_eq!(cartesian_vector.z(), 0.0);
-/// ```
 pub trait ToCartesian {
     /// Converts the object to Cartesian coordinates.
     ///
     /// # Returns
     ///
     /// A `Vec3d` representing the Cartesian coordinates.
+    /// 
+    /// # Examples
+    ///
+    /// ```
+    /// use ephem::core::vectors::{Cartesian, CartesianBuilder, ToCartesian, Vec3d};
+    ///
+    /// struct MyCoordinate {}
+    ///
+    /// impl ToCartesian for MyCoordinate {
+    ///     fn to_c(&self) -> Vec3d<Cartesian> {
+    ///         CartesianBuilder::new().build() // returning a placeholder value
+    ///     }
+    /// }
+    ///
+    /// let coordinate = MyCoordinate {};
+    /// let cartesian_vector = coordinate.to_c();
+    /// assert_eq!(cartesian_vector.x(), 0.0);
+    /// assert_eq!(cartesian_vector.y(), 0.0);
+    /// assert_eq!(cartesian_vector.z(), 0.0);
+    /// ```
     fn to_c(&self) -> Vec3d<Cartesian>;
 }
 
@@ -62,32 +62,32 @@ pub trait ToCartesian {
 ///
 /// This trait defines a method `to_y` which converts an object to cylindrical coordinates represented by a `Vec3d`
 /// in the cylindrical coordinate system.
-///
-/// # Examples
-///
-/// ```
-/// use ephem::core::vectors::{Cylindrical, CylindricalBuilder, ToCylindrical, Vec3d};
-///
-/// struct MyCoordinate {}
-///
-/// impl ToCylindrical for MyCoordinate {
-///     fn to_y(&self) -> Vec3d<Cylindrical> {
-///         CylindricalBuilder::new().build() // returning a placeholder value
-///     }
-/// }
-///
-/// let coordinate = MyCoordinate {};
-/// let cylindrical_vector = coordinate.to_y();
-/// assert_eq!(cylindrical_vector.radius(), 0.0);
-/// assert_eq!(cylindrical_vector.azimuth(), 0.0);
-/// assert_eq!(cylindrical_vector.altitude(), 0.0);
-/// ```
 pub trait ToCylindrical {
     /// Converts the object to cylindrical coordinates.
     ///
     /// # Returns
     ///
     /// A `Vec3d` representing the cylindrical coordinates.
+    /// 
+    /// # Examples
+    ///
+    /// ```
+    /// use ephem::core::vectors::{Cylindrical, CylindricalBuilder, ToCylindrical, Vec3d};
+    ///
+    /// struct MyCoordinate {}
+    ///
+    /// impl ToCylindrical for MyCoordinate {
+    ///     fn to_y(&self) -> Vec3d<Cylindrical> {
+    ///         CylindricalBuilder::new().build() // returning a placeholder value
+    ///     }
+    /// }
+    ///
+    /// let coordinate = MyCoordinate {};
+    /// let cylindrical_vector = coordinate.to_y();
+    /// assert_eq!(cylindrical_vector.radius(), 0.0);
+    /// assert_eq!(cylindrical_vector.azimuth(), 0.0);
+    /// assert_eq!(cylindrical_vector.altitude(), 0.0);
+    /// ```
     fn to_y(&self) -> Vec3d<Cylindrical>;
 }
 
@@ -95,32 +95,32 @@ pub trait ToCylindrical {
 ///
 /// This trait defines a method `to_s` which converts an object to spherical coordinates represented by a `Vec3d`
 /// in the spherical coordinate system.
-///
-/// # Examples
-///
-/// ```
-/// use ephem::core::vectors::{Spherical, SphericalBuilder, ToSpherical, Vec3d};
-///
-/// struct MyCoordinate {}
-///
-/// impl ToSpherical for MyCoordinate {
-///     fn to_s(&self) -> Vec3d<Spherical> {
-///         SphericalBuilder::new().build() // returning a placeholder value
-///     }
-/// }
-///
-/// let coordinate = MyCoordinate {};
-/// let spherical_vector = coordinate.to_s();
-/// assert_eq!(spherical_vector.radius(), 0.0);
-/// assert_eq!(spherical_vector.azimuth(), 0.0);
-/// assert_eq!(spherical_vector.latitude(), 0.0);
-/// ```
 pub trait ToSpherical {
     /// Converts the object to spherical coordinates.
     ///
     /// # Returns
     ///
     /// A `Vec3d` representing the spherical coordinates.
+    /// 
+    /// # Examples
+    ///
+    /// ```
+    /// use ephem::core::vectors::{Spherical, SphericalBuilder, ToSpherical, Vec3d};
+    ///
+    /// struct MyCoordinate {}
+    ///
+    /// impl ToSpherical for MyCoordinate {
+    ///     fn to_s(&self) -> Vec3d<Spherical> {
+    ///         SphericalBuilder::new().build() // returning a placeholder value
+    ///     }
+    /// }
+    ///
+    /// let coordinate = MyCoordinate {};
+    /// let spherical_vector = coordinate.to_s();
+    /// assert_eq!(spherical_vector.radius(), 0.0);
+    /// assert_eq!(spherical_vector.azimuth(), 0.0);
+    /// assert_eq!(spherical_vector.latitude(), 0.0);
+    /// ```
     fn to_s(&self) -> Vec3d<Spherical>;
 }
 
@@ -138,22 +138,6 @@ pub struct Vec3d<S: CoordinateSystem>(
 );
 
 /// Implementation block for cloning `Vec3d` vectors.
-///
-/// This implementation block provides the implementation of the `Clone` trait for `Vec3d` vectors
-/// of any coordinate system. It enables creating a deep copy of a `Vec3d` vector regardless of its
-/// underlying coordinate system.
-///
-/// # Examples
-///
-/// ```
-/// use ephem::core::vectors::{Cartesian, CartesianBuilder, Vec3d};
-///
-/// let v = CartesianBuilder::with(1.0, 2.0, 3.0).build();
-/// let cloned_v = v.clone();
-/// assert_eq!(cloned_v.x(), 1.0);
-/// assert_eq!(cloned_v.y(), 2.0);
-/// assert_eq!(cloned_v.z(), 3.0);
-/// ```
 impl<S: CoordinateSystem> Clone for Vec3d<S> {
     /// Creates a deep copy of the vector.
     ///
@@ -162,6 +146,18 @@ impl<S: CoordinateSystem> Clone for Vec3d<S> {
     /// # Returns
     ///
     /// A new `Vec3d` with the same components as the original vector.
+    /// 
+    /// # Examples
+    ///
+    /// ```
+    /// use ephem::core::vectors::{Cartesian, CartesianBuilder, Vec3d};
+    ///
+    /// let v = CartesianBuilder::with(1.0, 2.0, 3.0).build();
+    /// let cloned_v = v.clone();
+    /// assert_eq!(cloned_v.x(), 1.0);
+    /// assert_eq!(cloned_v.y(), 2.0);
+    /// assert_eq!(cloned_v.z(), 3.0);
+    /// ```
     #[inline]
     fn clone(&self) -> Self {
         Self([self.0[0], self.0[1], self.0[2]], PhantomData::<S> {})
@@ -169,29 +165,6 @@ impl<S: CoordinateSystem> Clone for Vec3d<S> {
 }
 
 /// Implementation block for comparing equality of `Vec3d` vectors.
-///
-/// This implementation block provides the implementation of the `PartialEq` trait for comparing equality of two `Vec3d` vectors.
-/// It checks whether the components of the two vectors are equal.
-///
-/// # Arguments
-///
-/// * `other` - The other vector to compare with.
-///
-/// # Returns
-///
-/// `true` if all components of both vectors are equal, `false` otherwise.
-///
-/// # Examples
-///
-/// ```
-/// use ephem::core::vectors::{Cartesian, CartesianBuilder, Vec3d};
-///
-/// let v1 = CartesianBuilder::with(1.0, 2.0, 3.0).build();
-/// let v2 = CartesianBuilder::with(1.0, 2.0, 3.0).build();
-/// assert_eq!(v1, v2);
-/// let v3 = CartesianBuilder::with(4.0, 5.0, 6.0).build();
-/// assert_ne!(v1, v3);
-/// ```
 impl<S: CoordinateSystem> PartialEq for Vec3d<S> {
     /// Compares equality of two `Vec3d` vectors.
     ///
@@ -202,6 +175,18 @@ impl<S: CoordinateSystem> PartialEq for Vec3d<S> {
     /// # Returns
     ///
     /// `true` if all components of both vectors are equal, `false` otherwise.
+    /// 
+    /// # Examples
+    ///
+    /// ```
+    /// use ephem::core::vectors::{Cartesian, CartesianBuilder, Vec3d};
+    ///
+    /// let v1 = CartesianBuilder::with(1.0, 2.0, 3.0).build();
+    /// let v2 = CartesianBuilder::with(1.0, 2.0, 3.0).build();
+    /// assert_eq!(v1, v2);
+    /// let v3 = CartesianBuilder::with(4.0, 5.0, 6.0).build();
+    /// assert_ne!(v1, v3);
+    /// ```
     #[inline]
     fn eq(&self, other: &Self) -> bool {
         self.0[0].eq(&other.0[0]) && self.0[1].eq(&other.0[1]) && self.0[2].eq(&other.0[2])
@@ -209,38 +194,6 @@ impl<S: CoordinateSystem> PartialEq for Vec3d<S> {
 }
 
 /// Implementation block for `Vec3d` for division by a scalar with checking for zero divisor.
-///
-/// This implementation block provides a method `checked_div` to divide a `Vec3d` by a scalar value.
-/// It performs division by checking if the divisor is not zero, returning `Some(result)` if division is possible,
-/// and `None` if the divisor is zero.
-///
-/// # Arguments
-///
-/// * `rhs` - The scalar value to divide the `Vec3d` by.
-///
-/// # Returns
-///
-/// * `Some(Self)` - Result of the division if the divisor is not zero.
-/// * `None` - If the divisor is zero.
-///
-/// # Examples
-///
-/// ```
-/// use ephem::core::vectors::{Cartesian, CartesianBuilder, Vec3d};
-///
-/// let vector = CartesianBuilder::with(1.0, 2.0, 3.0).build();
-/// let result = vector.checked_div(2.0);
-/// assert!(result.is_some());
-/// if let Some(result) = result {
-///     assert_eq!(result.x(), 0.5);
-///     assert_eq!(result.y(), 1.0);
-///     assert_eq!(result.z(), 1.5);
-/// }
-///
-/// let vector = CartesianBuilder::with(1.0, 2.0, 3.0).build();
-/// let zero_divisor_result = vector.checked_div(0.0);
-/// assert!(zero_divisor_result.is_none());
-/// ```
 impl<S> Vec3d<S>
 where
     S: CoordinateSystem,
@@ -256,6 +209,25 @@ where
     ///
     /// * `Some(Self)` - Result of the division if the divisor is not zero.
     /// * `None` - If the divisor is zero.
+    /// 
+    /// # Examples
+    ///
+    /// ```
+    /// use ephem::core::vectors::{Cartesian, CartesianBuilder, Vec3d};
+    ///
+    /// let vector = CartesianBuilder::with(1.0, 2.0, 3.0).build();
+    /// let result = vector.checked_div(2.0);
+    /// assert!(result.is_some());
+    /// if let Some(result) = result {
+    ///     assert_eq!(result.x(), 0.5);
+    ///     assert_eq!(result.y(), 1.0);
+    ///     assert_eq!(result.z(), 1.5);
+    /// }
+    ///
+    /// let vector = CartesianBuilder::with(1.0, 2.0, 3.0).build();
+    /// let zero_divisor_result = vector.checked_div(0.0);
+    /// assert!(zero_divisor_result.is_none());
+    /// ```
     #[inline]
     pub fn checked_div(self, rhs: f64) -> Option<Self> {
         if rhs != 0.0 {
@@ -285,30 +257,6 @@ impl<S: CoordinateSystem> From<Vec3d<S>> for (f64, f64, f64) {
 }
 
 /// Implementation block for multiplication of a scalar by a `Vec3d`.
-///
-/// This implementation block provides multiplication of a scalar (`f64`) by a `Vec3d` of a specified coordinate system (`S`).
-/// It delegates the multiplication operation to the `mul` method of `Vec3d`.
-///
-/// # Arguments
-///
-/// * `rhs` - The `Vec3d` to be multiplied by the scalar.
-///
-/// # Returns
-///
-/// The result of the multiplication operation, which is a scalar value.
-///
-/// # Examples
-///
-/// ```
-/// use ephem::core::vectors::{Cartesian, CartesianBuilder, Vec3d};
-///
-/// let scalar = 2.0;
-/// let vector = CartesianBuilder::with(1.0, 2.0, 3.0).build();
-/// let result = scalar * vector;
-/// assert_eq!(result.x(), 2.0);
-/// assert_eq!(result.y(), 4.0);
-/// assert_eq!(result.z(), 6.0);
-/// ```
 impl<S> Mul<Vec3d<S>> for f64
 where
     S: CoordinateSystem,
@@ -326,6 +274,19 @@ where
     /// # Returns
     ///
     /// The result of the multiplication operation, which is a scalar value.
+    /// 
+    /// # Examples
+    /// 
+    /// ```
+    /// use ephem::core::vectors::{Cartesian, CartesianBuilder, Vec3d};
+    ///
+    /// let scalar = 2.0;
+    /// let vector = CartesianBuilder::with(1.0, 2.0, 3.0).build();
+    /// let result = scalar * vector;
+    /// assert_eq!(result.x(), 2.0);
+    /// assert_eq!(result.y(), 4.0);
+    /// assert_eq!(result.z(), 6.0);
+    /// ```
     #[inline]
     fn mul(self, rhs: Vec3d<S>) -> Self::Output {
         rhs.mul(self)
@@ -858,23 +819,23 @@ impl CrossMul for Vec3d<Cartesian> {
     /// use ephem::core::CrossMul;
     /// use ephem::core::vectors::{Cartesian, CartesianBuilder, Vec3d};
     ///
-    /// let v1 = CartesianBuilder::unit_x().build();
-    /// let v2 = CartesianBuilder::unit_y().build();
+    /// let v1 = CartesianBuilder::with(-2.0, 3.0, 0.0).build();
+    /// let v2 = CartesianBuilder::with(-2.0, 0.0, 6.0).build();
     ///
     /// let cross_product = v1.cross(v2);
-    /// let v3 = -CartesianBuilder::unit_z().build();
+    /// let v3 = CartesianBuilder::with(18.0, 12.0, 6.0).build();
     /// assert_eq!(cross_product, v3);
     /// ```
     #[inline]
     fn cross(self, rhs: Self) -> Self::Output {
         Vec3d::<Cartesian>(
             [
-                self.0[Cartesian::Z_IDX] * rhs.0[Cartesian::Y_IDX]
-                    - self.0[Cartesian::Y_IDX] * rhs.0[Cartesian::Z_IDX],
-                self.0[Cartesian::X_IDX] * rhs.0[Cartesian::Z_IDX]
-                    - self.0[Cartesian::Z_IDX] * rhs.0[Cartesian::X_IDX],
-                self.0[Cartesian::Y_IDX] * rhs.0[Cartesian::X_IDX]
-                    - self.0[Cartesian::X_IDX] * rhs.0[Cartesian::Y_IDX],
+                self.0[Cartesian::Y_IDX] * rhs.0[Cartesian::Z_IDX]
+                    - self.0[Cartesian::Z_IDX] * rhs.0[Cartesian::Y_IDX],
+                self.0[Cartesian::Z_IDX] * rhs.0[Cartesian::X_IDX]
+                    - self.0[Cartesian::X_IDX] * rhs.0[Cartesian::Z_IDX],
+                self.0[Cartesian::X_IDX] * rhs.0[Cartesian::Y_IDX]
+                    - self.0[Cartesian::Y_IDX] * rhs.0[Cartesian::X_IDX],
             ],
             PhantomData::<Cartesian> {},
         )
@@ -1056,16 +1017,27 @@ impl Normalizable for Vec3d<Cylindrical> {
     }
 }
 
+/// Implements a method to convert a vector in cylindrical coordinates to its canonical form.
 impl Canonizable for Vec3d<Cylindrical> {
+    /// Converts the vector to its canonical form in cylindrical coordinates.
+    ///
+    /// If the radius component of the vector is negative, it negates the radius and adjusts
+    /// the azimuth by adding π radians to maintain the equivalent direction.
+    ///
+    /// # Returns
+    /// 
+    /// The vector in its canonical form.
     fn canonic(self) -> Self {
         let mut radius = self.0[Cylindrical::RADIUS_IDX];
         let mut azimuth = self.0[Cylindrical::AZIMUTH_IDX];
 
+        // Adjust radius and azimuth if radius is negative
         if radius < 0.0 {
             radius = -radius;
             azimuth += PI;
         }
 
+        // Ensure azimuth is within the range [0, 2π)
         Vec3d::<Cylindrical>(
             [radius, azimuth.fmod(PI2), self.0[Cylindrical::ALTITUDE_IDX]],
             PhantomData::<Cylindrical> {},
@@ -1073,11 +1045,18 @@ impl Canonizable for Vec3d<Cylindrical> {
     }
 }
 
+/// Implements a method to convert a vector in cylindrical coordinates to Cartesian coordinates.
 impl ToCartesian for Vec3d<Cylindrical> {
+    /// Converts the vector from cylindrical coordinates to Cartesian coordinates.
+    ///
+    /// # Returns
+    /// 
+    /// The vector converted to Cartesian coordinates.
     fn to_c(&self) -> Vec3d<Cartesian> {
         let (sa, ca) = self.0[Cylindrical::AZIMUTH_IDX].sin_cos();
         let rho = self.0[Cylindrical::RADIUS_IDX];
 
+        // Calculate Cartesian components from cylindrical components
         Vec3d::<Cartesian>(
             [ca * rho, sa * rho, self.0[Cylindrical::ALTITUDE_IDX]],
             PhantomData::<Cartesian> {},
@@ -1085,11 +1064,18 @@ impl ToCartesian for Vec3d<Cylindrical> {
     }
 }
 
+/// Implements a method to convert a vector in cylindrical coordinates to spherical coordinates.
 impl ToSpherical for Vec3d<Cylindrical> {
+    /// Converts the vector from cylindrical coordinates to spherical coordinates.
+    ///
+    /// # Returns
+    /// 
+    /// The vector converted to spherical coordinates.
     fn to_s(&self) -> Vec3d<Spherical> {
         let rho = self.0[Cylindrical::RADIUS_IDX];
         let z = self.0[Cylindrical::ALTITUDE_IDX];
 
+        // Calculate spherical components from cylindrical components
         let r = (rho * rho + z * z).sqrt();
         let theta = if rho == 0.0 && z == 0.0 {
             0.0
@@ -1104,30 +1090,214 @@ impl ToSpherical for Vec3d<Cylindrical> {
     }
 }
 
+/// Implements a conversion from a vector in any coordinate system to cylindrical coordinates.
 impl<S> From<Vec3d<S>> for Vec3d<Cylindrical>
 where
     S: CoordinateSystem,
     Vec3d<S>: ToCylindrical,
 {
+    /// Converts a vector from any coordinate system to cylindrical coordinates.
+    ///
+    /// # Arguments
+    /// 
+    /// * `vector` - The input vector to be converted.
+    ///
+    /// # Returns
+    /// 
+    /// The vector converted to cylindrical coordinates.
     #[inline]
     fn from(vector: Vec3d<S>) -> Self {
         vector.to_y()
     }
 }
 
+/// Implements the negation operation for vectors in cylindrical coordinates.
 impl Neg for Vec3d<Cylindrical> {
+    /// The type of the result of the negation operation.
     type Output = Self;
 
+    /// Negates each component of the vector in cylindrical coordinates.
+    ///
+    /// # Arguments
+    ///
+    /// * `self` - The vector to be negated.
+    ///
+    /// # Returns
+    ///
+    /// A new vector with negated components.
+    /// 
+    /// # Examples
+    ///
+    /// ```
+    /// use std::f64::consts::PI;
+    /// use ephem::core::vectors::{Cylindrical, CylindricalBuilder, Vec3d};
+    ///
+    /// let vector = CylindricalBuilder::with(1.0, PI, 3.0).build();
+    /// let negated_vector = -vector;
+    /// assert_eq!(negated_vector.radius(), -1.0);
+    /// assert_eq!(negated_vector.azimuth(), PI);
+    /// assert_eq!(negated_vector.altitude(), -3.0);
+    /// ```
     #[inline]
     fn neg(self) -> Self::Output {
         Vec3d::<Cylindrical>(
             [
                 -self.0[Cylindrical::RADIUS_IDX],
-                self.0[Cylindrical::AZIMUTH_IDX] + PI,
+                self.0[Cylindrical::AZIMUTH_IDX],
                 -self.0[Cylindrical::ALTITUDE_IDX],
             ],
             PhantomData::<Cylindrical> {},
         )
+    }
+}
+
+/// Implements the multiplication operation between a cylindrical vector and a scalar.
+///
+/// This implementation performs element-wise multiplication of the cylindrical vector's components
+/// by the given scalar value.
+impl Mul<f64> for Vec3d<Cylindrical> {
+    /// The type of the result of the multiplication by a floating-point scalar operation.
+    type Output = Self;
+
+    /// Performs the multiplication operation.
+    ///
+    /// # Parameters
+    /// 
+    /// - `self`: The cylindrical vector.
+    /// - `rhs`: The scalar value to multiply by.
+    ///
+    /// # Returns
+    /// 
+    /// The resulting cylindrical vector after element-wise multiplication with the scalar.
+    ///
+    /// # Example
+    /// 
+    /// ```
+    /// use ephem::core::vectors::{Cylindrical, CylindricalBuilder, Vec3d};
+    ///
+    /// let v = CylindricalBuilder::with(2.0, 0.0, 3.0).build();
+    /// let scalar = 2.5;
+    /// let result = v * scalar;
+    /// assert_eq!(result.radius(), 5.0);
+    /// assert_eq!(result.azimuth(), 0.0);
+    /// assert_eq!(result.altitude(), 7.5);
+    /// ```
+    #[inline]
+    fn mul(self, rhs: f64) -> Self::Output {
+        Vec3d::<Cylindrical>(
+            [
+                self.0[Cylindrical::RADIUS_IDX] * rhs,
+                self.0[Cylindrical::AZIMUTH_IDX],
+                self.0[Cylindrical::ALTITUDE_IDX] * rhs,
+            ],
+            PhantomData::<Cylindrical> {}
+        )
+    }
+}
+
+/// Implements the multiplication assignment operation between a cylindrical vector and a scalar.
+///
+/// This implementation performs element-wise multiplication of the cylindrical vector's radius and altitude
+/// components by the given scalar value.
+impl MulAssign<f64> for Vec3d<Cylindrical> {
+    /// Performs the multiplication assignment operation.
+    ///
+    /// # Parameters
+    /// 
+    /// - `self`: A mutable reference to the cylindrical vector.
+    /// - `rhs`: The scalar value to multiply by.
+    ///
+    /// # Example
+    /// 
+    /// ```
+    /// use ephem::core::vectors::{Cylindrical, CylindricalBuilder, Vec3d};
+    ///
+    /// let mut v = CylindricalBuilder::with(2.0, 0.0, 3.0).build();
+    /// let scalar = 2.5;
+    /// v *= scalar;
+    /// assert_eq!(v.radius(), 5.0);
+    /// assert_eq!(v.azimuth(), 0.0);
+    /// assert_eq!(v.altitude(), 7.5);
+    /// ```
+    #[inline]
+    fn mul_assign(&mut self, rhs: f64) {
+        self.0[Cylindrical::RADIUS_IDX] *= rhs;
+        self.0[Cylindrical::ALTITUDE_IDX] *= rhs;
+    }
+}
+
+/// Implements the division operation between a cylindrical vector and a scalar.
+///
+/// This implementation performs element-wise division of the cylindrical vector's radius and altitude
+/// components by the given scalar value.
+impl Div<f64> for Vec3d<Cylindrical> {
+    /// The type of the result of the division by a floating-point scalar operation.
+    type Output = Self;
+
+    /// Performs the division operation.
+    ///
+    /// # Parameters
+    /// 
+    /// - `self`: The cylindrical vector.
+    /// - `rhs`: The scalar value to divide by.
+    ///
+    /// # Returns
+    /// 
+    /// A new cylindrical vector where each component is divided by the scalar value.
+    ///
+    /// # Example
+    /// 
+    /// ```
+    /// use ephem::core::vectors::{Cylindrical, CylindricalBuilder, Vec3d};
+    ///
+    /// let v = CylindricalBuilder::with(5.0, 0.0, 7.5).build();
+    /// let scalar = 2.5;
+    /// let result = v / scalar;
+    /// assert_eq!(result.radius(), 2.0);
+    /// assert_eq!(result.azimuth(), 0.0);
+    /// assert_eq!(result.altitude(), 3.0);
+    /// ```
+    #[inline]
+    fn div(self, rhs: f64) -> Self::Output {
+        Vec3d::<Cylindrical>(
+            [
+                self.0[Cylindrical::RADIUS_IDX] / rhs,
+                self.0[Cylindrical::AZIMUTH_IDX],
+                self.0[Cylindrical::ALTITUDE_IDX] / rhs,
+            ],
+            PhantomData::<Cylindrical> {}
+        )
+    }
+}
+
+/// Implements the division assignment operation between a cylindrical vector and a scalar.
+///
+/// This implementation performs element-wise division of the cylindrical vector's radius and altitude
+/// components by the given scalar value, modifying the vector in place.
+impl DivAssign<f64> for Vec3d<Cylindrical> {
+    /// Performs the division assignment operation.
+    ///
+    /// # Parameters
+    /// 
+    /// - `self`: A mutable reference to the cylindrical vector.
+    /// - `rhs`: The scalar value to divide by.
+    ///
+    /// # Example
+    /// 
+    /// ```
+    /// use ephem::core::vectors::{Cylindrical, CylindricalBuilder, Vec3d};
+    ///
+    /// let mut v = CylindricalBuilder::with(5.0, 0.0, 7.5).build();
+    /// let scalar = 2.5;
+    /// v /= scalar;
+    /// assert_eq!(v.radius(), 2.0);
+    /// assert_eq!(v.azimuth(), 0.0);
+    /// assert_eq!(v.altitude(), 3.0);
+    /// ```
+    #[inline]
+    fn div_assign(&mut self, rhs: f64) {
+        self.0[Cylindrical::RADIUS_IDX] /= rhs;
+        self.0[Cylindrical::ALTITUDE_IDX] /= rhs;
     }
 }
 

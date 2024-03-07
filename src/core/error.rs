@@ -46,7 +46,6 @@ impl fmt::Display for Error {
     ///
     /// A `fmt::Result` indicating the success or failure of the formatting operation.
     /// 
-
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
             Self::ZeroDivisionError => {

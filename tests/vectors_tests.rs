@@ -6,8 +6,7 @@ use approx::assert_relative_eq;
 
 use rand::Rng;
 
-use ephem::core::vectors::*;
-use ephem::core::{consts::PI2, DotMul};
+use ephem::core::{consts::PI2, vectors::*, CrossMul, DotMul, Normalizable};
 
 mod shared;
 
@@ -115,14 +114,6 @@ fn gen_spherical<R: Rng + ?Sized>(rng: &mut R) -> (f64, f64, f64) {
 }
 
 /// Test case for creating Cartesian vectors using the CartesianBuilder.
-///
-/// This test verifies the correctness of creating Cartesian vectors with various methods provided
-/// by the CartesianBuilder struct. It checks that vectors are constructed correctly with zero
-/// values, unit values, specific values, and random values within a range.
-///
-/// # Panics
-///
-/// This test will panic if any of the assertions fail.
 #[test]
 fn create_cartesian_vec3d_test() {
     // Test building a vector with default values
@@ -173,14 +164,6 @@ fn create_cartesian_vec3d_test() {
 }
 
 /// Test function for creating cylindrical vectors.
-///
-/// This function tests the creation of cylindrical vectors using the `CylindricalBuilder`.
-/// It verifies that vectors can be created with specific values or using default values.
-/// Additionally, it tests random creation of vectors within specified ranges.
-///
-/// # Panics
-///
-/// This test will panic if any of the assertions fail.
 #[test]
 fn create_cylindrical_vec3d_test() {
     // Test building a vector with default values
@@ -219,14 +202,6 @@ fn create_cylindrical_vec3d_test() {
 }
 
 /// Test function for creating spherical vectors.
-///
-/// This function tests the creation of spherical vectors using the `SphericalBuilder`.
-/// It verifies that vectors can be created with default values, random values, and specified values.
-/// Additionally, it tests building unit vectors with specified values.
-///
-/// # Panics
-///
-/// This test will panic if any of the assertions fail.
 #[test]
 fn create_spherical_vec3d_test() {
     // Test building a vector with default values
@@ -271,14 +246,6 @@ fn create_spherical_vec3d_test() {
 }
 
 /// Test function for creating spherical vectors with a given direction.
-///
-/// This function tests the creation of spherical vectors using a given direction provided by `TestDirection`.
-/// It verifies that vectors can be created with random values for radius and direction.
-/// Additionally, it tests building unit vectors from the given direction.
-///
-/// # Panics
-///
-/// This test will panic if any of the assertions fail.
 #[test]
 fn create_spherical_vec3d_with_position_test() {
     // Test building vectors with random values
@@ -302,13 +269,6 @@ fn create_spherical_vec3d_with_position_test() {
 }
 
 /// Test function for converting vectors into tuples.
-///
-/// This function tests the conversion of vectors (`Vec3d`) into tuples of coordinates for various coordinate systems.
-/// It generates vectors with random values and verifies that the conversion produces tuples with corresponding values.
-///
-/// # Panics
-///
-/// This test will panic if any of the assertions fail.
 #[test]
 fn vec3d_conversion_into_tuple_test() {
     // Test converting Cartesian vectors into tuples
@@ -350,10 +310,6 @@ fn vec3d_conversion_into_tuple_test() {
 }
 
 /// Test function for converting `Vec3d` vectors between different coordinate systems.
-///
-/// This test function generates random vectors in Cartesian, cylindrical, and spherical coordinate systems,
-/// converts them to other coordinate systems, and then converts them back to the original coordinate system.
-/// It ensures that the conversion functions maintain consistency by comparing the converted vectors with the original ones.
 #[test]
 fn vec3d_converion_test() {
     let mut rng = rand::thread_rng();
@@ -520,10 +476,29 @@ fn vec3d_converion_test() {
     }
 }
 
+/// Tests the calculation of the norm (magnitude) of Cartesian vectors.
+#[test]
+fn cartesian_vec3d_norma_test() {
+    let mut rng = rand::thread_rng();
+    for _ in 0..shared::ITERATIONS {
+        // Generate random Cartesian vector
+        let (x, y, z) = gen_cartesian(&mut rng);
+        let v = CartesianBuilder::with(x, y, z).build();
+
+        // Perform norma calculation
+        let r = v.norm();
+
+        // Verify result
+        assert_relative_eq!(
+            r,
+            (v.x().powi(2) + v.y().powi(2) + v.z().powi(2)).sqrt(),
+            epsilon = f64::EPSILON,
+            max_relative = shared::EPSILON
+        );
+    }
+}
+
 /// Test function for negating a Cartesian `Vec3d` vector.
-///
-/// This test function verifies the correctness of the negation operation on Cartesian `Vec3d` vectors.
-/// It generates random Cartesian vectors and checks whether the negation operation produces the expected result.
 #[test]
 fn cartesion_vec3d_negation_test() {
     let mut rng = rand::thread_rng();
@@ -543,9 +518,6 @@ fn cartesion_vec3d_negation_test() {
 }
 
 /// Test function for addition of two `Vec3d` vectors.
-///
-/// This test function generates random Cartesian vectors, performs addition between them,
-/// and verifies that the components of the resulting vector are the sum of the corresponding components of the input vectors.
 #[test]
 fn cartesian_vec3d_addition_test() {
     let mut rng = rand::thread_rng();
@@ -568,10 +540,6 @@ fn cartesian_vec3d_addition_test() {
 }
 
 /// Test function for in-place addition of Cartesian `Vec3d` vectors.
-///
-/// This test function verifies the correctness of the in-place addition operation on Cartesian `Vec3d` vectors.
-/// It generates random Cartesian vectors, performs in-place addition with another random vector,
-/// and checks whether the resulting vector has the expected components.
 #[test]
 fn cartesian_vec3d_addition_with_assignment_test() {
     let mut rng = rand::thread_rng();
@@ -594,10 +562,6 @@ fn cartesian_vec3d_addition_with_assignment_test() {
 }
 
 /// Test function for subtraction of two `Vec3d` vectors.
-///
-/// This test function generates random Cartesian vectors, performs subtraction between them,
-/// and verifies that the components of the resulting vector are the difference of the corresponding components
-/// of the input vectors.
 #[test]
 fn cartesian_vec3d_substraction_test() {
     let mut rng = rand::thread_rng();
@@ -620,10 +584,6 @@ fn cartesian_vec3d_substraction_test() {
 }
 
 /// Test function for performing subtraction with assignment on Cartesian `Vec3d` vectors.
-///
-/// This function tests the subtraction with assignment operation (`-=`) on Cartesian `Vec3d` vectors.
-/// It generates random Cartesian vectors, performs subtraction with assignment, and then verifies
-/// that the components of the resulting vector are correct.
 #[test]
 fn cartesian_vec3d_substraction_with_assignment_test() {
     let mut rng = rand::thread_rng();
@@ -646,11 +606,6 @@ fn cartesian_vec3d_substraction_with_assignment_test() {
 }
 
 /// Test function for Cartesian vector multiplication by scalar.
-///
-/// This test function verifies the correctness of the scalar multiplication operation
-/// for Cartesian vectors. It generates random Cartesian vectors and a random scalar,
-/// then performs scalar multiplication by both left-hand side and right-hand side
-/// operations. The resulting vectors are compared against expected values.
 #[test]
 fn cartesian_vec3d_multiplication_by_scalar_test() {
     let mut rng = rand::thread_rng();
@@ -681,13 +636,6 @@ fn cartesian_vec3d_multiplication_by_scalar_test() {
 }
 
 /// Test function for multiplying `Vec3d<Cartesian>` vectors by a scalar with assignment.
-///
-/// This test function verifies the correct behavior of the multiplication operation with assignment
-/// (`*=`) between a `Vec3d<Cartesian>` vector and a scalar.
-///
-/// It generates random Cartesian vectors and a random scalar value, performs the multiplication
-/// operation with assignment, and then verifies if the resulting vector has its components correctly
-/// multiplied by the scalar.
 #[test]
 fn cartesian_vec3d_multiplication_by_scalar_with_assignment_test() {
     let mut rng = rand::thread_rng();
@@ -695,10 +643,10 @@ fn cartesian_vec3d_multiplication_by_scalar_with_assignment_test() {
         // Generate random Cartesian vector
         let (x, y, z) = gen_cartesian(&mut rng);
         let mut v = CartesianBuilder::with(x, y, z).build();
-        
+
         // Generate floating point scalar
         let scalar = (shared::MAX_VALUE - shared::MIN_VALUE) * rng.gen::<f64>() - shared::MIN_VALUE;
-        
+
         // Perform multiplication by the scalar with assignment
         v *= scalar;
 
@@ -709,14 +657,7 @@ fn cartesian_vec3d_multiplication_by_scalar_with_assignment_test() {
     }
 }
 
-
 /// Test function to verify division operation of a 3D Cartesian vector by a scalar.
-/// 
-/// This function generates random Cartesian vectors and floating-point scalars, 
-/// and then performs division operation on the vector by the scalar. 
-/// It verifies the correctness of division operation by comparing the components 
-/// of the resulting vector with the expected values obtained by dividing the 
-/// original vector components by the scalar.
 #[test]
 fn cartesian_vec3d_divison_by_scalar_test() {
     let mut rng = rand::thread_rng();
@@ -742,12 +683,6 @@ fn cartesian_vec3d_divison_by_scalar_test() {
 }
 
 /// Test function to verify division with assignment operation of a 3D Cartesian vector by a scalar.
-/// 
-/// This function generates random Cartesian vectors and floating-point scalars, 
-/// and then performs division with assignment operation on the vector by the scalar. 
-/// It verifies the correctness of division operation by comparing the components 
-/// of the resulting vector with the expected values obtained by dividing the 
-/// original vector components by the scalar.
 #[test]
 fn cartesian_vec3d_divison_by_scalar_with_assignment_test() {
     let mut rng = rand::thread_rng();
@@ -755,14 +690,14 @@ fn cartesian_vec3d_divison_by_scalar_with_assignment_test() {
         // Generate random Cartesian vector
         let (x, y, z) = gen_cartesian(&mut rng);
         let mut v = CartesianBuilder::with(x, y, z).build();
-        
+
         // Generate floating point scalar
         let scalar = (shared::MAX_VALUE - shared::MIN_VALUE) * rng.gen::<f64>() - shared::MIN_VALUE;
         if scalar.abs() < shared::EPSILON {
             continue;
         }
-        
-        // Perform multiplication by the scalar with assignment
+
+        // Perform division by the scalar with assignment
         v /= scalar;
 
         // Verify components of the resulting vector
@@ -773,9 +708,6 @@ fn cartesian_vec3d_divison_by_scalar_with_assignment_test() {
 }
 
 /// Test function for dot product multiplication of two `Vec3d` vectors.
-///
-/// This test function generates random Cartesian vectors, performs dot product multiplication between them,
-/// and verifies that the result is equal to the dot product of the corresponding components of the input vectors.
 #[test]
 fn cartesian_vec3d_dot_multiplication_test() {
     let mut rng = rand::thread_rng();
@@ -792,5 +724,192 @@ fn cartesian_vec3d_dot_multiplication_test() {
 
         // Verify result
         assert_eq!(r, x1 * x2 + y1 * y2 + z1 * z2);
+    }
+}
+
+/// Tests the cross product multiplication of Cartesian vectors.
+#[test]
+fn cartesian_vec3d_cross_multiplication_test() {
+    let i = CartesianBuilder::unit_x().build();
+    let j = CartesianBuilder::unit_y().build();
+    let k = CartesianBuilder::unit_z().build();
+
+    let r = i.clone().cross(j.clone());
+    assert_eq!(r, k);
+
+    let r = j.clone().cross(i.clone());
+    assert_eq!(r, -k.clone());
+
+    let r = j.clone().cross(k.clone());
+    assert_eq!(r, i);
+
+    let r = k.clone().cross(j.clone());
+    assert_eq!(r, -i.clone());
+
+    let r = k.clone().cross(i.clone());
+    assert_eq!(r, j);
+
+    let r = i.clone().cross(k.clone());
+    assert_eq!(r, -j.clone());
+
+    let mut rng = rand::thread_rng();
+    for _ in 0..shared::ITERATIONS {
+        // Generate random Cartesian vectors
+        let (x1, y1, z1) = gen_cartesian(&mut rng);
+        let v1 = CartesianBuilder::with(x1, y1, z1).build();
+
+        let (x2, y2, z2) = gen_cartesian(&mut rng);
+        let v2 = CartesianBuilder::with(x2, y2, z2).build();
+
+        // Perform dot product multiplication
+        let r = v1.cross(v2);
+
+        // Verify result
+        assert_eq!(r.x(), y1 * z2 - z1 * y2);
+        assert_eq!(r.y(), z1 * x2 - x1 * z2);
+        assert_eq!(r.z(), x1 * y2 - y1 * x2);
+    }
+}
+
+/// Tests the calculation of the norm for vectors in cylindrical coordinates.
+#[test]
+fn cylindrical_vec3d_norma_test() {
+    let mut rng = rand::thread_rng();
+    for _ in 0..shared::ITERATIONS {
+        // Generate random Cylindrical vector
+        let (radius, azimuth, altitude) = gen_cylindrical(&mut rng);
+        let v = CylindricalBuilder::with(radius, azimuth, altitude).build();
+
+        // Perform norma calculation
+        let r = v.norm();
+
+        // Verify result
+        assert_relative_eq!(
+            r,
+            (v.radius().powi(2) + v.altitude().powi(2)).sqrt(),
+            epsilon = f64::EPSILON,
+            max_relative = shared::EPSILON
+        );
+    }
+}
+
+/// Tests the negation operation for vectors in cylindrical coordinates.
+#[test]
+fn cylindrical_vec3d_negation_test() {
+    let mut rng = rand::thread_rng();
+    for _ in 0..shared::ITERATIONS {
+        // Generate random Cylindrical vector
+        let (radius, azimuth, altitude) = gen_cylindrical(&mut rng);
+        let v = CylindricalBuilder::with(radius, azimuth, altitude).build();
+
+        // Perform negation
+        let n = -v;
+
+        // Verify components of the resulting vector
+        assert_eq!(n.radius(), -radius);
+        assert_eq!(n.azimuth(), azimuth);
+        assert_eq!(n.altitude(), -altitude);
+    }
+}
+
+/// Tests the multiplication of a cylindrical vector by a scalar value.
+#[test]
+fn cylindrical_vec3d_multiplication_by_scalar_test() {
+    let mut rng = rand::thread_rng();
+    for _ in 0..shared::ITERATIONS {
+        // Generate random Cylindrical vector
+        let (radius, azimuth, altitude) = gen_cylindrical(&mut rng);
+        let v = CylindricalBuilder::with(radius, azimuth, altitude).build();
+
+        // Generate floating point scalar
+        let scalar = (shared::MAX_VALUE - shared::MIN_VALUE) * rng.gen::<f64>() - shared::MIN_VALUE;
+
+        // Perform multiplication by the scalar
+        let r = v.clone() * scalar;
+
+        // Verify components of the resulting vector
+        assert_eq!(r.radius(), radius * scalar);
+        assert_eq!(r.azimuth(), azimuth);
+        assert_eq!(r.altitude(), altitude * scalar);
+
+        // Perform multiplication by the scalar
+        let r = scalar * v;
+
+        // Verify components of the resulting vector
+        assert_eq!(r.radius(), scalar * radius);
+        assert_eq!(r.azimuth(), azimuth);
+        assert_eq!(r.altitude(), scalar * altitude);
+    }
+}
+
+/// Tests the multiplication of a cylindrical vector by a scalar value with assignment.
+#[test]
+fn cylindrical_vec3d_multiplication_by_scalar_with_assignment_test() {
+    let mut rng = rand::thread_rng();
+    for _ in 0..shared::ITERATIONS {
+        // Generate random Cylindrical vector
+        let (radius, azimuth, altitude) = gen_cylindrical(&mut rng);
+        let mut v = CylindricalBuilder::with(radius, azimuth, altitude).build();
+
+        // Generate floating point scalar
+        let scalar = (shared::MAX_VALUE - shared::MIN_VALUE) * rng.gen::<f64>() - shared::MIN_VALUE;
+
+        // Perform multiplication by the scalar with assignment
+        v *= scalar;
+
+        // Verify components of the resulting vector
+        assert_eq!(v.radius(), radius * scalar);
+        assert_eq!(v.azimuth(), azimuth);
+        assert_eq!(v.altitude(), altitude * scalar);
+    }
+}
+
+/// Tests the division of a cylindrical vector by a scalar value.
+#[test]
+fn cylindrical_vec3d_divison_by_scalar_test() {
+    let mut rng = rand::thread_rng();
+    for _ in 0..shared::ITERATIONS {
+        // Generate random Cylindrical vector
+        let (radius, azimuth, altitude) = gen_cylindrical(&mut rng);
+        let v = CylindricalBuilder::with(radius, azimuth, altitude).build();
+
+        // Generate floating point scalar
+        let scalar = (shared::MAX_VALUE - shared::MIN_VALUE) * rng.gen::<f64>() - shared::MIN_VALUE;
+        if scalar.abs() < shared::EPSILON {
+            continue;
+        }
+
+        // Perform division by the scalar
+        let r = v / scalar;
+
+        // Verify components of the resulting vector
+        assert_eq!(r.radius(), radius / scalar);
+        assert_eq!(r.azimuth(), azimuth);
+        assert_eq!(r.altitude(), altitude / scalar);
+    }
+}
+
+/// Tests the division of a cylindrical vector by a scalar value with assignment.
+#[test]
+fn cylindrical_vec3d_divison_by_scalar_with_assignment_test() {
+    let mut rng = rand::thread_rng();
+    for _ in 0..shared::ITERATIONS {
+        // Generate random Cylindrical vector
+        let (radius, azimuth, altitude) = gen_cylindrical(&mut rng);
+        let mut v = CylindricalBuilder::with(radius, azimuth, altitude).build();
+
+        // Generate floating point scalar
+        let scalar = (shared::MAX_VALUE - shared::MIN_VALUE) * rng.gen::<f64>() - shared::MIN_VALUE;
+        if scalar.abs() < shared::EPSILON {
+            continue;
+        }
+
+        // Perform division by the scalar with assignment
+        v /= scalar;
+
+        // Verify components of the resulting vector
+        assert_eq!(v.radius(), radius / scalar);
+        assert_eq!(v.azimuth(), azimuth);
+        assert_eq!(v.altitude(), altitude / scalar);
     }
 }
