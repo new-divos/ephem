@@ -1,6 +1,8 @@
 use std::{
     convert::From,
-    f64::consts::PI,
+    f64::consts::{FRAC_PI_2, PI},
+    fmt,
+    iter::{FromIterator, IntoIterator, Iterator},
     marker::PhantomData,
     ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign},
 };
@@ -35,7 +37,7 @@ pub trait ToCartesian {
     /// # Returns
     ///
     /// A `Vec3d` representing the Cartesian coordinates.
-    /// 
+    ///
     /// # Examples
     ///
     /// ```
@@ -68,7 +70,7 @@ pub trait ToCylindrical {
     /// # Returns
     ///
     /// A `Vec3d` representing the cylindrical coordinates.
-    /// 
+    ///
     /// # Examples
     ///
     /// ```
@@ -101,7 +103,7 @@ pub trait ToSpherical {
     /// # Returns
     ///
     /// A `Vec3d` representing the spherical coordinates.
-    /// 
+    ///
     /// # Examples
     ///
     /// ```
@@ -129,13 +131,89 @@ pub trait ToSpherical {
 /// The `Vec3d` struct represents a three-dimensional vector with coordinates stored as an array of
 /// three `f64` values. The choice of coordinate system is determined by the type parameter `S`, which
 /// must implement the `CoordinateSystem` trait.
-#[derive(Debug)]
 pub struct Vec3d<S: CoordinateSystem>(
     /// Array representing the three coordinates of the vector.
     [f64; 3],
     /// PhantomData marker to tie the coordinate system type to the vector.
     PhantomData<S>,
 );
+
+impl<S: CoordinateSystem> Vec3d<S> {
+    #[inline]
+    pub fn iter<'a>(&'a self) -> Vec3dIter<'a> {
+        Vec3dIter::<'a> {
+            data: &self.0,
+            cursor: 0,
+        }
+    }
+
+    #[inline]
+    pub fn iter_mut<'a>(&'a mut self) -> Vec3dMutIter<'a> {
+        Vec3dMutIter::<'a> {
+            data: &mut self.0,
+            cursor: 0,
+        }
+    }
+}
+
+/// Implementation block for `Vec3d` for division by a scalar with checking for zero divisor.
+impl<S> Vec3d<S>
+where
+    S: CoordinateSystem,
+    Vec3d<S>: Div<f64, Output = Self>,
+{
+    /// Divides the `Vec3d` by a scalar value, checking for zero divisor.
+    ///
+    /// # Arguments
+    ///
+    /// * `rhs` - The scalar value to divide the `Vec3d` by.
+    ///
+    /// # Returns
+    ///
+    /// * `Some(Self)` - Result of the division if the divisor is not zero.
+    /// * `None` - If the divisor is zero.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ephem::core::vectors::{Cartesian, CartesianBuilder, Vec3d};
+    ///
+    /// let vector = CartesianBuilder::with(1.0, 2.0, 3.0).build();
+    /// let result = vector.checked_div(2.0);
+    /// assert!(result.is_some());
+    /// if let Some(result) = result {
+    ///     assert_eq!(result.x(), 0.5);
+    ///     assert_eq!(result.y(), 1.0);
+    ///     assert_eq!(result.z(), 1.5);
+    /// }
+    ///
+    /// let vector = CartesianBuilder::with(1.0, 2.0, 3.0).build();
+    /// let zero_divisor_result = vector.checked_div(0.0);
+    /// assert!(zero_divisor_result.is_none());
+    /// ```
+    #[inline]
+    pub fn checked_div(self, rhs: f64) -> Option<Self> {
+        if rhs != 0.0 {
+            Some(self / rhs)
+        } else {
+            None
+        }
+    }
+}
+
+impl<S: CoordinateSystem> AsRef<[f64]> for Vec3d<S> {
+    #[inline]
+    fn as_ref(&self) -> &[f64] {
+        &self.0
+    }
+}
+
+impl<S: CoordinateSystem> AsMut<[f64]> for Vec3d<S> {
+    #[inline]
+    fn as_mut(&mut self) -> &mut [f64] {
+        &mut self.0
+    }
+}
 
 /// Implementation block for cloning `Vec3d` vectors.
 impl<S: CoordinateSystem> Clone for Vec3d<S> {
@@ -146,7 +224,7 @@ impl<S: CoordinateSystem> Clone for Vec3d<S> {
     /// # Returns
     ///
     /// A new `Vec3d` with the same components as the original vector.
-    /// 
+    ///
     /// # Examples
     ///
     /// ```
@@ -175,7 +253,7 @@ impl<S: CoordinateSystem> PartialEq for Vec3d<S> {
     /// # Returns
     ///
     /// `true` if all components of both vectors are equal, `false` otherwise.
-    /// 
+    ///
     /// # Examples
     ///
     /// ```
@@ -190,51 +268,6 @@ impl<S: CoordinateSystem> PartialEq for Vec3d<S> {
     #[inline]
     fn eq(&self, other: &Self) -> bool {
         self.0[0].eq(&other.0[0]) && self.0[1].eq(&other.0[1]) && self.0[2].eq(&other.0[2])
-    }
-}
-
-/// Implementation block for `Vec3d` for division by a scalar with checking for zero divisor.
-impl<S> Vec3d<S>
-where
-    S: CoordinateSystem,
-    Vec3d<S>: Div<f64, Output = Self>,
-{
-    /// Divides the `Vec3d` by a scalar value, checking for zero divisor.
-    ///
-    /// # Arguments
-    ///
-    /// * `rhs` - The scalar value to divide the `Vec3d` by.
-    ///
-    /// # Returns
-    ///
-    /// * `Some(Self)` - Result of the division if the divisor is not zero.
-    /// * `None` - If the divisor is zero.
-    /// 
-    /// # Examples
-    ///
-    /// ```
-    /// use ephem::core::vectors::{Cartesian, CartesianBuilder, Vec3d};
-    ///
-    /// let vector = CartesianBuilder::with(1.0, 2.0, 3.0).build();
-    /// let result = vector.checked_div(2.0);
-    /// assert!(result.is_some());
-    /// if let Some(result) = result {
-    ///     assert_eq!(result.x(), 0.5);
-    ///     assert_eq!(result.y(), 1.0);
-    ///     assert_eq!(result.z(), 1.5);
-    /// }
-    ///
-    /// let vector = CartesianBuilder::with(1.0, 2.0, 3.0).build();
-    /// let zero_divisor_result = vector.checked_div(0.0);
-    /// assert!(zero_divisor_result.is_none());
-    /// ```
-    #[inline]
-    pub fn checked_div(self, rhs: f64) -> Option<Self> {
-        if rhs != 0.0 {
-            Some(self / rhs)
-        } else {
-            None
-        }
     }
 }
 
@@ -274,9 +307,9 @@ where
     /// # Returns
     ///
     /// The result of the multiplication operation, which is a scalar value.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use ephem::core::vectors::{Cartesian, CartesianBuilder, Vec3d};
     ///
@@ -290,6 +323,126 @@ where
     #[inline]
     fn mul(self, rhs: Vec3d<S>) -> Self::Output {
         rhs.mul(self)
+    }
+}
+
+impl<S: CoordinateSystem> IntoIterator for Vec3d<S> {
+    type Item = f64;
+    type IntoIter = Vec3dIntoIter;
+
+    #[inline]
+    fn into_iter(self) -> Self::IntoIter {
+        Vec3dIntoIter {
+            data: self.0,
+            cursor: 0,
+        }
+    }
+}
+
+impl<'a, S: CoordinateSystem> IntoIterator for &'a Vec3d<S> {
+    type Item = f64;
+    type IntoIter = Vec3dIter<'a>;
+
+    #[inline]
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+
+impl<'a, S: CoordinateSystem> IntoIterator for &'a mut Vec3d<S> {
+    type Item = &'a mut f64;
+    type IntoIter = Vec3dMutIter<'a>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter_mut()
+    }
+}
+
+pub struct Vec3dIter<'a> {
+    data: &'a [f64],
+    cursor: usize,
+}
+
+impl<'a> Iterator for Vec3dIter<'a> {
+    type Item = f64;
+
+    #[inline]
+    fn next(&mut self) -> Option<Self::Item> {
+        if (0..self.data.len()).contains(&self.count()) {
+            let value = self.data[self.cursor];
+            self.cursor += 1;
+
+            Some(value)
+        } else {
+            None
+        }
+    }
+
+    #[inline]
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        (self.data.len(), Some(self.data.len()))
+    }
+
+    #[inline]
+    fn last(self) -> Option<Self::Item> {
+        Some(self.data[self.data.len() - 1])
+    }
+}
+
+pub struct Vec3dMutIter<'a> {
+    data: &'a mut [f64],
+    cursor: usize,
+}
+
+impl<'a> Iterator for Vec3dMutIter<'a> {
+    type Item = &'a mut f64;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if (0..self.data.len()).contains(&self.cursor) {
+            let i = self.cursor;
+            self.cursor += 1;
+
+            let data_ptr = self.data.as_mut_ptr();
+            unsafe { Some(&mut *data_ptr.add(i)) }
+        } else {
+            None
+        }
+    }
+
+    #[inline]
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        (self.data.len(), Some(self.data.len()))
+    }
+}
+
+pub struct Vec3dIntoIter {
+    data: [f64; 3],
+    cursor: usize,
+}
+
+impl Iterator for Vec3dIntoIter {
+    type Item = f64;
+
+    #[inline]
+    fn next(&mut self) -> Option<Self::Item> {
+        if (0..=2).contains(&self.count()) {
+            let value = self.data[self.cursor];
+            self.cursor += 1;
+
+            Some(value)
+        } else {
+            None
+        }
+    }
+
+    #[inline]
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        (3, Some(3))
+    }
+
+    #[inline]
+    fn last(self) -> Option<Self::Item> {
+        Some(self.data[2])
     }
 }
 
@@ -507,7 +660,7 @@ impl Add for Vec3d<Cartesian> {
     ///
     /// A new Cartesian `Vec3d` vector with components equal to the sum of the corresponding
     /// components of the input vectors.
-    /// 
+    ///
     /// # Examples
     ///
     /// ```
@@ -540,7 +693,7 @@ impl AddAssign for Vec3d<Cartesian> {
     /// # Arguments
     ///
     /// * `rhs` - The right-hand side vector to be added to the left-hand side vector.
-    /// 
+    ///
     /// # Examples
     ///
     /// ```
@@ -576,7 +729,7 @@ impl Sub for Vec3d<Cartesian> {
     ///
     /// A new Cartesian `Vec3d` vector with components equal to the difference between the corresponding components
     /// of the input vectors.
-    /// 
+    ///
     /// # Examples
     ///
     /// ```
@@ -610,7 +763,7 @@ impl SubAssign for Vec3d<Cartesian> {
     /// # Arguments
     ///
     /// * `rhs` - The right-hand side vector whose components are subtracted from the components of the left-hand side vector.
-    /// 
+    ///
     /// # Examples
     ///
     /// ```
@@ -641,7 +794,7 @@ impl Mul<f64> for Vec3d<Cartesian> {
     /// # Arguments
     ///
     /// * `rhs` - The floating-point scalar value to multiply with each component of the vector.
-    /// 
+    ///
     /// # Examples
     ///
     /// ```
@@ -675,7 +828,7 @@ impl MulAssign<f64> for Vec3d<Cartesian> {
     /// # Arguments
     ///
     /// * `rhs` - The scalar value to multiply the vector components by.
-    /// 
+    ///
     /// # Examples
     ///
     /// ```
@@ -709,7 +862,7 @@ impl Div<f64> for Vec3d<Cartesian> {
     /// # Returns
     ///
     /// The resulting vector after dividing each component by the scalar value.
-    /// 
+    ///
     /// # Examples
     ///
     /// ```
@@ -743,7 +896,7 @@ impl DivAssign<f64> for Vec3d<Cartesian> {
     /// # Arguments
     ///
     /// * `rhs` - The scalar value to divide the vector components by.
-    /// 
+    ///
     /// # Examples
     ///
     /// ```
@@ -839,6 +992,17 @@ impl CrossMul for Vec3d<Cartesian> {
             ],
             PhantomData::<Cartesian> {},
         )
+    }
+}
+
+impl fmt::Debug for Vec3d<Cartesian> {
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Vec3d")
+            .field("x", &self.0[Cartesian::X_IDX])
+            .field("y", &self.0[Cartesian::Y_IDX])
+            .field("z", &self.0[Cartesian::Z_IDX])
+            .finish()
     }
 }
 
@@ -941,6 +1105,25 @@ impl Default for CartesianBuilder {
     }
 }
 
+impl FromIterator<f64> for CartesianBuilder {
+    fn from_iter<T: IntoIterator<Item = f64>>(iter: T) -> Self {
+        let mut x = 0.0;
+        let mut y = 0.0;
+        let mut z = 0.0;
+
+        for (idx, value) in iter.into_iter().enumerate() {
+            match idx {
+                Cartesian::X_IDX => x = value,
+                Cartesian::Y_IDX => y = value,
+                Cartesian::Z_IDX => z = value,
+                _ => continue,
+            }
+        }
+
+        Self::with(x, y, z)
+    }
+}
+
 /// Struct representing the Cylindrical coordinate system.
 #[derive(Debug)]
 pub struct Cylindrical;
@@ -1025,7 +1208,7 @@ impl Canonizable for Vec3d<Cylindrical> {
     /// the azimuth by adding π radians to maintain the equivalent direction.
     ///
     /// # Returns
-    /// 
+    ///
     /// The vector in its canonical form.
     fn canonic(self) -> Self {
         let mut radius = self.0[Cylindrical::RADIUS_IDX];
@@ -1050,7 +1233,7 @@ impl ToCartesian for Vec3d<Cylindrical> {
     /// Converts the vector from cylindrical coordinates to Cartesian coordinates.
     ///
     /// # Returns
-    /// 
+    ///
     /// The vector converted to Cartesian coordinates.
     fn to_c(&self) -> Vec3d<Cartesian> {
         let (sa, ca) = self.0[Cylindrical::AZIMUTH_IDX].sin_cos();
@@ -1069,7 +1252,7 @@ impl ToSpherical for Vec3d<Cylindrical> {
     /// Converts the vector from cylindrical coordinates to spherical coordinates.
     ///
     /// # Returns
-    /// 
+    ///
     /// The vector converted to spherical coordinates.
     fn to_s(&self) -> Vec3d<Spherical> {
         let rho = self.0[Cylindrical::RADIUS_IDX];
@@ -1099,11 +1282,11 @@ where
     /// Converts a vector from any coordinate system to cylindrical coordinates.
     ///
     /// # Arguments
-    /// 
+    ///
     /// * `vector` - The input vector to be converted.
     ///
     /// # Returns
-    /// 
+    ///
     /// The vector converted to cylindrical coordinates.
     #[inline]
     fn from(vector: Vec3d<S>) -> Self {
@@ -1125,7 +1308,7 @@ impl Neg for Vec3d<Cylindrical> {
     /// # Returns
     ///
     /// A new vector with negated components.
-    /// 
+    ///
     /// # Examples
     ///
     /// ```
@@ -1162,16 +1345,16 @@ impl Mul<f64> for Vec3d<Cylindrical> {
     /// Performs the multiplication operation.
     ///
     /// # Parameters
-    /// 
+    ///
     /// - `self`: The cylindrical vector.
     /// - `rhs`: The scalar value to multiply by.
     ///
     /// # Returns
-    /// 
+    ///
     /// The resulting cylindrical vector after element-wise multiplication with the scalar.
     ///
     /// # Example
-    /// 
+    ///
     /// ```
     /// use ephem::core::vectors::{Cylindrical, CylindricalBuilder, Vec3d};
     ///
@@ -1190,7 +1373,7 @@ impl Mul<f64> for Vec3d<Cylindrical> {
                 self.0[Cylindrical::AZIMUTH_IDX],
                 self.0[Cylindrical::ALTITUDE_IDX] * rhs,
             ],
-            PhantomData::<Cylindrical> {}
+            PhantomData::<Cylindrical> {},
         )
     }
 }
@@ -1203,12 +1386,12 @@ impl MulAssign<f64> for Vec3d<Cylindrical> {
     /// Performs the multiplication assignment operation.
     ///
     /// # Parameters
-    /// 
+    ///
     /// - `self`: A mutable reference to the cylindrical vector.
     /// - `rhs`: The scalar value to multiply by.
     ///
     /// # Example
-    /// 
+    ///
     /// ```
     /// use ephem::core::vectors::{Cylindrical, CylindricalBuilder, Vec3d};
     ///
@@ -1237,16 +1420,16 @@ impl Div<f64> for Vec3d<Cylindrical> {
     /// Performs the division operation.
     ///
     /// # Parameters
-    /// 
+    ///
     /// - `self`: The cylindrical vector.
     /// - `rhs`: The scalar value to divide by.
     ///
     /// # Returns
-    /// 
+    ///
     /// A new cylindrical vector where each component is divided by the scalar value.
     ///
     /// # Example
-    /// 
+    ///
     /// ```
     /// use ephem::core::vectors::{Cylindrical, CylindricalBuilder, Vec3d};
     ///
@@ -1265,7 +1448,7 @@ impl Div<f64> for Vec3d<Cylindrical> {
                 self.0[Cylindrical::AZIMUTH_IDX],
                 self.0[Cylindrical::ALTITUDE_IDX] / rhs,
             ],
-            PhantomData::<Cylindrical> {}
+            PhantomData::<Cylindrical> {},
         )
     }
 }
@@ -1278,12 +1461,12 @@ impl DivAssign<f64> for Vec3d<Cylindrical> {
     /// Performs the division assignment operation.
     ///
     /// # Parameters
-    /// 
+    ///
     /// - `self`: A mutable reference to the cylindrical vector.
     /// - `rhs`: The scalar value to divide by.
     ///
     /// # Example
-    /// 
+    ///
     /// ```
     /// use ephem::core::vectors::{Cylindrical, CylindricalBuilder, Vec3d};
     ///
@@ -1298,6 +1481,17 @@ impl DivAssign<f64> for Vec3d<Cylindrical> {
     fn div_assign(&mut self, rhs: f64) {
         self.0[Cylindrical::RADIUS_IDX] /= rhs;
         self.0[Cylindrical::ALTITUDE_IDX] /= rhs;
+    }
+}
+
+impl fmt::Debug for Vec3d<Cylindrical> {
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Vec3d")
+            .field("radius", &self.0[Cylindrical::RADIUS_IDX])
+            .field("azimuth", &self.0[Cylindrical::AZIMUTH_IDX])
+            .field("altitude", &self.0[Cylindrical::ALTITUDE_IDX])
+            .finish()
     }
 }
 
@@ -1377,6 +1571,25 @@ impl Default for CylindricalBuilder {
     }
 }
 
+impl FromIterator<f64> for CylindricalBuilder {
+    fn from_iter<T: IntoIterator<Item = f64>>(iter: T) -> Self {
+        let mut radius = 0.0;
+        let mut azimuth = 0.0;
+        let mut altitude = 0.0;
+
+        for (idx, value) in iter.into_iter().enumerate() {
+            match idx {
+                Cylindrical::RADIUS_IDX => radius = value,
+                Cylindrical::AZIMUTH_IDX => azimuth = value,
+                Cylindrical::ALTITUDE_IDX => altitude = value,
+                _ => continue,
+            }
+        }
+
+        Self::with(radius, azimuth, altitude)
+    }
+}
+
 /// Struct representing the Spherical coordinate system.
 #[derive(Debug)]
 pub struct Spherical;
@@ -1451,6 +1664,35 @@ impl Normalizable for Vec3d<Spherical> {
     }
 }
 
+impl Canonizable for Vec3d<Spherical> {
+    fn canonic(self) -> Self {
+        let mut radius = self.0[Spherical::RADIUS_IDX];
+        let mut azimuth = self.0[Spherical::AZIMUTH_IDX];
+        let mut latitude = self.0[Spherical::LATITUDE_IDX];
+
+        if radius < 0.0 {
+            radius = -radius;
+            azimuth += PI;
+            latitude = -latitude;
+        }
+
+        if !(-FRAC_PI_2..=FRAC_PI_2).contains(&latitude) {
+            latitude = latitude.fmod(PI2);
+            if latitude > FRAC_PI_2 {
+                latitude = PI - latitude;
+                if latitude < -FRAC_PI_2 {
+                    latitude = -(PI + latitude);
+                }
+            }
+        }
+
+        Self(
+            [radius, azimuth.fmod(PI2), latitude],
+            PhantomData::<Spherical> {},
+        )
+    }
+}
+
 impl ToCartesian for Vec3d<Spherical> {
     fn to_c(&self) -> Vec3d<Cartesian> {
         let (sa, ca) = self.0[Spherical::AZIMUTH_IDX].sin_cos();
@@ -1479,8 +1721,82 @@ where
     S: CoordinateSystem,
     Vec3d<S>: ToSpherical,
 {
+    #[inline]
     fn from(vector: Vec3d<S>) -> Self {
         vector.to_s()
+    }
+}
+
+impl Neg for Vec3d<Spherical> {
+    type Output = Self;
+
+    #[inline]
+    fn neg(self) -> Self::Output {
+        Self(
+            [
+                -self.0[Spherical::RADIUS_IDX],
+                self.0[Spherical::AZIMUTH_IDX],
+                self.0[Spherical::LATITUDE_IDX],
+            ],
+            PhantomData::<Spherical> {},
+        )
+    }
+}
+
+impl Mul<f64> for Vec3d<Spherical> {
+    type Output = Self;
+
+    #[inline]
+    fn mul(self, rhs: f64) -> Self::Output {
+        Self(
+            [
+                self.0[Spherical::RADIUS_IDX] * rhs,
+                self.0[Spherical::AZIMUTH_IDX],
+                self.0[Spherical::LATITUDE_IDX],
+            ],
+            PhantomData::<Spherical> {},
+        )
+    }
+}
+
+impl MulAssign<f64> for Vec3d<Spherical> {
+    #[inline]
+    fn mul_assign(&mut self, rhs: f64) {
+        self.0[Spherical::RADIUS_IDX] *= rhs;
+    }
+}
+
+impl Div<f64> for Vec3d<Spherical> {
+    type Output = Self;
+
+    #[inline]
+    fn div(self, rhs: f64) -> Self::Output {
+        Self(
+            [
+                self.0[Spherical::RADIUS_IDX] / rhs,
+                self.0[Spherical::AZIMUTH_IDX],
+                self.0[Spherical::LATITUDE_IDX],
+            ],
+            PhantomData::<Spherical> {},
+        )
+    }
+}
+
+impl DivAssign<f64> for Vec3d<Spherical> {
+    #[inline]
+    fn div_assign(&mut self, rhs: f64) {
+        self.0[Spherical::RADIUS_IDX] /= rhs;
+    }
+}
+
+impl fmt::Debug for Vec3d<Spherical> {
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Vec3d")
+            .field("radius", &self.0[Spherical::RADIUS_IDX])
+            .field("azimuth", &self.0[Spherical::AZIMUTH_IDX])
+            .field("latitude", &self.0[Spherical::LATITUDE_IDX])
+            .finish()
     }
 }
 
@@ -1593,5 +1909,24 @@ impl<S: SpatialDirection> From<&S> for SphericalBuilder {
     #[inline]
     fn from(direction: &S) -> Self {
         Self::unit(direction.azimuth(), direction.latitude())
+    }
+}
+
+impl FromIterator<f64> for SphericalBuilder {
+    fn from_iter<T: IntoIterator<Item = f64>>(iter: T) -> Self {
+        let mut radius = 0.0;
+        let mut azimuth = 0.0;
+        let mut latitude = 0.0;
+
+        for (idx, value) in iter.into_iter().enumerate() {
+            match idx {
+                Spherical::RADIUS_IDX => radius = value,
+                Spherical::AZIMUTH_IDX => azimuth = value,
+                Spherical::LATITUDE_IDX => latitude = value,
+                _ => continue,
+            }
+        }
+
+        Self::with(radius, azimuth, latitude)
     }
 }
