@@ -7,8 +7,7 @@ use std::{
     ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign},
 };
 
-use super::{Canonizable, CrossMul, DotMul, FloatExt, Normalizable};
-use crate::core::consts::PI2;
+use crate::core::{consts::PI2, Canonizable, CrossMul, DotMul, FloatExt, Normalizable};
 
 /// Trait representing a coordinate system.
 ///
@@ -138,7 +137,30 @@ pub struct Vec3d<S: CoordinateSystem>(
     PhantomData<S>,
 );
 
+/// Implements methods to iterate over the components of a 3D vector (`Vec3d<S>`) in any coordinate system `S`.
+/// 
+/// This implementation provides methods to create both immutable and mutable iterators over the components 
+/// of the vector. The `iter()` method returns an immutable iterator (`Vec3dIter`) allowing read-only access 
+/// to the components, while the `iter_mut()` method returns a mutable iterator (`Vec3dMutIter`) allowing 
+/// modification of the components.
 impl<S: CoordinateSystem> Vec3d<S> {
+    /// Returns an immutable iterator over the components of the vector.
+    /// 
+    /// # Example
+    /// ```
+    /// use ephem::core::vectors::{Cartesian, CartesianBuilder, Vec3d};
+    /// 
+    /// let vector = CartesianBuilder::with(1.0, 2.0, 3.0).build(); // (x, y, z)
+    /// 
+    /// for (idx, component) in vector.iter().enumerate() {
+    ///     match idx {
+    ///         0 => assert_eq!(vector.x(), component),
+    ///         1 => assert_eq!(vector.y(), component),
+    ///         2 => assert_eq!(vector.z(), component),
+    ///         _ => continue,
+    ///     }
+    /// }
+    /// ```
     #[inline]
     pub fn iter<'a>(&'a self) -> Vec3dIter<'a> {
         Vec3dIter::<'a> {
@@ -147,6 +169,22 @@ impl<S: CoordinateSystem> Vec3d<S> {
         }
     }
 
+    /// Returns a mutable iterator over the components of the vector.
+    /// 
+    /// # Example
+    /// ```
+    /// use ephem::core::vectors::{Cartesian, CartesianBuilder, Vec3d};
+    /// 
+    /// let mut vector = CartesianBuilder::with(1.0, 2.0, 3.0).build(); // (x, y, z)
+    /// 
+    /// for component in vector.iter_mut() {
+    ///     *component += 1.0;
+    /// }
+    /// 
+    /// assert_eq!(vector.x(), 2.0);
+    /// assert_eq!(vector.y(), 3.0);
+    /// assert_eq!(vector.z(), 4.0);
+    /// ```
     #[inline]
     pub fn iter_mut<'a>(&'a mut self) -> Vec3dMutIter<'a> {
         Vec3dMutIter::<'a> {
@@ -201,14 +239,42 @@ where
     }
 }
 
+/// Implements the conversion from a 3D vector (`Vec3d<S>`) in any coordinate system `S` to a slice of `f64`.
+/// 
+/// This implementation allows the 3D vector to be treated as a slice of `f64`, providing read-only access to its components.
 impl<S: CoordinateSystem> AsRef<[f64]> for Vec3d<S> {
+    /// Returns a slice of `f64` representing the components of the vector.
+    /// 
+    /// # Example
+    /// ```
+    /// use ephem::core::vectors::{Cartesian, CartesianBuilder, Vec3d};
+    /// 
+    /// let vector = CartesianBuilder::with(1.0, 2.0, 3.0).build(); // (x, y, z)
+    /// let slice: &[f64] = vector.as_ref();
+    /// assert_eq!(slice, &[1.0, 2.0, 3.0]);
     #[inline]
     fn as_ref(&self) -> &[f64] {
         &self.0
     }
 }
 
+/// Implements the conversion from a mutable reference to a 3D vector (`&mut Vec3d<S>`) in any coordinate system `S` 
+/// to a mutable slice of `f64`.
+/// 
+/// This implementation allows the mutable reference to the 3D vector to be treated as a mutable slice of `f64`, 
+/// providing mutable access to its components.
 impl<S: CoordinateSystem> AsMut<[f64]> for Vec3d<S> {
+    /// Returns a mutable slice of `f64` representing the components of the vector.
+    /// 
+    /// # Example
+    /// ```
+    /// use ephem::core::vectors::{Cartesian, CartesianBuilder, Vec3d};
+    /// 
+    /// let mut vector = CartesianBuilder::with(1.0, 2.0, 3.0).build(); // (x, y, z)
+    /// let slice: &mut [f64] = vector.as_mut();
+    /// slice[0] = 4.0;
+    /// assert_eq!(vector.x(), 4.0);
+    /// ```
     #[inline]
     fn as_mut(&mut self) -> &mut [f64] {
         &mut self.0
@@ -326,10 +392,25 @@ where
     }
 }
 
+/// Implements conversion from a 3D vector (`Vec3d<S>`) in any coordinate system `S` 
+/// to an iterator over its components (`Vec3dIntoIter`), consuming the vector in the process.
 impl<S: CoordinateSystem> IntoIterator for Vec3d<S> {
     type Item = f64;
     type IntoIter = Vec3dIntoIter;
 
+    /// Converts the 3D vector into an iterator over its components, consuming the vector in the process.
+    /// 
+    /// # Example
+    /// ```
+    /// use ephem::core::vectors::{Cartesian, CartesianBuilder, Vec3d};
+    /// 
+    /// let vector = CartesianBuilder::with(1.0, 2.0, 3.0).build(); // (x, y, z)
+    /// let mut iter = vector.into_iter();
+    /// assert_eq!(iter.next(), Some(1.0));
+    /// assert_eq!(iter.next(), Some(2.0));
+    /// assert_eq!(iter.next(), Some(3.0));
+    /// assert_eq!(iter.next(), None);
+    /// ```
     #[inline]
     fn into_iter(self) -> Self::IntoIter {
         Vec3dIntoIter {
@@ -339,10 +420,27 @@ impl<S: CoordinateSystem> IntoIterator for Vec3d<S> {
     }
 }
 
+/// Implements conversion from a reference to a 3D vector (`&Vec3d<S>`) in any coordinate system `S` 
+/// to an iterator over its components (`Vec3dIter`).
 impl<'a, S: CoordinateSystem> IntoIterator for &'a Vec3d<S> {
     type Item = f64;
     type IntoIter = Vec3dIter<'a>;
 
+    /// Converts the reference to a 3D vector into an iterator over its components.
+    /// 
+    /// # Example
+    /// ```
+    /// use ephem::core::vectors::{Cartesian, CartesianBuilder, Vec3d};
+    /// 
+    /// let vector = CartesianBuilder::with(1.0, 2.0, 3.0).build(); // (x, y, z)
+    /// let mut t: Vec<f64> = Vec::new();
+    /// for component in &vector {
+    ///     t.push(component);
+    /// }
+    /// 
+    /// let u = CartesianBuilder::from_iter(t).build();
+    /// assert_eq!(u, vector);
+    /// ```
     #[inline]
     fn into_iter(self) -> Self::IntoIter {
         self.iter()
@@ -358,17 +456,24 @@ impl<'a, S: CoordinateSystem> IntoIterator for &'a mut Vec3d<S> {
     }
 }
 
+/// Iterator over the components of a 3D vector (`Vec3d<S>`).
+/// 
+/// This iterator allows iterating over the components of a 3D vector in a forward direction.
 pub struct Vec3dIter<'a> {
+    /// Reference to the underlying data containing the components of the vector.
     data: &'a [f64],
+    /// Cursor indicating the current position within the data.
     cursor: usize,
 }
 
 impl<'a> Iterator for Vec3dIter<'a> {
     type Item = f64;
 
+    /// Advances the iterator and returns the next component of the vector.
+    /// Returns `None` when all components have been iterated.
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        if (0..self.data.len()).contains(&self.count()) {
+        if (0..self.data.len()).contains(&self.cursor) {
             let value = self.data[self.cursor];
             self.cursor += 1;
 
@@ -378,11 +483,16 @@ impl<'a> Iterator for Vec3dIter<'a> {
         }
     }
 
+    /// Returns the size hint of the iterator.
+    /// 
+    /// This returns a tuple where the first element is the exact size of the iterator,
+    /// and the second element is `Some(size)` representing the upper bound (same as the exact size).
     #[inline]
     fn size_hint(&self) -> (usize, Option<usize>) {
         (self.data.len(), Some(self.data.len()))
     }
 
+    /// Consumes the iterator and returns the last component of the vector.
     #[inline]
     fn last(self) -> Option<Self::Item> {
         Some(self.data[self.data.len() - 1])
@@ -415,17 +525,24 @@ impl<'a> Iterator for Vec3dMutIter<'a> {
     }
 }
 
+/// Iterator over the components of a 3D vector (`Vec3d`), consuming the vector in the process.
+/// 
+/// This iterator allows iterating over the components of a 3D vector in a forward direction, consuming the vector in the process.
 pub struct Vec3dIntoIter {
+    /// Array containing the components of the vector.
     data: [f64; 3],
+    /// Cursor indicating the current position within the data.
     cursor: usize,
 }
 
 impl Iterator for Vec3dIntoIter {
     type Item = f64;
 
+    /// Advances the iterator and returns the next component of the vector.
+    /// Returns `None` when all components have been iterated.
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        if (0..=2).contains(&self.count()) {
+        if (0..=2).contains(&self.cursor) {
             let value = self.data[self.cursor];
             self.cursor += 1;
 
@@ -435,11 +552,16 @@ impl Iterator for Vec3dIntoIter {
         }
     }
 
+    /// Returns the size hint of the iterator.
+    /// 
+    /// This returns a tuple where the first element is the exact size of the iterator,
+    /// and the second element is `Some(size)` representing the upper bound (same as the exact size).
     #[inline]
     fn size_hint(&self) -> (usize, Option<usize>) {
         (3, Some(3))
     }
 
+    /// Consumes the iterator and returns the last component of the vector.
     #[inline]
     fn last(self) -> Option<Self::Item> {
         Some(self.data[2])
@@ -1664,18 +1786,27 @@ impl Normalizable for Vec3d<Spherical> {
     }
 }
 
+/// Provides a method to transform a spherical vector into a canonical form.
 impl Canonizable for Vec3d<Spherical> {
+    /// Transforms the `Vec3d<Spherical>` into its canonical form.
+    /// 
+    /// This implementation for `Vec3d<Spherical>` allows transforming a spherical vector into a canonical form,
+    /// ensuring that the radius is non-negative and the latitude is within the range [-π/2, π/2].
+    /// If the radius is negative, it negates the radius, adjusts the azimuth by adding π, and flips the latitude.
+    /// It further ensures that the latitude is within the specified range, adjusting it as necessary.
     fn canonic(self) -> Self {
         let mut radius = self.0[Spherical::RADIUS_IDX];
         let mut azimuth = self.0[Spherical::AZIMUTH_IDX];
         let mut latitude = self.0[Spherical::LATITUDE_IDX];
 
+        // Ensure radius is non-negative
         if radius < 0.0 {
             radius = -radius;
             azimuth += PI;
             latitude = -latitude;
         }
 
+        // Ensure latitude is within [-π/2, π/2]
         if !(-FRAC_PI_2..=FRAC_PI_2).contains(&latitude) {
             latitude = latitude.fmod(PI2);
             if latitude > FRAC_PI_2 {
@@ -1686,6 +1817,7 @@ impl Canonizable for Vec3d<Spherical> {
             }
         }
 
+        // Return the vector in its canonical form
         Self(
             [radius, azimuth.fmod(PI2), latitude],
             PhantomData::<Spherical> {},
@@ -1693,7 +1825,13 @@ impl Canonizable for Vec3d<Spherical> {
     }
 }
 
+/// Converts a spherical vector to a Cartesian vector.
 impl ToCartesian for Vec3d<Spherical> {
+    /// Converts the vector from spherical coordinates to Cartesian coordinates.
+    ///
+    /// # Returns
+    ///
+    /// The vector converted to Cartesian coordinates.
     fn to_c(&self) -> Vec3d<Cartesian> {
         let (sa, ca) = self.0[Spherical::AZIMUTH_IDX].sin_cos();
         let (sl, cl) = self.0[Spherical::LATITUDE_IDX].sin_cos();
@@ -1704,7 +1842,13 @@ impl ToCartesian for Vec3d<Spherical> {
     }
 }
 
+/// Converts a spherical vector to a Cylindrical vector.
 impl ToCylindrical for Vec3d<Spherical> {
+    /// Converts the vector from spherical coordinates to Cylindrical coordinates.
+    ///
+    /// # Returns
+    ///
+    /// The vector converted to Cylindrical coordinates.
     fn to_y(&self) -> Vec3d<Cylindrical> {
         let (sl, cl) = self.0[Spherical::LATITUDE_IDX].sin_cos();
         let r = self.0[Spherical::RADIUS_IDX];
@@ -1716,11 +1860,21 @@ impl ToCylindrical for Vec3d<Spherical> {
     }
 }
 
+/// Implements a conversion from a vector in any coordinate system to spherical coordinates.
 impl<S> From<Vec3d<S>> for Vec3d<Spherical>
 where
     S: CoordinateSystem,
     Vec3d<S>: ToSpherical,
 {
+    /// Converts a vector from any coordinate system to spherical coordinates.
+    ///
+    /// # Arguments
+    ///
+    /// * `vector` - The input vector to be converted.
+    ///
+    /// # Returns
+    ///
+    /// The vector converted to spherical coordinates.
     #[inline]
     fn from(vector: Vec3d<S>) -> Self {
         vector.to_s()

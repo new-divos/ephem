@@ -48,71 +48,6 @@ impl TestDirection {
     }
 }
 
-/// Generates random Cartesian coordinates within a specified range.
-///
-/// This function generates random Cartesian coordinates `(x, y, z)` within the range
-/// defined by `shared::MIN_VALUE` and `shared::MAX_VALUE` using the provided random number generator `rng`.
-///
-/// # Arguments
-///
-/// * `rng` - A mutable reference to a random number generator implementing the `Rng` trait.
-///
-/// # Returns
-///
-/// A tuple containing the generated Cartesian coordinates `(x, y, z)`.
-#[inline]
-fn gen_cartesian<R: Rng + ?Sized>(rng: &mut R) -> (f64, f64, f64) {
-    (
-        (shared::MAX_VALUE - shared::MIN_VALUE) * rng.gen::<f64>() + shared::MIN_VALUE,
-        (shared::MAX_VALUE - shared::MIN_VALUE) * rng.gen::<f64>() + shared::MIN_VALUE,
-        (shared::MAX_VALUE - shared::MIN_VALUE) * rng.gen::<f64>() + shared::MIN_VALUE,
-    )
-}
-
-/// Generates random cylindrical coordinates within a specified range.
-///
-/// This function generates random cylindrical coordinates `(radius, azimuth, altitude)` within the range
-/// defined by `shared::MIN_VALUE` and `shared::MAX_VALUE` for radius and altitude, and 0 to 2π for azimuth,
-/// using the provided random number generator `rng`.
-///
-/// # Arguments
-///
-/// * `rng` - A mutable reference to a random number generator implementing the `Rng` trait.
-///
-/// # Returns
-///
-/// A tuple containing the generated cylindrical coordinates `(radius, azimuth, altitude)`.
-#[inline]
-fn gen_cylindrical<R: Rng + ?Sized>(rng: &mut R) -> (f64, f64, f64) {
-    (
-        (shared::MAX_VALUE - shared::MIN_VALUE) * rng.gen::<f64>() + shared::MIN_VALUE,
-        PI2 * rng.gen::<f64>(),
-        (shared::MAX_VALUE - shared::MIN_VALUE) * rng.gen::<f64>() + shared::MIN_VALUE,
-    )
-}
-
-/// Generates random spherical coordinates within a specified range.
-///
-/// This function generates random spherical coordinates `(radius, azimuth, latitude)` within the range
-/// defined by `shared::MIN_VALUE` and `shared::MAX_VALUE` for radius, 0 to 2π for azimuth,
-/// and -π/2 to π/2 for latitude, using the provided random number generator `rng`.
-///
-/// # Arguments
-///
-/// * `rng` - A mutable reference to a random number generator implementing the `Rng` trait.
-///
-/// # Returns
-///
-/// A tuple containing the generated spherical coordinates `(radius, azimuth, latitude)`.
-#[inline]
-fn gen_spherical<R: Rng + ?Sized>(rng: &mut R) -> (f64, f64, f64) {
-    (
-        (shared::MAX_VALUE - shared::MIN_VALUE) * rng.gen::<f64>() + shared::MIN_VALUE,
-        PI2 * rng.gen::<f64>(),
-        PI * rng.gen::<f64>() - FRAC_PI_2,
-    )
-}
-
 /// Test case for creating Cartesian vectors using the CartesianBuilder.
 #[test]
 fn create_cartesian_vec3d_test() {
@@ -147,7 +82,7 @@ fn create_cartesian_vec3d_test() {
     // Test building vectors with random values
     let mut rng = rand::thread_rng();
     for _ in 0..shared::ITERATIONS {
-        let (x, y, z) = gen_cartesian(&mut rng);
+        let (x, y, z) = shared::gen_cartesian(&mut rng);
 
         // Test building a vector with specified values
         let v1 = CartesianBuilder::with(x, y, z).build();
@@ -181,7 +116,7 @@ fn create_cylindrical_vec3d_test() {
     // Test building vectors with random values
     let mut rng = rand::thread_rng();
     for _ in 0..shared::ITERATIONS {
-        let (radius, azimuth, altitude) = gen_cylindrical(&mut rng);
+        let (radius, azimuth, altitude) = shared::gen_cylindrical(&mut rng);
 
         // Test building a vector with specified values
         let v1 = CylindricalBuilder::with(radius, azimuth, altitude).build();
@@ -219,7 +154,7 @@ fn create_spherical_vec3d_test() {
     // Test building vectors with random values
     let mut rng = rand::thread_rng();
     for _ in 0..shared::ITERATIONS {
-        let (radius, azimuth, latitude) = gen_spherical(&mut rng);
+        let (radius, azimuth, latitude) = shared::gen_spherical(&mut rng);
 
         // Test building a vector with specified values
         let v1 = SphericalBuilder::with(radius, azimuth, latitude).build();
@@ -274,7 +209,7 @@ fn vec3d_conversion_into_tuple_test() {
     // Test converting Cartesian vectors into tuples
     let mut rng = rand::thread_rng();
     for _ in 0..shared::ITERATIONS {
-        let (x, y, z) = gen_cartesian(&mut rng);
+        let (x, y, z) = shared::gen_cartesian(&mut rng);
 
         let v = CartesianBuilder::with(x, y, z).build();
         let (x_t, y_t, z_t) = v.into();
@@ -286,7 +221,7 @@ fn vec3d_conversion_into_tuple_test() {
 
     // Test converting cylindrical vectors into tuples
     for _ in 0..shared::ITERATIONS {
-        let (radius, azimuth, altitude) = gen_cylindrical(&mut rng);
+        let (radius, azimuth, altitude) = shared::gen_cylindrical(&mut rng);
 
         let v = CylindricalBuilder::with(radius, azimuth, altitude).build();
         let (radius_t, azimuth_t, altitude_t) = v.into();
@@ -298,7 +233,7 @@ fn vec3d_conversion_into_tuple_test() {
 
     // Test converting spherical vectors into tuples
     for _ in 0..shared::ITERATIONS {
-        let (radius, azimuth, latitude) = gen_spherical(&mut rng);
+        let (radius, azimuth, latitude) = shared::gen_spherical(&mut rng);
 
         let v = SphericalBuilder::with(radius, azimuth, latitude).build();
         let (radius_t, azimuth_t, latitude_t) = v.into();
@@ -309,13 +244,152 @@ fn vec3d_conversion_into_tuple_test() {
     }
 }
 
+/// Test function to verify the behavior of converting 3D vectors into iterators.
+/// 
+/// This test function generates random Cartesian, Cylindrical, and Spherical vectors and then converts them into iterators.
+/// It ensures that iterating over the vectors via iterators produces the correct sequence of elements.
+#[test]
+fn vec3d_into_iterator_test() {
+    let mut rng = rand::thread_rng();
+
+    // Test iteration over Cartesian vectors
+    for _ in 0..shared::ITERATIONS {
+        // Generate random Cartesian vector
+        let (x, y, z) = shared::gen_cartesian(&mut rng);
+        let v = CartesianBuilder::with(x, y, z).build();
+
+        // Iterate over the components and validate
+        let mut iter = v.into_iter();
+        assert_eq!(iter.next(), Some(x));
+        assert_eq!(iter.next(), Some(y));
+        assert_eq!(iter.next(), Some(z));
+        assert_eq!(iter.next(), None);
+    }
+
+    // Test iteration over Cylindrical vectors
+    for _ in 0..shared::ITERATIONS {
+        // Generate random Cylindrical vector
+        let (radius, azimuth, altitude) = shared::gen_cylindrical(&mut rng);
+        let v = CylindricalBuilder::with(radius, azimuth, altitude).build();
+
+        // Iterate over the components and validate
+        let mut iter = v.into_iter();
+        assert_eq!(iter.next(), Some(radius));
+        assert_eq!(iter.next(), Some(azimuth));
+        assert_eq!(iter.next(), Some(altitude));
+        assert_eq!(iter.next(), None);
+    }
+
+    // Test iteration over Spherical vectors
+    for _ in 0..shared::ITERATIONS {
+        // Generate random Spherical vector
+        let (radius, azimuth, latitude) = shared::gen_spherical(&mut rng);
+        let v = SphericalBuilder::with(radius, azimuth, latitude).build();
+
+        // Iterate over the components and validate
+        let mut iter = v.into_iter();
+        assert_eq!(iter.next(), Some(radius));
+        assert_eq!(iter.next(), Some(azimuth));
+        assert_eq!(iter.next(), Some(latitude));
+        assert_eq!(iter.next(), None);
+    }
+}
+
+/// Test function to verify the behavior of iterators over different types of 3D vectors.
+///
+/// This test function generates random Cartesian, Cylindrical, and Spherical vectors and then iterates over their components.
+/// It ensures that iterating over the vectors produces the correct sequence of elements, and also validates the conversion
+/// of the iterator back into a vector.
+#[test]
+fn vec3d_iterator_test() {
+    let mut rng = rand::thread_rng();
+
+    // Test iteration over Cartesian vectors
+    for _ in 0..shared::ITERATIONS {
+        // Generate random Cartesian vector
+        let (x, y, z) = shared::gen_cartesian(&mut rng);
+        let v = CartesianBuilder::with(x, y, z).build();
+
+        // Iterate over the components and validate
+        for (idx, element) in v.iter().enumerate() {
+            match idx {
+                0 => assert_eq!(element, x),
+                1 => assert_eq!(element, y),
+                2 => assert_eq!(element, z),
+                _ => continue,
+            }
+        }
+
+        // Convert the iterator back into a vector and assert equality
+        let mut t: Vec<f64> = Vec::new();
+        for element in &v {
+            t.push(element);
+        }
+
+        let u = CartesianBuilder::from_iter(t).build();
+        assert_eq!(v, u);
+    }
+
+    // Test iteration over Cylindrical vectors
+    for _ in 0..shared::ITERATIONS {
+        // Generate random Cylindrical vector
+        let (radius, azimuth, altitude) = shared::gen_cylindrical(&mut rng);
+        let v = CylindricalBuilder::with(radius, azimuth, altitude).build();
+
+        // Iterate over the components and validate
+        for (idx, element) in v.iter().enumerate() {
+            match idx {
+                0 => assert_eq!(element, radius),
+                1 => assert_eq!(element, azimuth),
+                2 => assert_eq!(element, altitude),
+                _ => continue,
+            }
+        }
+
+        // Convert the iterator back into a vector and assert equality
+        let mut t: Vec<f64> = Vec::new();
+        for element in &v {
+            t.push(element);
+        }
+
+        let u = CylindricalBuilder::from_iter(t).build();
+        assert_eq!(v, u);
+    }
+
+    // Test iteration over Spherical vectors
+    for _ in 0..shared::ITERATIONS {
+        // Generate random Spherical vector
+        let (radius, azimuth, latitude) = shared::gen_spherical(&mut rng);
+        let v = SphericalBuilder::with(radius, azimuth, latitude).build();
+
+        // Iterate over the components and validate
+        for (idx, element) in v.iter().enumerate() {
+            match idx {
+                0 => assert_eq!(element, radius),
+                1 => assert_eq!(element, azimuth),
+                2 => assert_eq!(element, latitude),
+                _ => continue,
+            }
+        }
+
+        // Convert the iterator back into a vector and assert equality
+        let mut t: Vec<f64> = Vec::new();
+        for element in &v {
+            t.push(element);
+        }
+
+        let u = SphericalBuilder::from_iter(t).build();
+        assert_eq!(v, u);
+    }
+}
+
 /// Test function for converting `Vec3d` vectors between different coordinate systems.
 #[test]
 fn vec3d_converion_test() {
     let mut rng = rand::thread_rng();
     for _ in 0..shared::ITERATIONS {
         // Generate random Cartesian vector
-        let (x, y, z) = gen_cartesian(&mut rng);
+        let (x, y, z) = shared::gen_cartesian(&mut rng);
         let c = CartesianBuilder::with(x, y, z).build();
 
         // Convert to cylindrical and back to Cartesian
@@ -369,7 +443,7 @@ fn vec3d_converion_test() {
 
     for _ in 0..shared::ITERATIONS {
         // Generate random Cylindrical vector
-        let (radius, azimuth, altitude) = gen_cylindrical(&mut rng);
+        let (radius, azimuth, altitude) = shared::gen_cylindrical(&mut rng);
         let y = CylindricalBuilder::with(radius.abs(), azimuth, altitude).build();
 
         // Convert to cartesian and back to Cylindrical
@@ -423,7 +497,7 @@ fn vec3d_converion_test() {
 
     for _ in 0..shared::ITERATIONS {
         // Generate random Spherical vector
-        let (radius, azimuth, latitude) = gen_spherical(&mut rng);
+        let (radius, azimuth, latitude) = shared::gen_spherical(&mut rng);
         let s = SphericalBuilder::with(radius.abs(), azimuth, latitude).build();
 
         // Convert to cylindrical and back to Spherical
@@ -482,7 +556,7 @@ fn cartesian_vec3d_norma_test() {
     let mut rng = rand::thread_rng();
     for _ in 0..shared::ITERATIONS {
         // Generate random Cartesian vector
-        let (x, y, z) = gen_cartesian(&mut rng);
+        let (x, y, z) = shared::gen_cartesian(&mut rng);
         let v = CartesianBuilder::with(x, y, z).build();
 
         // Perform norma calculation
@@ -504,7 +578,7 @@ fn cartesion_vec3d_negation_test() {
     let mut rng = rand::thread_rng();
     for _ in 0..shared::ITERATIONS {
         // Generate random Cartesian vector
-        let (x, y, z) = gen_cartesian(&mut rng);
+        let (x, y, z) = shared::gen_cartesian(&mut rng);
         let v = CartesianBuilder::with(x, y, z).build();
 
         // Perform negation
@@ -523,10 +597,10 @@ fn cartesian_vec3d_addition_test() {
     let mut rng = rand::thread_rng();
     for _ in 0..shared::ITERATIONS {
         // Generate random Cartesian vectors
-        let (x1, y1, z1) = gen_cartesian(&mut rng);
+        let (x1, y1, z1) = shared::gen_cartesian(&mut rng);
         let v1 = CartesianBuilder::with(x1, y1, z1).build();
 
-        let (x2, y2, z2) = gen_cartesian(&mut rng);
+        let (x2, y2, z2) = shared::gen_cartesian(&mut rng);
         let v2 = CartesianBuilder::with(x2, y2, z2).build();
 
         // Perform addition
@@ -545,10 +619,10 @@ fn cartesian_vec3d_addition_with_assignment_test() {
     let mut rng = rand::thread_rng();
     for _ in 0..shared::ITERATIONS {
         // Generate random Cartesian vectors
-        let (x1, y1, z1) = gen_cartesian(&mut rng);
+        let (x1, y1, z1) = shared::gen_cartesian(&mut rng);
         let mut v1 = CartesianBuilder::with(x1, y1, z1).build();
 
-        let (x2, y2, z2) = gen_cartesian(&mut rng);
+        let (x2, y2, z2) = shared::gen_cartesian(&mut rng);
         let v2 = CartesianBuilder::with(x2, y2, z2).build();
 
         // Perform addition with assignment
@@ -567,10 +641,10 @@ fn cartesian_vec3d_substraction_test() {
     let mut rng = rand::thread_rng();
     for _ in 0..shared::ITERATIONS {
         // Generate random Cartesian vectors
-        let (x1, y1, z1) = gen_cartesian(&mut rng);
+        let (x1, y1, z1) = shared::gen_cartesian(&mut rng);
         let v1 = CartesianBuilder::with(x1, y1, z1).build();
 
-        let (x2, y2, z2) = gen_cartesian(&mut rng);
+        let (x2, y2, z2) = shared::gen_cartesian(&mut rng);
         let v2 = CartesianBuilder::with(x2, y2, z2).build();
 
         // Perform subtraction
@@ -589,10 +663,10 @@ fn cartesian_vec3d_substraction_with_assignment_test() {
     let mut rng = rand::thread_rng();
     for _ in 0..shared::ITERATIONS {
         // Generate random Cartesian vectors
-        let (x1, y1, z1) = gen_cartesian(&mut rng);
+        let (x1, y1, z1) = shared::gen_cartesian(&mut rng);
         let mut v1 = CartesianBuilder::with(x1, y1, z1).build();
 
-        let (x2, y2, z2) = gen_cartesian(&mut rng);
+        let (x2, y2, z2) = shared::gen_cartesian(&mut rng);
         let v2 = CartesianBuilder::with(x2, y2, z2).build();
 
         // Perform subtraction with assignment
@@ -611,7 +685,7 @@ fn cartesian_vec3d_multiplication_by_scalar_test() {
     let mut rng = rand::thread_rng();
     for _ in 0..shared::ITERATIONS {
         // Generate random Cartesian vector
-        let (x, y, z) = gen_cartesian(&mut rng);
+        let (x, y, z) = shared::gen_cartesian(&mut rng);
         let v = CartesianBuilder::with(x, y, z).build();
 
         // Generate floating point scalar
@@ -641,7 +715,7 @@ fn cartesian_vec3d_multiplication_by_scalar_with_assignment_test() {
     let mut rng = rand::thread_rng();
     for _ in 0..shared::ITERATIONS {
         // Generate random Cartesian vector
-        let (x, y, z) = gen_cartesian(&mut rng);
+        let (x, y, z) = shared::gen_cartesian(&mut rng);
         let mut v = CartesianBuilder::with(x, y, z).build();
 
         // Generate floating point scalar
@@ -663,7 +737,7 @@ fn cartesian_vec3d_divison_by_scalar_test() {
     let mut rng = rand::thread_rng();
     for _ in 0..shared::ITERATIONS {
         // Generate random Cartesian vector
-        let (x, y, z) = gen_cartesian(&mut rng);
+        let (x, y, z) = shared::gen_cartesian(&mut rng);
         let v = CartesianBuilder::with(x, y, z).build();
 
         // Generate floating point scalar
@@ -688,7 +762,7 @@ fn cartesian_vec3d_divison_by_scalar_with_assignment_test() {
     let mut rng = rand::thread_rng();
     for _ in 0..shared::ITERATIONS {
         // Generate random Cartesian vector
-        let (x, y, z) = gen_cartesian(&mut rng);
+        let (x, y, z) = shared::gen_cartesian(&mut rng);
         let mut v = CartesianBuilder::with(x, y, z).build();
 
         // Generate floating point scalar
@@ -713,10 +787,10 @@ fn cartesian_vec3d_dot_multiplication_test() {
     let mut rng = rand::thread_rng();
     for _ in 0..shared::ITERATIONS {
         // Generate random Cartesian vectors
-        let (x1, y1, z1) = gen_cartesian(&mut rng);
+        let (x1, y1, z1) = shared::gen_cartesian(&mut rng);
         let v1 = CartesianBuilder::with(x1, y1, z1).build();
 
-        let (x2, y2, z2) = gen_cartesian(&mut rng);
+        let (x2, y2, z2) = shared::gen_cartesian(&mut rng);
         let v2 = CartesianBuilder::with(x2, y2, z2).build();
 
         // Perform dot product multiplication
@@ -755,10 +829,10 @@ fn cartesian_vec3d_cross_multiplication_test() {
     let mut rng = rand::thread_rng();
     for _ in 0..shared::ITERATIONS {
         // Generate random Cartesian vectors
-        let (x1, y1, z1) = gen_cartesian(&mut rng);
+        let (x1, y1, z1) = shared::gen_cartesian(&mut rng);
         let v1 = CartesianBuilder::with(x1, y1, z1).build();
 
-        let (x2, y2, z2) = gen_cartesian(&mut rng);
+        let (x2, y2, z2) = shared::gen_cartesian(&mut rng);
         let v2 = CartesianBuilder::with(x2, y2, z2).build();
 
         // Perform dot product multiplication
@@ -777,7 +851,7 @@ fn cylindrical_vec3d_norma_test() {
     let mut rng = rand::thread_rng();
     for _ in 0..shared::ITERATIONS {
         // Generate random Cylindrical vector
-        let (radius, azimuth, altitude) = gen_cylindrical(&mut rng);
+        let (radius, azimuth, altitude) = shared::gen_cylindrical(&mut rng);
         let v = CylindricalBuilder::with(radius, azimuth, altitude).build();
 
         // Perform norma calculation
@@ -799,7 +873,7 @@ fn cylindrical_vec3d_negation_test() {
     let mut rng = rand::thread_rng();
     for _ in 0..shared::ITERATIONS {
         // Generate random Cylindrical vector
-        let (radius, azimuth, altitude) = gen_cylindrical(&mut rng);
+        let (radius, azimuth, altitude) = shared::gen_cylindrical(&mut rng);
         let v = CylindricalBuilder::with(radius, azimuth, altitude).build();
 
         // Perform negation
@@ -818,7 +892,7 @@ fn cylindrical_vec3d_multiplication_by_scalar_test() {
     let mut rng = rand::thread_rng();
     for _ in 0..shared::ITERATIONS {
         // Generate random Cylindrical vector
-        let (radius, azimuth, altitude) = gen_cylindrical(&mut rng);
+        let (radius, azimuth, altitude) = shared::gen_cylindrical(&mut rng);
         let v = CylindricalBuilder::with(radius, azimuth, altitude).build();
 
         // Generate floating point scalar
@@ -848,7 +922,7 @@ fn cylindrical_vec3d_multiplication_by_scalar_with_assignment_test() {
     let mut rng = rand::thread_rng();
     for _ in 0..shared::ITERATIONS {
         // Generate random Cylindrical vector
-        let (radius, azimuth, altitude) = gen_cylindrical(&mut rng);
+        let (radius, azimuth, altitude) = shared::gen_cylindrical(&mut rng);
         let mut v = CylindricalBuilder::with(radius, azimuth, altitude).build();
 
         // Generate floating point scalar
@@ -870,7 +944,7 @@ fn cylindrical_vec3d_divison_by_scalar_test() {
     let mut rng = rand::thread_rng();
     for _ in 0..shared::ITERATIONS {
         // Generate random Cylindrical vector
-        let (radius, azimuth, altitude) = gen_cylindrical(&mut rng);
+        let (radius, azimuth, altitude) = shared::gen_cylindrical(&mut rng);
         let v = CylindricalBuilder::with(radius, azimuth, altitude).build();
 
         // Generate floating point scalar
@@ -895,7 +969,7 @@ fn cylindrical_vec3d_divison_by_scalar_with_assignment_test() {
     let mut rng = rand::thread_rng();
     for _ in 0..shared::ITERATIONS {
         // Generate random Cylindrical vector
-        let (radius, azimuth, altitude) = gen_cylindrical(&mut rng);
+        let (radius, azimuth, altitude) = shared::gen_cylindrical(&mut rng);
         let mut v = CylindricalBuilder::with(radius, azimuth, altitude).build();
 
         // Generate floating point scalar
