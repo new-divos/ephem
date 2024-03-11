@@ -245,7 +245,7 @@ fn vec3d_conversion_into_tuple_test() {
 }
 
 /// Test function to verify the behavior of converting 3D vectors into iterators.
-/// 
+///
 /// This test function generates random Cartesian, Cylindrical, and Spherical vectors and then converts them into iterators.
 /// It ensures that iterating over the vectors via iterators produces the correct sequence of elements.
 #[test]
@@ -380,6 +380,120 @@ fn vec3d_iterator_test() {
 
         let u = SphericalBuilder::from_iter(t).build();
         assert_eq!(v, u);
+    }
+}
+
+/// Test function to verify the behavior of mutable iterators over different types of 3D vectors.
+#[test]
+fn vec3d_mutable_iterator_test() {
+    let mut rng = rand::thread_rng();
+
+    // Test iteration over Cartesian vectors
+    for _ in 0..shared::ITERATIONS {
+        // Generate random Cartesian vector
+        let (x, y, z) = shared::gen_cartesian(&mut rng);
+        let mut v = CartesianBuilder::with(x, y, z).build();
+
+        // Generate random coefficients
+        let a = 2.0 * rng.gen::<f64>() - 1.0;
+        let b = 2.0 * rng.gen::<f64>() - 1.0;
+        let c = 2.0 * rng.gen::<f64>() - 1.0;
+
+        // Modify components during iteration
+        for (component, coefficient) in v.iter_mut().zip([a, b, c].iter()) {
+            *component *= coefficient;
+        }
+
+        // Validate modified vector components
+        assert_eq!(v.x(), a * x);
+        assert_eq!(v.y(), b * y);
+        assert_eq!(v.z(), c * z);
+
+        // Generate random Cartesian vector
+        let (x, y, z) = shared::gen_cartesian(&mut rng);
+        let mut v = CartesianBuilder::with(x, y, z).build();
+
+        // Modify components during iteration
+        for component in &mut v {
+            *component = (*component).abs().sqrt();
+        }
+
+        // Validate modified vector components
+        assert_eq!(v.x(), x.abs().sqrt());
+        assert_eq!(v.y(), y.abs().sqrt());
+        assert_eq!(v.z(), z.abs().sqrt());
+    }
+
+    // Test iteration over Cylindrical vectors
+    for _ in 0..shared::ITERATIONS {
+        // Generate random Cylindrical vector
+        let (radius, azimuth, altitude) = shared::gen_cylindrical(&mut rng);
+        let mut v = CylindricalBuilder::with(radius, azimuth, altitude).build();
+
+        // Generate random coefficients
+        let a = 2.0 * rng.gen::<f64>() - 1.0;
+        let b = PI2 * rng.gen::<f64>() - PI;
+        let c = 2.0 * rng.gen::<f64>() - 1.0;
+
+        // Modify components during iteration
+        for (component, coefficient) in v.iter_mut().zip([a, b, c].iter()) {
+            *component *= coefficient;
+        }
+
+        // Validate modified vector components
+        assert_eq!(v.radius(), a * radius);
+        assert_eq!(v.azimuth(), b * azimuth);
+        assert_eq!(v.altitude(), c * altitude);
+
+        // Generate random Cylindrical vector
+        let (radius, azimuth, altitude) = shared::gen_cylindrical(&mut rng);
+        let mut v = CylindricalBuilder::with(radius, azimuth, altitude).build();
+
+        // Modify components during iteration
+        for component in &mut v {
+            *component = ((*component).powi(2) + 1.0).sqrt();
+        }
+
+        // Validate modified vector components
+        assert_eq!(v.radius(), (radius.powi(2) + 1.0).sqrt());
+        assert_eq!(v.azimuth(), (azimuth.powi(2) + 1.0).sqrt());
+        assert_eq!(v.altitude(), (altitude.powi(2) + 1.0).sqrt());
+    }
+
+    // Test iteration over Spherical vectors
+    for _ in 0..shared::ITERATIONS {
+        // Generate random Spherical vector
+        let (radius, azimuth, latitude) = shared::gen_spherical(&mut rng);
+        let mut v = SphericalBuilder::with(radius, azimuth, latitude).build();
+
+        // Generate random coefficients
+        let a = 2.0 * rng.gen::<f64>() - 1.0;
+        let b = PI2 * rng.gen::<f64>() - PI;
+        let c = PI * rng.gen::<f64>() - FRAC_PI_2;
+
+        // Modify components during iteration
+        for (component, coefficient) in v.iter_mut().zip([a, b, c].iter()) {
+            *component *= coefficient;
+        }
+
+        // Validate modified vector components
+        assert_eq!(v.radius(), a * radius);
+        assert_eq!(v.azimuth(), b * azimuth);
+        assert_eq!(v.latitude(), c * latitude);
+
+        // Generate random Spherical vector
+        let (radius, azimuth, latitude) = shared::gen_spherical(&mut rng);
+        let mut v = SphericalBuilder::with(radius, azimuth, latitude).build();
+
+        // Modify components during iteration
+        for component in &mut v {
+            *component = ((*component).powi(2) + 2.0).sqrt();
+        }
+
+        // Validate modified vector components
+        assert_eq!(v.radius(), (radius.powi(2) + 2.0).sqrt());
+        assert_eq!(v.azimuth(), (azimuth.powi(2) + 2.0).sqrt());
+        assert_eq!(v.latitude(), (latitude.powi(2) + 2.0).sqrt());
     }
 }
 

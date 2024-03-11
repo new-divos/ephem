@@ -447,10 +447,24 @@ impl<'a, S: CoordinateSystem> IntoIterator for &'a Vec3d<S> {
     }
 }
 
+/// Implements conversion from a mutable reference to a 3D vector (`&mut Vec3d<S>`) in any coordinate system `S` 
+/// to an iterator over its mutable components (`Vec3dMutIter`).
 impl<'a, S: CoordinateSystem> IntoIterator for &'a mut Vec3d<S> {
     type Item = &'a mut f64;
     type IntoIter = Vec3dMutIter<'a>;
 
+    /// Converts the mutable reference to a 3D vector into an iterator over its mutable components.
+    /// 
+    /// # Example
+    /// ```
+    /// use ephem::core::vectors::{Cartesian, CartesianBuilder, Vec3d};
+    /// 
+    /// let mut vector = CartesianBuilder::with(1.0, 2.0, 3.0).build(); // (x, y, z)
+    /// for component in &mut vector {
+    ///     *component += 1.0;
+    /// }
+    /// assert_eq!(vector, CartesianBuilder::with(2.0, 3.0, 4.0).build());
+    /// ```
     fn into_iter(self) -> Self::IntoIter {
         self.iter_mut()
     }
@@ -499,14 +513,21 @@ impl<'a> Iterator for Vec3dIter<'a> {
     }
 }
 
+/// Mutable iterator over the components of a mutable reference to a 3D vector (`&mut Vec3d<S>`).
+/// 
+/// This iterator allows iterating over the mutable components of a 3D vector in a forward direction.
 pub struct Vec3dMutIter<'a> {
+    /// Mutable reference to the underlying data containing the components of the vector.
     data: &'a mut [f64],
+    /// Cursor indicating the current position within the data.
     cursor: usize,
 }
 
 impl<'a> Iterator for Vec3dMutIter<'a> {
     type Item = &'a mut f64;
 
+    /// Advances the iterator and returns a mutable reference to the next component of the vector.
+    /// Returns `None` when all components have been iterated.
     fn next(&mut self) -> Option<Self::Item> {
         if (0..self.data.len()).contains(&self.cursor) {
             let i = self.cursor;
@@ -519,6 +540,10 @@ impl<'a> Iterator for Vec3dMutIter<'a> {
         }
     }
 
+    /// Returns the size hint of the iterator.
+    /// 
+    /// This returns a tuple where the first element is the exact size of the iterator,
+    /// and the second element is `Some(size)` representing the upper bound (same as the exact size).
     #[inline]
     fn size_hint(&self) -> (usize, Option<usize>) {
         (self.data.len(), Some(self.data.len()))
