@@ -1142,7 +1142,30 @@ impl CrossMul for Vec3d<Cartesian> {
     }
 }
 
+/// Implements the `Debug` trait for Cartesian vectors.
 impl fmt::Debug for Vec3d<Cartesian> {
+    /// Formats the Cartesian vector using the `Debug` trait.
+    /// 
+    /// This function formats the Cartesian vector as a debug string containing the x, y, and z components.
+    /// 
+    /// # Arguments
+    /// 
+    /// * `f` - A mutable reference to a formatter.
+    /// 
+    /// # Returns
+    /// 
+    /// A `fmt::Result` indicating success or failure in formatting the Cartesian vector.
+    /// 
+    /// # Examples
+    /// 
+    /// ```
+    /// use std::fmt::Debug;
+    /// use ephem::core::vectors::{Cartesian, CartesianBuilder, Vec3d};
+    /// 
+    /// let vector = CartesianBuilder::with(1.0, 2.0, 3.0).build();
+    /// let s = format!("{:?}", vector); 
+    /// assert_eq!(s.as_str(), "Vec3d { x: 1.0, y: 2.0, z: 3.0 }");
+    /// ```
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Vec3d")
@@ -1252,7 +1275,36 @@ impl Default for CartesianBuilder {
     }
 }
 
+/// Implements conversion from an iterator over `f64` values into a Cartesian vector builder.
 impl FromIterator<f64> for CartesianBuilder {
+    /// Constructs a Cartesian vector builder from an iterator over `f64` values.
+    /// 
+    /// This function consumes the iterator and constructs a Cartesian vector builder from the first three `f64` values
+    /// encountered in the iterator. If the iterator contains fewer than three values, the remaining components are set to zero.
+    /// If the iterator contains more than three values, only the first three values are used to construct the vector.
+    /// 
+    /// # Arguments
+    /// 
+    /// * `iter` - An iterator over `f64` values.
+    /// 
+    /// # Returns
+    /// 
+    /// A Cartesian vector builder constructed from the first three `f64` values encountered in the iterator.
+    /// 
+    /// # Examples
+    /// 
+    /// ```
+    /// use std::iter::FromIterator;
+    /// use ephem::core::vectors::{Cartesian, CartesianBuilder, Vec3d};
+    /// 
+    /// let iter = vec![1.0, 2.0, 3.0, 4.0].into_iter();
+    /// let builder = CartesianBuilder::from_iter(iter);
+    /// let vector = builder.build();
+    /// 
+    /// assert_eq!(vector.x(), 1.0);
+    /// assert_eq!(vector.y(), 2.0);
+    /// assert_eq!(vector.z(), 3.0);
+    /// ```
     fn from_iter<T: IntoIterator<Item = f64>>(iter: T) -> Self {
         let mut x = 0.0;
         let mut y = 0.0;
@@ -1631,7 +1683,30 @@ impl DivAssign<f64> for Vec3d<Cylindrical> {
     }
 }
 
+/// Implements the `Debug` trait for Cylindrical vectors.
 impl fmt::Debug for Vec3d<Cylindrical> {
+    /// Formats the Cylindrical vector using the `Debug` trait.
+    /// 
+    /// This function formats the Cylindrical vector as a debug string containing the radius, azimuth, and altitude components.
+    /// 
+    /// # Arguments
+    /// 
+    /// * `f` - A mutable reference to a formatter.
+    /// 
+    /// # Returns
+    /// 
+    /// A `fmt::Result` indicating success or failure in formatting the Cylindrical vector.
+    /// 
+    /// # Examples
+    /// 
+    /// ```
+    /// use std::fmt::Debug;
+    /// use ephem::core::vectors::{Cylindrical, CylindricalBuilder, Vec3d};
+    /// 
+    /// let vector = CylindricalBuilder::with(1.0, 2.0, 3.0).build();
+    /// let s = format!("{:?}", vector);
+    /// assert_eq!(s.as_str(), "Vec3d { radius: 1.0, azimuth: 2.0, altitude: 3.0 }");
+    /// ```
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Vec3d")
@@ -1718,7 +1793,36 @@ impl Default for CylindricalBuilder {
     }
 }
 
+/// Implements conversion from an iterator over `f64` values into a Cylindrical vector builder.
 impl FromIterator<f64> for CylindricalBuilder {
+    /// Constructs a Cylindrical vector builder from an iterator over `f64` values.
+    /// 
+    /// This function consumes the iterator and constructs a Cylindrical vector builder from the first three `f64` values
+    /// encountered in the iterator. If the iterator contains fewer than three values, the remaining components are set to zero.
+    /// If the iterator contains more than three values, only the first three values are used to construct the vector.
+    /// 
+    /// # Arguments
+    /// 
+    /// * `iter` - An iterator over `f64` values.
+    /// 
+    /// # Returns
+    /// 
+    /// A Cylindrical vector builder constructed from the first three `f64` values encountered in the iterator.
+    /// 
+    /// # Examples
+    /// 
+    /// ```
+    /// use std::iter::FromIterator;
+    /// use ephem::core::vectors::{Cylindrical, CylindricalBuilder, Vec3d};
+    /// 
+    /// let iter = vec![1.0, 2.0, 3.0, 4.0].into_iter();
+    /// let builder = CylindricalBuilder::from_iter(iter);
+    /// let vector = builder.build();
+    /// 
+    /// assert_eq!(vector.radius(), 1.0);
+    /// assert_eq!(vector.azimuth(), 2.0);
+    /// assert_eq!(vector.altitude(), 3.0);
+    /// ```
     fn from_iter<T: IntoIterator<Item = f64>>(iter: T) -> Self {
         let mut radius = 0.0;
         let mut azimuth = 0.0;
@@ -1968,7 +2072,30 @@ impl DivAssign<f64> for Vec3d<Spherical> {
     }
 }
 
+/// Implements the `Debug` trait for Spherical vectors.
 impl fmt::Debug for Vec3d<Spherical> {
+    /// Formats the Spherical vector using the `Debug` trait.
+    /// 
+    /// This function formats the Spherical vector as a debug string containing the radius, azimuth, and latitude components.
+    /// 
+    /// # Arguments
+    /// 
+    /// * `f` - A mutable reference to a formatter.
+    /// 
+    /// # Returns
+    /// 
+    /// A `fmt::Result` indicating success or failure in formatting the Spherical vector.
+    /// 
+    /// # Examples
+    /// 
+    /// ```
+    /// use std::fmt::Debug;
+    /// use ephem::core::vectors::{Spherical, SphericalBuilder, Vec3d};
+    /// 
+    /// let vector = SphericalBuilder::with(3.0, 2.0, 1.0).build();
+    /// let s = format!("{:?}", vector); 
+    /// assert_eq!(s.as_str(), "Vec3d { radius: 3.0, azimuth: 2.0, latitude: 1.0 }");
+    /// ```
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Vec3d")
@@ -2091,7 +2218,36 @@ impl<S: SpatialDirection> From<&S> for SphericalBuilder {
     }
 }
 
+/// Implements conversion from an iterator over `f64` values into a Spherical vector builder.
 impl FromIterator<f64> for SphericalBuilder {
+    /// Constructs a Spherical vector builder from an iterator over `f64` values.
+    /// 
+    /// This function consumes the iterator and constructs a Spherical vector builder from the first three `f64` values
+    /// encountered in the iterator. If the iterator contains fewer than three values, the remaining components are set to zero.
+    /// If the iterator contains more than three values, only the first three values are used to construct the vector.
+    /// 
+    /// # Arguments
+    /// 
+    /// * `iter` - An iterator over `f64` values.
+    /// 
+    /// # Returns
+    /// 
+    /// A Spherical vector builder constructed from the first three `f64` values encountered in the iterator.
+    /// 
+    /// # Examples
+    /// 
+    /// ```
+    /// use std::iter::FromIterator;
+    /// use ephem::core::vectors::{Spherical, SphericalBuilder, Vec3d};
+    /// 
+    /// let iter = vec![3.0, 2.0, 1.0, 0.0].into_iter();
+    /// let builder = SphericalBuilder::from_iter(iter);
+    /// let vector = builder.build();
+    /// 
+    /// assert_eq!(vector.radius(), 3.0);
+    /// assert_eq!(vector.azimuth(), 2.0);
+    /// assert_eq!(vector.latitude(), 1.0);
+    /// ```
     fn from_iter<T: IntoIterator<Item = f64>>(iter: T) -> Self {
         let mut radius = 0.0;
         let mut azimuth = 0.0;

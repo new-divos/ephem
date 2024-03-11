@@ -245,9 +245,6 @@ fn vec3d_conversion_into_tuple_test() {
 }
 
 /// Test function to verify the behavior of converting 3D vectors into iterators.
-///
-/// This test function generates random Cartesian, Cylindrical, and Spherical vectors and then converts them into iterators.
-/// It ensures that iterating over the vectors via iterators produces the correct sequence of elements.
 #[test]
 fn vec3d_into_iterator_test() {
     let mut rng = rand::thread_rng();
@@ -296,10 +293,6 @@ fn vec3d_into_iterator_test() {
 }
 
 /// Test function to verify the behavior of iterators over different types of 3D vectors.
-///
-/// This test function generates random Cartesian, Cylindrical, and Spherical vectors and then iterates over their components.
-/// It ensures that iterating over the vectors produces the correct sequence of elements, and also validates the conversion
-/// of the iterator back into a vector.
 #[test]
 fn vec3d_iterator_test() {
     let mut rng = rand::thread_rng();
