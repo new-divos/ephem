@@ -2,6 +2,7 @@ use num_traits::float::Float;
 
 pub mod consts;
 pub mod error;
+pub mod matrices;
 pub mod vectors;
 
 pub type Result<T> = std::result::Result<T, crate::core::error::Error>;
