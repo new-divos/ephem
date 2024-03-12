@@ -681,7 +681,7 @@ fn cartesian_vec3d_norma_test() {
 
 /// Test function for negating a Cartesian `Vec3d` vector.
 #[test]
-fn cartesion_vec3d_negation_test() {
+fn cartesian_vec3d_negation_test() {
     let mut rng = rand::thread_rng();
     for _ in 0..shared::ITERATIONS {
         // Generate random Cartesian vector
@@ -796,7 +796,7 @@ fn cartesian_vec3d_multiplication_by_scalar_test() {
         let v = CartesianBuilder::with(x, y, z).build();
 
         // Generate floating point scalar
-        let scalar = (shared::MAX_VALUE - shared::MIN_VALUE) * rng.gen::<f64>() - shared::MIN_VALUE;
+        let scalar = (shared::MAX_VALUE - shared::MIN_VALUE) * rng.gen::<f64>() + shared::MIN_VALUE;
 
         // Perform multiplication by the scalar
         let r = v.clone() * scalar;
@@ -826,7 +826,7 @@ fn cartesian_vec3d_multiplication_by_scalar_with_assignment_test() {
         let mut v = CartesianBuilder::with(x, y, z).build();
 
         // Generate floating point scalar
-        let scalar = (shared::MAX_VALUE - shared::MIN_VALUE) * rng.gen::<f64>() - shared::MIN_VALUE;
+        let scalar = (shared::MAX_VALUE - shared::MIN_VALUE) * rng.gen::<f64>() + shared::MIN_VALUE;
 
         // Perform multiplication by the scalar with assignment
         v *= scalar;
@@ -848,7 +848,7 @@ fn cartesian_vec3d_divison_by_scalar_test() {
         let v = CartesianBuilder::with(x, y, z).build();
 
         // Generate floating point scalar
-        let scalar = (shared::MAX_VALUE - shared::MIN_VALUE) * rng.gen::<f64>() - shared::MIN_VALUE;
+        let scalar = (shared::MAX_VALUE - shared::MIN_VALUE) * rng.gen::<f64>() + shared::MIN_VALUE;
         if scalar.abs() < shared::EPSILON {
             continue;
         }
@@ -873,7 +873,7 @@ fn cartesian_vec3d_divison_by_scalar_with_assignment_test() {
         let mut v = CartesianBuilder::with(x, y, z).build();
 
         // Generate floating point scalar
-        let scalar = (shared::MAX_VALUE - shared::MIN_VALUE) * rng.gen::<f64>() - shared::MIN_VALUE;
+        let scalar = (shared::MAX_VALUE - shared::MIN_VALUE) * rng.gen::<f64>() + shared::MIN_VALUE;
         if scalar.abs() < shared::EPSILON {
             continue;
         }
@@ -1003,7 +1003,7 @@ fn cylindrical_vec3d_multiplication_by_scalar_test() {
         let v = CylindricalBuilder::with(radius, azimuth, altitude).build();
 
         // Generate floating point scalar
-        let scalar = (shared::MAX_VALUE - shared::MIN_VALUE) * rng.gen::<f64>() - shared::MIN_VALUE;
+        let scalar = (shared::MAX_VALUE - shared::MIN_VALUE) * rng.gen::<f64>() + shared::MIN_VALUE;
 
         // Perform multiplication by the scalar
         let r = v.clone() * scalar;
@@ -1033,7 +1033,7 @@ fn cylindrical_vec3d_multiplication_by_scalar_with_assignment_test() {
         let mut v = CylindricalBuilder::with(radius, azimuth, altitude).build();
 
         // Generate floating point scalar
-        let scalar = (shared::MAX_VALUE - shared::MIN_VALUE) * rng.gen::<f64>() - shared::MIN_VALUE;
+        let scalar = (shared::MAX_VALUE - shared::MIN_VALUE) * rng.gen::<f64>() + shared::MIN_VALUE;
 
         // Perform multiplication by the scalar with assignment
         v *= scalar;
@@ -1055,7 +1055,7 @@ fn cylindrical_vec3d_divison_by_scalar_test() {
         let v = CylindricalBuilder::with(radius, azimuth, altitude).build();
 
         // Generate floating point scalar
-        let scalar = (shared::MAX_VALUE - shared::MIN_VALUE) * rng.gen::<f64>() - shared::MIN_VALUE;
+        let scalar = (shared::MAX_VALUE - shared::MIN_VALUE) * rng.gen::<f64>() + shared::MIN_VALUE;
         if scalar.abs() < shared::EPSILON {
             continue;
         }
@@ -1080,7 +1080,7 @@ fn cylindrical_vec3d_divison_by_scalar_with_assignment_test() {
         let mut v = CylindricalBuilder::with(radius, azimuth, altitude).build();
 
         // Generate floating point scalar
-        let scalar = (shared::MAX_VALUE - shared::MIN_VALUE) * rng.gen::<f64>() - shared::MIN_VALUE;
+        let scalar = (shared::MAX_VALUE - shared::MIN_VALUE) * rng.gen::<f64>() + shared::MIN_VALUE;
         if scalar.abs() < shared::EPSILON {
             continue;
         }
@@ -1092,5 +1092,126 @@ fn cylindrical_vec3d_divison_by_scalar_with_assignment_test() {
         assert_eq!(v.radius(), radius / scalar);
         assert_eq!(v.azimuth(), azimuth);
         assert_eq!(v.altitude(), altitude / scalar);
+    }
+}
+
+/// Test function for negating a Spherical `Vec3d` vector.
+#[test]
+fn spherical_vec3d_negation_test() {
+    let mut rng = rand::thread_rng();
+    for _ in 0..shared::ITERATIONS {
+        // Generate random Spherical vector
+        let (radius, azimuth, latitude) = shared::gen_spherical(&mut rng);
+        let v = SphericalBuilder::with(radius, azimuth, latitude).build();
+
+        // Perform negation
+        let n = -v;
+
+        // Verify components of the resulting vector
+        assert_eq!(n.radius(), -radius);
+        assert_eq!(n.azimuth(), azimuth);
+        assert_eq!(n.latitude(), latitude);
+    }
+}
+
+/// Tests the multiplication of a spherical vector by a scalar value.
+#[test]
+fn spherical_vec3d_multiplication_by_scalar_test() {
+    let mut rng = rand::thread_rng();
+    for _ in 0..shared::ITERATIONS {
+        // Generate random Spherical vector
+        let (radius, azimuth, latitude) = shared::gen_spherical(&mut rng);
+        let v = SphericalBuilder::with(radius, azimuth, latitude).build();
+
+        // Generate floating point scalar
+        let scalar = (shared::MAX_VALUE - shared::MIN_VALUE) * rng.gen::<f64>() + shared::MIN_VALUE;
+
+        // Perform multiplication by the scalar
+        let r = v.clone() * scalar;
+
+        // Verify components of the resulting vector
+        assert_eq!(r.radius(), radius * scalar);
+        assert_eq!(r.azimuth(), azimuth);
+        assert_eq!(r.latitude(), latitude);
+
+        // Perform multiplication by the scalar
+        let r = scalar * v;
+
+        // Verify components of the resulting vector
+        assert_eq!(r.radius(), scalar * radius);
+        assert_eq!(r.azimuth(), azimuth);
+        assert_eq!(r.latitude(), latitude);
+    }
+}
+
+/// Tests the multiplication of a spherical vector by a scalar value with assignment.
+#[test]
+fn spherical_vec3d_multiplication_by_scalar_with_assignment_test() {
+    let mut rng = rand::thread_rng();
+    for _ in 0..shared::ITERATIONS {
+        // Generate random Spherical vector
+        let (radius, azimuth, latitude) = shared::gen_spherical(&mut rng);
+        let mut v = SphericalBuilder::with(radius, azimuth, latitude).build();
+
+        // Generate floating point scalar
+        let scalar = (shared::MAX_VALUE - shared::MIN_VALUE) * rng.gen::<f64>() + shared::MIN_VALUE;
+
+        // Perform multiplication by the scalar with assignment
+        v *= scalar;
+
+        // Verify components of the resulting vector
+        assert_eq!(v.radius(), radius * scalar);
+        assert_eq!(v.azimuth(), azimuth);
+        assert_eq!(v.latitude(), latitude);
+    }
+}
+
+/// Tests the division of a spherical vector by a scalar value.
+#[test]
+fn spherical_vec3d_divison_by_scalar_test() {
+    let mut rng = rand::thread_rng();
+    for _ in 0..shared::ITERATIONS {
+        // Generate random Spherical vector
+        let (radius, azimuth, latitude) = shared::gen_spherical(&mut rng);
+        let v = SphericalBuilder::with(radius, azimuth, latitude).build();
+
+        // Generate floating point scalar
+        let scalar = (shared::MAX_VALUE - shared::MIN_VALUE) * rng.gen::<f64>() + shared::MIN_VALUE;
+        if scalar.abs() < shared::EPSILON {
+            continue;
+        }
+
+        // Perform division by the scalar
+        let r = v / scalar;
+
+        // Verify components of the resulting vector
+        assert_eq!(r.radius(), radius / scalar);
+        assert_eq!(r.azimuth(), azimuth);
+        assert_eq!(r.latitude(), latitude);
+    }
+}
+
+/// Tests the division of a spherical vector by a scalar value with assignment.
+#[test]
+fn spherical_vec3d_divison_by_scalar_with_assignment_test() {
+    let mut rng = rand::thread_rng();
+    for _ in 0..shared::ITERATIONS {
+        // Generate random Spherical vector
+        let (radius, azimuth, latitude) = shared::gen_spherical(&mut rng);
+        let mut v = SphericalBuilder::with(radius, azimuth, latitude).build();
+
+        // Generate floating point scalar
+        let scalar = (shared::MAX_VALUE - shared::MIN_VALUE) * rng.gen::<f64>() + shared::MIN_VALUE;
+        if scalar.abs() < shared::EPSILON {
+            continue;
+        }
+
+        // Perform division by the scalar with assignment
+        v /= scalar;
+
+        // Verify components of the resulting vector
+        assert_eq!(v.radius(), radius / scalar);
+        assert_eq!(v.azimuth(), azimuth);
+        assert_eq!(v.latitude(), latitude);
     }
 }

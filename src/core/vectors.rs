@@ -757,7 +757,7 @@ where
     }
 }
 
-/// Implementation block for negating a Cartesian `Vec3d` vector.
+/// Implementation block for negating a Cartesian vector.
 impl Neg for Vec3d<Cartesian> {
     /// The type of the result of the negation operation.
     type Output = Self;
@@ -1010,6 +1010,10 @@ impl Div<f64> for Vec3d<Cartesian> {
     ///
     /// The resulting vector after dividing each component by the scalar value.
     ///
+    /// # Panics
+    /// 
+    /// Panics if the divisor is zero.
+    /// 
     /// # Examples
     ///
     /// ```
@@ -1044,6 +1048,10 @@ impl DivAssign<f64> for Vec3d<Cartesian> {
     ///
     /// * `rhs` - The scalar value to divide the vector components by.
     ///
+    /// # Panics
+    /// 
+    /// Panics if the divisor is zero.
+    /// 
     /// # Examples
     ///
     /// ```
@@ -1626,6 +1634,10 @@ impl Div<f64> for Vec3d<Cylindrical> {
     /// # Returns
     ///
     /// A new cylindrical vector where each component is divided by the scalar value.
+    /// 
+    /// # Panics
+    /// 
+    /// Panics if the divisor is zero.
     ///
     /// # Example
     ///
@@ -1663,6 +1675,10 @@ impl DivAssign<f64> for Vec3d<Cylindrical> {
     ///
     /// - `self`: A mutable reference to the cylindrical vector.
     /// - `rhs`: The scalar value to divide by.
+    /// 
+    /// # Panics
+    /// 
+    /// Panics if the divisor is zero.
     ///
     /// # Example
     ///
@@ -2010,9 +2026,37 @@ where
     }
 }
 
+/// Implements unary negation for Spherical vectors.
 impl Neg for Vec3d<Spherical> {
+    /// The type of the result of the negation operation.
     type Output = Self;
 
+    /// Negates the Spherical vector.
+    /// 
+    /// This function returns a new Spherical vector where the radius component is negated, and the azimuth and latitude
+    /// components remain unchanged.
+    /// 
+    /// # Arguments
+    /// 
+    /// * `self` - The Spherical vector to be negated.
+    /// 
+    /// # Returns
+    /// 
+    /// A new Spherical vector with the radius component negated and other components unchanged.
+    /// 
+    /// # Examples
+    /// 
+    /// ```
+    /// use std::ops::Neg;
+    /// use ephem::core::vectors::{Spherical, SphericalBuilder, Vec3d};
+    /// 
+    /// let vector = SphericalBuilder::with(1.0, 2.0, 3.0).build();
+    /// let negated_vector = -vector;
+    /// 
+    /// assert_eq!(negated_vector.radius(), -1.0);
+    /// assert_eq!(negated_vector.azimuth(), 2.0);
+    /// assert_eq!(negated_vector.latitude(), 3.0);
+    /// ```
     #[inline]
     fn neg(self) -> Self::Output {
         Self(
@@ -2026,9 +2070,39 @@ impl Neg for Vec3d<Spherical> {
     }
 }
 
+/// Implements scalar multiplication for Spherical vectors.
 impl Mul<f64> for Vec3d<Spherical> {
+    /// The type of the result of the multiplication by a floating-point scalar operation.
     type Output = Self;
 
+    /// Multiplies the Spherical vector by a scalar.
+    /// 
+    /// This function returns a new Spherical vector where each component is multiplied by the given scalar,
+    /// except for the azimuth and latitude components, which remain unchanged.
+    /// 
+    /// # Arguments
+    /// 
+    /// * `self` - The Spherical vector to be multiplied.
+    /// * `rhs` - The scalar value to multiply by.
+    /// 
+    /// # Returns
+    /// 
+    /// A new Spherical vector with each component multiplied by the scalar, except for the azimuth and latitude components
+    /// which remain unchanged.
+    /// 
+    /// # Examples
+    /// 
+    /// ```
+    /// use std::ops::Mul;
+    /// use ephem::core::vectors::{Spherical, SphericalBuilder, Vec3d};
+    /// 
+    /// let vector = SphericalBuilder::with(1.0, 2.0, 3.0).build();
+    /// let multiplied_vector = vector * 2.0;
+    /// 
+    /// assert_eq!(multiplied_vector.radius(), 2.0);
+    /// assert_eq!(multiplied_vector.azimuth(), 2.0);
+    /// assert_eq!(multiplied_vector.latitude(), 3.0);
+    /// ```
     #[inline]
     fn mul(self, rhs: f64) -> Self::Output {
         Self(
@@ -2042,16 +2116,73 @@ impl Mul<f64> for Vec3d<Spherical> {
     }
 }
 
+/// Implements in-place scalar multiplication for Spherical vectors.
 impl MulAssign<f64> for Vec3d<Spherical> {
+    /// Multiplies the Spherical vector in-place by a scalar.
+    /// 
+    /// This function multiplies the radius component of the Spherical vector by the given scalar,
+    /// leaving the azimuth and latitude components unchanged.
+    /// 
+    /// # Arguments
+    /// 
+    /// * `self` - A mutable reference to the Spherical vector to be multiplied.
+    /// * `rhs` - The scalar value to multiply by.
+    /// 
+    /// # Examples
+    /// 
+    /// ```
+    /// use std::ops::MulAssign;
+    /// use ephem::core::vectors::{Spherical, SphericalBuilder, Vec3d};
+    /// 
+    /// let mut vector = SphericalBuilder::with(1.0, 2.0, 3.0).build();
+    /// vector *= 2.0;
+    /// 
+    /// assert_eq!(vector.radius(), 2.0);
+    /// assert_eq!(vector.azimuth(), 2.0);
+    /// assert_eq!(vector.latitude(), 3.0);
+    /// ```
     #[inline]
     fn mul_assign(&mut self, rhs: f64) {
         self.0[Spherical::RADIUS_IDX] *= rhs;
     }
 }
 
+/// Implements scalar division for Spherical vectors.
 impl Div<f64> for Vec3d<Spherical> {
+    /// The type of the result of the division by a floating-point scalar operation.
     type Output = Self;
 
+    /// Divides the Spherical vector by a scalar.
+    /// 
+    /// This function returns a new Spherical vector where the radius component is divided by the given scalar,
+    /// while leaving the azimuth and latitude components unchanged.
+    /// 
+    /// # Arguments
+    /// 
+    /// * `self` - The Spherical vector to be divided.
+    /// * `rhs` - The scalar value to divide by.
+    /// 
+    /// # Returns
+    /// 
+    /// A new Spherical vector with the radius component divided by the scalar, and other components unchanged.
+    /// 
+    /// # Panics
+    /// 
+    /// Panics if the divisor is zero.
+    /// 
+    /// # Examples
+    /// 
+    /// ```
+    /// use std::ops::Div;
+    /// use ephem::core::vectors::{Spherical, SphericalBuilder, Vec3d};
+    /// 
+    /// let vector = SphericalBuilder::with(2.0, 2.0, 3.0).build();
+    /// let divided_vector = vector / 2.0;
+    /// 
+    /// assert_eq!(divided_vector.radius(), 1.0);
+    /// assert_eq!(divided_vector.azimuth(), 2.0);
+    /// assert_eq!(divided_vector.latitude(), 3.0);
+    /// ```
     #[inline]
     fn div(self, rhs: f64) -> Self::Output {
         Self(
@@ -2065,7 +2196,35 @@ impl Div<f64> for Vec3d<Spherical> {
     }
 }
 
+/// Implements in-place scalar division for Spherical vectors.
 impl DivAssign<f64> for Vec3d<Spherical> {
+    /// Divides the Spherical vector in-place by a scalar.
+    /// 
+    /// This function divides the radius component of the Spherical vector by the given scalar,
+    /// leaving the azimuth and latitude components unchanged.
+    /// 
+    /// # Arguments
+    /// 
+    /// * `self` - A mutable reference to the Spherical vector to be divided.
+    /// * `rhs` - The scalar value to divide by.
+    /// 
+    /// # Panics
+    /// 
+    /// Panics if the divisor is zero.
+    /// 
+    /// # Examples
+    /// 
+    /// ```
+    /// use std::ops::DivAssign;
+    /// use ephem::core::vectors::{Spherical, SphericalBuilder, Vec3d};
+    /// 
+    /// let mut vector = SphericalBuilder::with(2.0, 2.0, 3.0).build();
+    /// vector /= 2.0;
+    /// 
+    /// assert_eq!(vector.radius(), 1.0);
+    /// assert_eq!(vector.azimuth(), 2.0);
+    /// assert_eq!(vector.latitude(), 3.0);
+    /// ```
     #[inline]
     fn div_assign(&mut self, rhs: f64) {
         self.0[Spherical::RADIUS_IDX] /= rhs;
