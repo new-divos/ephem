@@ -132,26 +132,26 @@ pub trait ToSpherical {
 /// must implement the `CoordinateSystem` trait.
 pub struct Vec3d<S: CoordinateSystem>(
     /// Array representing the three coordinates of the vector.
-    [f64; 3],
+    pub(crate) [f64; 3],
     /// PhantomData marker to tie the coordinate system type to the vector.
-    PhantomData<S>,
+    pub(crate) PhantomData<S>,
 );
 
 /// Implements methods to iterate over the components of a 3D vector (`Vec3d<S>`) in any coordinate system `S`.
-/// 
-/// This implementation provides methods to create both immutable and mutable iterators over the components 
-/// of the vector. The `iter()` method returns an immutable iterator (`Vec3dIter`) allowing read-only access 
-/// to the components, while the `iter_mut()` method returns a mutable iterator (`Vec3dMutIter`) allowing 
+///
+/// This implementation provides methods to create both immutable and mutable iterators over the components
+/// of the vector. The `iter()` method returns an immutable iterator (`Vec3dIter`) allowing read-only access
+/// to the components, while the `iter_mut()` method returns a mutable iterator (`Vec3dMutIter`) allowing
 /// modification of the components.
 impl<S: CoordinateSystem> Vec3d<S> {
     /// Returns an immutable iterator over the components of the vector.
-    /// 
+    ///
     /// # Example
     /// ```
     /// use ephem::core::vectors::{Cartesian, CartesianBuilder, Vec3d};
-    /// 
+    ///
     /// let vector = CartesianBuilder::with(1.0, 2.0, 3.0).build(); // (x, y, z)
-    /// 
+    ///
     /// for (idx, component) in vector.iter().enumerate() {
     ///     match idx {
     ///         0 => assert_eq!(vector.x(), component),
@@ -162,32 +162,32 @@ impl<S: CoordinateSystem> Vec3d<S> {
     /// }
     /// ```
     #[inline]
-    pub fn iter<'a>(&'a self) -> Vec3dIter<'a> {
-        Vec3dIter::<'a> {
+    pub fn iter(&self) -> Vec3dIter<'_> {
+        Vec3dIter {
             data: &self.0,
             cursor: 0,
         }
     }
 
     /// Returns a mutable iterator over the components of the vector.
-    /// 
+    ///
     /// # Example
     /// ```
     /// use ephem::core::vectors::{Cartesian, CartesianBuilder, Vec3d};
-    /// 
+    ///
     /// let mut vector = CartesianBuilder::with(1.0, 2.0, 3.0).build(); // (x, y, z)
-    /// 
+    ///
     /// for component in vector.iter_mut() {
     ///     *component += 1.0;
     /// }
-    /// 
+    ///
     /// assert_eq!(vector.x(), 2.0);
     /// assert_eq!(vector.y(), 3.0);
     /// assert_eq!(vector.z(), 4.0);
     /// ```
     #[inline]
-    pub fn iter_mut<'a>(&'a mut self) -> Vec3dMutIter<'a> {
-        Vec3dMutIter::<'a> {
+    pub fn iter_mut(&mut self) -> Vec3dMutIter<'_> {
+        Vec3dMutIter {
             data: &mut self.0,
             cursor: 0,
         }
@@ -240,15 +240,15 @@ where
 }
 
 /// Implements the conversion from a 3D vector (`Vec3d<S>`) in any coordinate system `S` to a slice of `f64`.
-/// 
+///
 /// This implementation allows the 3D vector to be treated as a slice of `f64`, providing read-only access to its components.
 impl<S: CoordinateSystem> AsRef<[f64]> for Vec3d<S> {
     /// Returns a slice of `f64` representing the components of the vector.
-    /// 
+    ///
     /// # Example
     /// ```
     /// use ephem::core::vectors::{Cartesian, CartesianBuilder, Vec3d};
-    /// 
+    ///
     /// let vector = CartesianBuilder::with(1.0, 2.0, 3.0).build(); // (x, y, z)
     /// let slice: &[f64] = vector.as_ref();
     /// assert_eq!(slice, &[1.0, 2.0, 3.0]);
@@ -258,18 +258,18 @@ impl<S: CoordinateSystem> AsRef<[f64]> for Vec3d<S> {
     }
 }
 
-/// Implements the conversion from a mutable reference to a 3D vector (`&mut Vec3d<S>`) in any coordinate system `S` 
+/// Implements the conversion from a mutable reference to a 3D vector (`&mut Vec3d<S>`) in any coordinate system `S`
 /// to a mutable slice of `f64`.
-/// 
-/// This implementation allows the mutable reference to the 3D vector to be treated as a mutable slice of `f64`, 
+///
+/// This implementation allows the mutable reference to the 3D vector to be treated as a mutable slice of `f64`,
 /// providing mutable access to its components.
 impl<S: CoordinateSystem> AsMut<[f64]> for Vec3d<S> {
     /// Returns a mutable slice of `f64` representing the components of the vector.
-    /// 
+    ///
     /// # Example
     /// ```
     /// use ephem::core::vectors::{Cartesian, CartesianBuilder, Vec3d};
-    /// 
+    ///
     /// let mut vector = CartesianBuilder::with(1.0, 2.0, 3.0).build(); // (x, y, z)
     /// let slice: &mut [f64] = vector.as_mut();
     /// slice[0] = 4.0;
@@ -392,18 +392,18 @@ where
     }
 }
 
-/// Implements conversion from a 3D vector (`Vec3d<S>`) in any coordinate system `S` 
+/// Implements conversion from a 3D vector (`Vec3d<S>`) in any coordinate system `S`
 /// to an iterator over its components (`Vec3dIntoIter`), consuming the vector in the process.
 impl<S: CoordinateSystem> IntoIterator for Vec3d<S> {
     type Item = f64;
     type IntoIter = Vec3dIntoIter;
 
     /// Converts the 3D vector into an iterator over its components, consuming the vector in the process.
-    /// 
+    ///
     /// # Example
     /// ```
     /// use ephem::core::vectors::{Cartesian, CartesianBuilder, Vec3d};
-    /// 
+    ///
     /// let vector = CartesianBuilder::with(1.0, 2.0, 3.0).build(); // (x, y, z)
     /// let mut iter = vector.into_iter();
     /// assert_eq!(iter.next(), Some(1.0));
@@ -420,24 +420,24 @@ impl<S: CoordinateSystem> IntoIterator for Vec3d<S> {
     }
 }
 
-/// Implements conversion from a reference to a 3D vector (`&Vec3d<S>`) in any coordinate system `S` 
+/// Implements conversion from a reference to a 3D vector (`&Vec3d<S>`) in any coordinate system `S`
 /// to an iterator over its components (`Vec3dIter`).
 impl<'a, S: CoordinateSystem> IntoIterator for &'a Vec3d<S> {
     type Item = f64;
     type IntoIter = Vec3dIter<'a>;
 
     /// Converts the reference to a 3D vector into an iterator over its components.
-    /// 
+    ///
     /// # Example
     /// ```
     /// use ephem::core::vectors::{Cartesian, CartesianBuilder, Vec3d};
-    /// 
+    ///
     /// let vector = CartesianBuilder::with(1.0, 2.0, 3.0).build(); // (x, y, z)
     /// let mut t: Vec<f64> = Vec::new();
     /// for component in &vector {
     ///     t.push(component);
     /// }
-    /// 
+    ///
     /// let u = CartesianBuilder::from_iter(t).build();
     /// assert_eq!(u, vector);
     /// ```
@@ -447,18 +447,18 @@ impl<'a, S: CoordinateSystem> IntoIterator for &'a Vec3d<S> {
     }
 }
 
-/// Implements conversion from a mutable reference to a 3D vector (`&mut Vec3d<S>`) in any coordinate system `S` 
+/// Implements conversion from a mutable reference to a 3D vector (`&mut Vec3d<S>`) in any coordinate system `S`
 /// to an iterator over its mutable components (`Vec3dMutIter`).
 impl<'a, S: CoordinateSystem> IntoIterator for &'a mut Vec3d<S> {
     type Item = &'a mut f64;
     type IntoIter = Vec3dMutIter<'a>;
 
     /// Converts the mutable reference to a 3D vector into an iterator over its mutable components.
-    /// 
+    ///
     /// # Example
     /// ```
     /// use ephem::core::vectors::{Cartesian, CartesianBuilder, Vec3d};
-    /// 
+    ///
     /// let mut vector = CartesianBuilder::with(1.0, 2.0, 3.0).build(); // (x, y, z)
     /// for component in &mut vector {
     ///     *component += 1.0;
@@ -471,7 +471,7 @@ impl<'a, S: CoordinateSystem> IntoIterator for &'a mut Vec3d<S> {
 }
 
 /// Iterator over the components of a 3D vector (`Vec3d<S>`).
-/// 
+///
 /// This iterator allows iterating over the components of a 3D vector in a forward direction.
 pub struct Vec3dIter<'a> {
     /// Reference to the underlying data containing the components of the vector.
@@ -498,7 +498,7 @@ impl<'a> Iterator for Vec3dIter<'a> {
     }
 
     /// Returns the size hint of the iterator.
-    /// 
+    ///
     /// This returns a tuple where the first element is the exact size of the iterator,
     /// and the second element is `Some(size)` representing the upper bound (same as the exact size).
     #[inline]
@@ -514,7 +514,7 @@ impl<'a> Iterator for Vec3dIter<'a> {
 }
 
 /// Mutable iterator over the components of a mutable reference to a 3D vector (`&mut Vec3d<S>`).
-/// 
+///
 /// This iterator allows iterating over the mutable components of a 3D vector in a forward direction.
 pub struct Vec3dMutIter<'a> {
     /// Mutable reference to the underlying data containing the components of the vector.
@@ -541,7 +541,7 @@ impl<'a> Iterator for Vec3dMutIter<'a> {
     }
 
     /// Returns the size hint of the iterator.
-    /// 
+    ///
     /// This returns a tuple where the first element is the exact size of the iterator,
     /// and the second element is `Some(size)` representing the upper bound (same as the exact size).
     #[inline]
@@ -551,7 +551,7 @@ impl<'a> Iterator for Vec3dMutIter<'a> {
 }
 
 /// Iterator over the components of a 3D vector (`Vec3d`), consuming the vector in the process.
-/// 
+///
 /// This iterator allows iterating over the components of a 3D vector in a forward direction, consuming the vector in the process.
 pub struct Vec3dIntoIter {
     /// Array containing the components of the vector.
@@ -578,7 +578,7 @@ impl Iterator for Vec3dIntoIter {
     }
 
     /// Returns the size hint of the iterator.
-    /// 
+    ///
     /// This returns a tuple where the first element is the exact size of the iterator,
     /// and the second element is `Some(size)` representing the upper bound (same as the exact size).
     #[inline]
@@ -1011,9 +1011,9 @@ impl Div<f64> for Vec3d<Cartesian> {
     /// The resulting vector after dividing each component by the scalar value.
     ///
     /// # Panics
-    /// 
+    ///
     /// Panics if the divisor is zero.
-    /// 
+    ///
     /// # Examples
     ///
     /// ```
@@ -1049,9 +1049,9 @@ impl DivAssign<f64> for Vec3d<Cartesian> {
     /// * `rhs` - The scalar value to divide the vector components by.
     ///
     /// # Panics
-    /// 
+    ///
     /// Panics if the divisor is zero.
-    /// 
+    ///
     /// # Examples
     ///
     /// ```
@@ -1153,25 +1153,25 @@ impl CrossMul for Vec3d<Cartesian> {
 /// Implements the `Debug` trait for Cartesian vectors.
 impl fmt::Debug for Vec3d<Cartesian> {
     /// Formats the Cartesian vector using the `Debug` trait.
-    /// 
+    ///
     /// This function formats the Cartesian vector as a debug string containing the x, y, and z components.
-    /// 
+    ///
     /// # Arguments
-    /// 
+    ///
     /// * `f` - A mutable reference to a formatter.
-    /// 
+    ///
     /// # Returns
-    /// 
+    ///
     /// A `fmt::Result` indicating success or failure in formatting the Cartesian vector.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use std::fmt::Debug;
     /// use ephem::core::vectors::{Cartesian, CartesianBuilder, Vec3d};
-    /// 
+    ///
     /// let vector = CartesianBuilder::with(1.0, 2.0, 3.0).build();
-    /// let s = format!("{:?}", vector); 
+    /// let s = format!("{:?}", vector);
     /// assert_eq!(s.as_str(), "Vec3d { x: 1.0, y: 2.0, z: 3.0 }");
     /// ```
     #[inline]
@@ -1286,29 +1286,29 @@ impl Default for CartesianBuilder {
 /// Implements conversion from an iterator over `f64` values into a Cartesian vector builder.
 impl FromIterator<f64> for CartesianBuilder {
     /// Constructs a Cartesian vector builder from an iterator over `f64` values.
-    /// 
+    ///
     /// This function consumes the iterator and constructs a Cartesian vector builder from the first three `f64` values
     /// encountered in the iterator. If the iterator contains fewer than three values, the remaining components are set to zero.
     /// If the iterator contains more than three values, only the first three values are used to construct the vector.
-    /// 
+    ///
     /// # Arguments
-    /// 
+    ///
     /// * `iter` - An iterator over `f64` values.
-    /// 
+    ///
     /// # Returns
-    /// 
+    ///
     /// A Cartesian vector builder constructed from the first three `f64` values encountered in the iterator.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use std::iter::FromIterator;
     /// use ephem::core::vectors::{Cartesian, CartesianBuilder, Vec3d};
-    /// 
+    ///
     /// let iter = vec![1.0, 2.0, 3.0, 4.0].into_iter();
     /// let builder = CartesianBuilder::from_iter(iter);
     /// let vector = builder.build();
-    /// 
+    ///
     /// assert_eq!(vector.x(), 1.0);
     /// assert_eq!(vector.y(), 2.0);
     /// assert_eq!(vector.z(), 3.0);
@@ -1634,9 +1634,9 @@ impl Div<f64> for Vec3d<Cylindrical> {
     /// # Returns
     ///
     /// A new cylindrical vector where each component is divided by the scalar value.
-    /// 
+    ///
     /// # Panics
-    /// 
+    ///
     /// Panics if the divisor is zero.
     ///
     /// # Example
@@ -1675,9 +1675,9 @@ impl DivAssign<f64> for Vec3d<Cylindrical> {
     ///
     /// - `self`: A mutable reference to the cylindrical vector.
     /// - `rhs`: The scalar value to divide by.
-    /// 
+    ///
     /// # Panics
-    /// 
+    ///
     /// Panics if the divisor is zero.
     ///
     /// # Example
@@ -1702,23 +1702,23 @@ impl DivAssign<f64> for Vec3d<Cylindrical> {
 /// Implements the `Debug` trait for Cylindrical vectors.
 impl fmt::Debug for Vec3d<Cylindrical> {
     /// Formats the Cylindrical vector using the `Debug` trait.
-    /// 
+    ///
     /// This function formats the Cylindrical vector as a debug string containing the radius, azimuth, and altitude components.
-    /// 
+    ///
     /// # Arguments
-    /// 
+    ///
     /// * `f` - A mutable reference to a formatter.
-    /// 
+    ///
     /// # Returns
-    /// 
+    ///
     /// A `fmt::Result` indicating success or failure in formatting the Cylindrical vector.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use std::fmt::Debug;
     /// use ephem::core::vectors::{Cylindrical, CylindricalBuilder, Vec3d};
-    /// 
+    ///
     /// let vector = CylindricalBuilder::with(1.0, 2.0, 3.0).build();
     /// let s = format!("{:?}", vector);
     /// assert_eq!(s.as_str(), "Vec3d { radius: 1.0, azimuth: 2.0, altitude: 3.0 }");
@@ -1812,29 +1812,29 @@ impl Default for CylindricalBuilder {
 /// Implements conversion from an iterator over `f64` values into a Cylindrical vector builder.
 impl FromIterator<f64> for CylindricalBuilder {
     /// Constructs a Cylindrical vector builder from an iterator over `f64` values.
-    /// 
+    ///
     /// This function consumes the iterator and constructs a Cylindrical vector builder from the first three `f64` values
     /// encountered in the iterator. If the iterator contains fewer than three values, the remaining components are set to zero.
     /// If the iterator contains more than three values, only the first three values are used to construct the vector.
-    /// 
+    ///
     /// # Arguments
-    /// 
+    ///
     /// * `iter` - An iterator over `f64` values.
-    /// 
+    ///
     /// # Returns
-    /// 
+    ///
     /// A Cylindrical vector builder constructed from the first three `f64` values encountered in the iterator.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use std::iter::FromIterator;
     /// use ephem::core::vectors::{Cylindrical, CylindricalBuilder, Vec3d};
-    /// 
+    ///
     /// let iter = vec![1.0, 2.0, 3.0, 4.0].into_iter();
     /// let builder = CylindricalBuilder::from_iter(iter);
     /// let vector = builder.build();
-    /// 
+    ///
     /// assert_eq!(vector.radius(), 1.0);
     /// assert_eq!(vector.azimuth(), 2.0);
     /// assert_eq!(vector.altitude(), 3.0);
@@ -1934,7 +1934,7 @@ impl Normalizable for Vec3d<Spherical> {
 /// Provides a method to transform a spherical vector into a canonical form.
 impl Canonizable for Vec3d<Spherical> {
     /// Transforms the `Vec3d<Spherical>` into its canonical form.
-    /// 
+    ///
     /// This implementation for `Vec3d<Spherical>` allows transforming a spherical vector into a canonical form,
     /// ensuring that the radius is non-negative and the latitude is within the range [-π/2, π/2].
     /// If the radius is negative, it negates the radius, adjusts the azimuth by adding π, and flips the latitude.
@@ -2032,27 +2032,27 @@ impl Neg for Vec3d<Spherical> {
     type Output = Self;
 
     /// Negates the Spherical vector.
-    /// 
+    ///
     /// This function returns a new Spherical vector where the radius component is negated, and the azimuth and latitude
     /// components remain unchanged.
-    /// 
+    ///
     /// # Arguments
-    /// 
+    ///
     /// * `self` - The Spherical vector to be negated.
-    /// 
+    ///
     /// # Returns
-    /// 
+    ///
     /// A new Spherical vector with the radius component negated and other components unchanged.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use std::ops::Neg;
     /// use ephem::core::vectors::{Spherical, SphericalBuilder, Vec3d};
-    /// 
+    ///
     /// let vector = SphericalBuilder::with(1.0, 2.0, 3.0).build();
     /// let negated_vector = -vector;
-    /// 
+    ///
     /// assert_eq!(negated_vector.radius(), -1.0);
     /// assert_eq!(negated_vector.azimuth(), 2.0);
     /// assert_eq!(negated_vector.latitude(), 3.0);
@@ -2076,29 +2076,29 @@ impl Mul<f64> for Vec3d<Spherical> {
     type Output = Self;
 
     /// Multiplies the Spherical vector by a scalar.
-    /// 
+    ///
     /// This function returns a new Spherical vector where each component is multiplied by the given scalar,
     /// except for the azimuth and latitude components, which remain unchanged.
-    /// 
+    ///
     /// # Arguments
-    /// 
+    ///
     /// * `self` - The Spherical vector to be multiplied.
     /// * `rhs` - The scalar value to multiply by.
-    /// 
+    ///
     /// # Returns
-    /// 
+    ///
     /// A new Spherical vector with each component multiplied by the scalar, except for the azimuth and latitude components
     /// which remain unchanged.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use std::ops::Mul;
     /// use ephem::core::vectors::{Spherical, SphericalBuilder, Vec3d};
-    /// 
+    ///
     /// let vector = SphericalBuilder::with(1.0, 2.0, 3.0).build();
     /// let multiplied_vector = vector * 2.0;
-    /// 
+    ///
     /// assert_eq!(multiplied_vector.radius(), 2.0);
     /// assert_eq!(multiplied_vector.azimuth(), 2.0);
     /// assert_eq!(multiplied_vector.latitude(), 3.0);
@@ -2119,24 +2119,24 @@ impl Mul<f64> for Vec3d<Spherical> {
 /// Implements in-place scalar multiplication for Spherical vectors.
 impl MulAssign<f64> for Vec3d<Spherical> {
     /// Multiplies the Spherical vector in-place by a scalar.
-    /// 
+    ///
     /// This function multiplies the radius component of the Spherical vector by the given scalar,
     /// leaving the azimuth and latitude components unchanged.
-    /// 
+    ///
     /// # Arguments
-    /// 
+    ///
     /// * `self` - A mutable reference to the Spherical vector to be multiplied.
     /// * `rhs` - The scalar value to multiply by.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use std::ops::MulAssign;
     /// use ephem::core::vectors::{Spherical, SphericalBuilder, Vec3d};
-    /// 
+    ///
     /// let mut vector = SphericalBuilder::with(1.0, 2.0, 3.0).build();
     /// vector *= 2.0;
-    /// 
+    ///
     /// assert_eq!(vector.radius(), 2.0);
     /// assert_eq!(vector.azimuth(), 2.0);
     /// assert_eq!(vector.latitude(), 3.0);
@@ -2153,32 +2153,32 @@ impl Div<f64> for Vec3d<Spherical> {
     type Output = Self;
 
     /// Divides the Spherical vector by a scalar.
-    /// 
+    ///
     /// This function returns a new Spherical vector where the radius component is divided by the given scalar,
     /// while leaving the azimuth and latitude components unchanged.
-    /// 
+    ///
     /// # Arguments
-    /// 
+    ///
     /// * `self` - The Spherical vector to be divided.
     /// * `rhs` - The scalar value to divide by.
-    /// 
+    ///
     /// # Returns
-    /// 
+    ///
     /// A new Spherical vector with the radius component divided by the scalar, and other components unchanged.
-    /// 
+    ///
     /// # Panics
-    /// 
+    ///
     /// Panics if the divisor is zero.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use std::ops::Div;
     /// use ephem::core::vectors::{Spherical, SphericalBuilder, Vec3d};
-    /// 
+    ///
     /// let vector = SphericalBuilder::with(2.0, 2.0, 3.0).build();
     /// let divided_vector = vector / 2.0;
-    /// 
+    ///
     /// assert_eq!(divided_vector.radius(), 1.0);
     /// assert_eq!(divided_vector.azimuth(), 2.0);
     /// assert_eq!(divided_vector.latitude(), 3.0);
@@ -2199,28 +2199,28 @@ impl Div<f64> for Vec3d<Spherical> {
 /// Implements in-place scalar division for Spherical vectors.
 impl DivAssign<f64> for Vec3d<Spherical> {
     /// Divides the Spherical vector in-place by a scalar.
-    /// 
+    ///
     /// This function divides the radius component of the Spherical vector by the given scalar,
     /// leaving the azimuth and latitude components unchanged.
-    /// 
+    ///
     /// # Arguments
-    /// 
+    ///
     /// * `self` - A mutable reference to the Spherical vector to be divided.
     /// * `rhs` - The scalar value to divide by.
-    /// 
+    ///
     /// # Panics
-    /// 
+    ///
     /// Panics if the divisor is zero.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use std::ops::DivAssign;
     /// use ephem::core::vectors::{Spherical, SphericalBuilder, Vec3d};
-    /// 
+    ///
     /// let mut vector = SphericalBuilder::with(2.0, 2.0, 3.0).build();
     /// vector /= 2.0;
-    /// 
+    ///
     /// assert_eq!(vector.radius(), 1.0);
     /// assert_eq!(vector.azimuth(), 2.0);
     /// assert_eq!(vector.latitude(), 3.0);
@@ -2234,25 +2234,25 @@ impl DivAssign<f64> for Vec3d<Spherical> {
 /// Implements the `Debug` trait for Spherical vectors.
 impl fmt::Debug for Vec3d<Spherical> {
     /// Formats the Spherical vector using the `Debug` trait.
-    /// 
+    ///
     /// This function formats the Spherical vector as a debug string containing the radius, azimuth, and latitude components.
-    /// 
+    ///
     /// # Arguments
-    /// 
+    ///
     /// * `f` - A mutable reference to a formatter.
-    /// 
+    ///
     /// # Returns
-    /// 
+    ///
     /// A `fmt::Result` indicating success or failure in formatting the Spherical vector.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use std::fmt::Debug;
     /// use ephem::core::vectors::{Spherical, SphericalBuilder, Vec3d};
-    /// 
+    ///
     /// let vector = SphericalBuilder::with(3.0, 2.0, 1.0).build();
-    /// let s = format!("{:?}", vector); 
+    /// let s = format!("{:?}", vector);
     /// assert_eq!(s.as_str(), "Vec3d { radius: 3.0, azimuth: 2.0, latitude: 1.0 }");
     /// ```
     #[inline]
@@ -2267,11 +2267,11 @@ impl fmt::Debug for Vec3d<Spherical> {
 
 /// Trait representing a spatial direction in spherical coordinates.
 ///
-/// The `SpatialDirection` trait defines methods to access the azimuth and latitude components
+/// The `SpatialDirection` trait defines methods to access the longitude and latitude components
 /// of a position represented in spherical coordinates.
 pub trait SpatialDirection {
-    /// Returns the azimuth component of the spatial direction.
-    fn azimuth(&self) -> f64;
+    /// Returns the longitude component of the spatial direction.
+    fn longitude(&self) -> f64;
 
     /// Returns the latitude component of the spatial direction.
     fn latitude(&self) -> f64;
@@ -2317,7 +2317,7 @@ impl SphericalBuilder {
     /// Constructs a spherical position with the given radius and direction.
     #[inline]
     pub fn make<S: SpatialDirection>(radius: f64, direction: &S) -> Self {
-        Self::with(radius, direction.azimuth(), direction.latitude())
+        Self::with(radius, direction.longitude(), direction.latitude())
     }
 
     /// Creates a unit `SphericalBuilder` instance with the specified azimuth and latitude.
@@ -2373,36 +2373,36 @@ impl<S: SpatialDirection> From<&S> for SphericalBuilder {
     /// Constructs a unit spherical position with the given position.
     #[inline]
     fn from(direction: &S) -> Self {
-        Self::unit(direction.azimuth(), direction.latitude())
+        Self::unit(direction.longitude(), direction.latitude())
     }
 }
 
 /// Implements conversion from an iterator over `f64` values into a Spherical vector builder.
 impl FromIterator<f64> for SphericalBuilder {
     /// Constructs a Spherical vector builder from an iterator over `f64` values.
-    /// 
+    ///
     /// This function consumes the iterator and constructs a Spherical vector builder from the first three `f64` values
     /// encountered in the iterator. If the iterator contains fewer than three values, the remaining components are set to zero.
     /// If the iterator contains more than three values, only the first three values are used to construct the vector.
-    /// 
+    ///
     /// # Arguments
-    /// 
+    ///
     /// * `iter` - An iterator over `f64` values.
-    /// 
+    ///
     /// # Returns
-    /// 
+    ///
     /// A Spherical vector builder constructed from the first three `f64` values encountered in the iterator.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use std::iter::FromIterator;
     /// use ephem::core::vectors::{Spherical, SphericalBuilder, Vec3d};
-    /// 
+    ///
     /// let iter = vec![3.0, 2.0, 1.0, 0.0].into_iter();
     /// let builder = SphericalBuilder::from_iter(iter);
     /// let vector = builder.build();
-    /// 
+    ///
     /// assert_eq!(vector.radius(), 3.0);
     /// assert_eq!(vector.azimuth(), 2.0);
     /// assert_eq!(vector.latitude(), 1.0);

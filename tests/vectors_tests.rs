@@ -22,7 +22,7 @@ struct TestDirection {
 impl SpatialDirection for TestDirection {
     /// Returns the azimuth coordinate of the direction.
     #[inline]
-    fn azimuth(&self) -> f64 {
+    fn longitude(&self) -> f64 {
         self.azimuth
     }
 
@@ -192,13 +192,13 @@ fn create_spherical_vec3d_with_position_test() {
         // Test building a vector with specified radius and direction
         let v = SphericalBuilder::make(radius, &direction).build();
         assert_eq!(v.radius(), radius);
-        assert_eq!(v.azimuth(), direction.azimuth());
+        assert_eq!(v.azimuth(), direction.longitude());
         assert_eq!(v.latitude(), direction.latitude());
 
         // Test building a unit vector from the given direction
         let u = SphericalBuilder::from(&direction).build();
         assert_eq!(u.radius(), 1.0);
-        assert_eq!(u.azimuth(), direction.azimuth());
+        assert_eq!(u.azimuth(), direction.longitude());
         assert_eq!(u.latitude(), direction.latitude());
     }
 }
