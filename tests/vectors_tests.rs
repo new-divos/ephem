@@ -50,7 +50,7 @@ impl TestDirection {
 
 /// Test case for creating Cartesian vectors using the CartesianBuilder.
 #[test]
-fn create_cartesian_vec3d_test() {
+fn cartesian_vec3d_creation_test() {
     // Test building a vector with default values
     let z = CartesianBuilder::new().build();
     assert_eq!(z.x(), 0.0);
@@ -100,7 +100,7 @@ fn create_cartesian_vec3d_test() {
 
 /// Test function for creating cylindrical vectors.
 #[test]
-fn create_cylindrical_vec3d_test() {
+fn cylindrical_vec3d_creation_test() {
     // Test building a vector with default values
     let z = CylindricalBuilder::new().build();
     assert_eq!(z.radius(), 0.0);
@@ -138,7 +138,7 @@ fn create_cylindrical_vec3d_test() {
 
 /// Test function for creating spherical vectors.
 #[test]
-fn create_spherical_vec3d_test() {
+fn spherical_vec3d_creation_test() {
     // Test building a vector with default values
     let z = SphericalBuilder::new().build();
     assert_eq!(z.radius(), 0.0);
@@ -182,7 +182,7 @@ fn create_spherical_vec3d_test() {
 
 /// Test function for creating spherical vectors with a given direction.
 #[test]
-fn create_spherical_vec3d_with_position_test() {
+fn spherical_vec3d_with_position_creation_test() {
     // Test building vectors with random values
     let mut rng = rand::thread_rng();
     for _ in 0..shared::ITERATIONS {
