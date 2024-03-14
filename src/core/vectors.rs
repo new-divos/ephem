@@ -132,9 +132,9 @@ pub trait ToSpherical {
 /// must implement the `CoordinateSystem` trait.
 pub struct Vec3d<S: CoordinateSystem>(
     /// Array representing the three coordinates of the vector.
-    pub(crate) [f64; 3],
+    pub(super) [f64; 3],
     /// PhantomData marker to tie the coordinate system type to the vector.
-    pub(crate) PhantomData<S>,
+    pub(super) PhantomData<S>,
 );
 
 /// Implements methods to iterate over the components of a 3D vector (`Vec3d<S>`) in any coordinate system `S`.

@@ -1,4 +1,4 @@
-use std::{marker::PhantomData, iter::Iterator, ops::{Index, IndexMut}};
+use std::{marker::PhantomData, iter::{IntoIterator, Iterator}, ops::{Index, IndexMut}};
 
 use crate::core::vectors::{Cartesian, Vec3d};
 
@@ -64,48 +64,43 @@ impl Mat3d {
     }
 
     #[inline]
-    pub fn row(&self, index: usize) -> Option<Vec3d<Cartesian>> {
-        if index < 3 {
-            let idx3 = index * 3;
-            Some(
-                Vec3d::<Cartesian>(
-                    [self.0[idx3], self.0[idx3 + 1], self.0[idx3 + 2]],
+    pub fn rows(&self) -> Mat3dView {
+        Mat3dView(
+            [
+                Vec3d::<Cartesian> (
+                    [self.0[0], self.0[1], self.0[2]], 
+                    PhantomData::<Cartesian> {}
+                ),
+                Vec3d::<Cartesian> (
+                    [self.0[3], self.0[4], self.0[5]], 
+                    PhantomData::<Cartesian> {}
+                ),
+                Vec3d::<Cartesian> (
+                    [self.0[6], self.0[7], self.0[8]], 
                     PhantomData::<Cartesian> {}
                 )
-            )
-        } else {
-            None
-        }
+            ],
+        )
     }
 
     #[inline]
-    pub fn iter_rows(&self) -> Mat3dRowsIter<'_> {
-        Mat3dRowsIter {
-            data: &self.0,
-            cursor: 0,
-        }
-    }
-
-    #[inline]
-    pub fn column(&self, index: usize) -> Option<Vec3d<Cartesian>> {
-        if index < 3 {
-            Some(
-                Vec3d::<Cartesian>(
-                    [self.0[index], self.0[3 + index], self.0[6 + index]],
+    pub fn columns(&self) -> Mat3dView {
+        Mat3dView(
+            [
+                Vec3d::<Cartesian> (
+                    [self.0[0], self.0[3], self.0[6]], 
+                    PhantomData::<Cartesian> {}
+                ),
+                Vec3d::<Cartesian> (
+                    [self.0[1], self.0[4], self.0[7]], 
+                    PhantomData::<Cartesian> {}
+                ),
+                Vec3d::<Cartesian> (
+                    [self.0[2], self.0[5], self.0[8]], 
                     PhantomData::<Cartesian> {}
                 )
-            )
-        } else {
-            None
-        }
-    }
-
-    #[inline]
-    pub fn iter_columns(&self) -> Mat3dColumnsIter<'_> {
-        Mat3dColumnsIter {
-            data: &self.0,
-            cursor: 0,
-        }
+            ],
+        )
     }
 }
 
@@ -129,59 +124,116 @@ impl IndexMut<(usize, usize)> for Mat3d {
     }
 }
 
-pub struct Mat3dRowsIter<'a> {
-    data: &'a [f64],
+pub struct Mat3dView([Vec3d<Cartesian>; 3]);
+
+impl Mat3dView {
+    #[inline]
+    pub fn iter(&self) -> Mat3dViewIter<'_> {
+        Mat3dViewIter {
+            data: &self.0,
+            cursor: 0,
+        }
+    }
+}
+
+impl AsRef<[Vec3d<Cartesian>]> for Mat3dView {
+    #[inline]
+    fn as_ref(&self) -> &[Vec3d<Cartesian>] {
+        &self.0
+    }
+}
+
+impl Index<usize> for Mat3dView {
+    type Output = Vec3d<Cartesian>;
+
+    #[inline]
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.0[index]
+    }
+}
+
+impl IntoIterator for Mat3dView {
+    type Item = Vec3d<Cartesian>;
+    type IntoIter = Mat3dViewIntoIter;
+
+    fn into_iter(self) -> Self::IntoIter {
+        let mut data = self.0;
+        data.reverse();
+
+        Mat3dViewIntoIter {
+            data: data.into_iter().collect(),
+            cursor: 0,
+        }
+    }
+}
+
+impl<'a> IntoIterator for &'a Mat3dView {
+    type Item = &'a Vec3d<Cartesian>;
+    type IntoIter = Mat3dViewIter<'a>;
+
+    #[inline]
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+
+pub struct Mat3dViewIter<'a> {
+    data: &'a [Vec3d<Cartesian>],
     cursor: usize,
 }
 
-impl<'a> Iterator for Mat3dRowsIter<'a> {
-    type Item = Vec3d<Cartesian>;
+impl<'a> Iterator for Mat3dViewIter<'a> {
+    type Item = &'a Vec3d<Cartesian>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.cursor < 3 {
-            let idx3 = 3 * self.cursor;
-            let vector = Vec3d::<Cartesian>(
-                [self.data[idx3], self.data[idx3 + 1], self.data[idx3 + 2]],
-                PhantomData::<Cartesian> {}
-            );
+        if (0..3).contains(&self.cursor) {
+            let i = self.cursor;
             self.cursor += 1;
 
-            Some(vector)
+            Some(&self.data[i])
         } else {
             None
         }
     }
-
-    #[inline]
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        (3, Some(3))
-    }
 }
 
-pub struct Mat3dColumnsIter<'a> {
-    data: &'a [f64],
-    cursor: usize,
+pub struct Mat3dViewIntoIter {
+    data: Vec<Vec3d<Cartesian>>,
+    cursor: usize
 }
 
-impl<'a> Iterator for Mat3dColumnsIter<'a> {
+impl Iterator for Mat3dViewIntoIter {
     type Item = Vec3d<Cartesian>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.cursor < 3 {
-            let vector = Vec3d::<Cartesian>(
-                [self.data[self.cursor], self.data[3 + self.cursor], self.data[6 + self.cursor]],
-                PhantomData::<Cartesian> {}
-            );
+        if (0..3).contains(&self.cursor) {
             self.cursor += 1;
-
-            Some(vector)
+            self.data.pop()
         } else {
             None
         }
     }
+}
 
-    #[inline]
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        (3, Some(3))
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn mat3d_creation_test() {
+        let z = Mat3d::zeros();
+        for value in z.0 {
+            assert_eq!(value, 0.0);
+        }
+
+        let o = Mat3d::ones();
+        for value in o.0 {
+            assert_eq!(value, 1.0);
+        }
+
+        let e = Mat3d::eye();
+        for (i, value) in e.0.iter().enumerate() {
+            assert_eq!(*value, if i / 3 == i % 3 { 1.0 } else { 0.0 });
+        }
     }
 }
