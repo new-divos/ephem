@@ -51,7 +51,7 @@ fn mat3d_creation_with_rows_test() {
         // Construct a Mat3d using the generated rows
         let m = Mat3d::with_rows(row1, row2, row3);
 
-         // Assert that each element of the resulting matrix corresponds to the correct Cartesian component
+        // Assert that each element of the resulting matrix corresponds to the correct Cartesian component
         assert_eq!(m[(0, 0)], x1);
         assert_eq!(m[(0, 1)], y1);
         assert_eq!(m[(0, 2)], z1);

@@ -1,8 +1,13 @@
-use std::{marker::PhantomData, iter::{IntoIterator, Iterator}, ops::{Index, IndexMut}};
+use std::{
+    iter::{IntoIterator, Iterator},
+    marker::PhantomData,
+    ops::{Index, IndexMut},
+};
 
 use crate::core::vectors::{Cartesian, Vec3d};
 
 /// Represents a 3x3 matrix.
+#[derive(Debug)]
 pub struct Mat3d([f64; 9]);
 
 impl Mat3d {
@@ -69,9 +74,9 @@ impl Mat3d {
         row3: Vec3d<Cartesian>,
     ) -> Self {
         Self([
-            row1.0[0], row1.0[1], row1.0[2], 
-            row2.0[0], row2.0[1], row2.0[2], 
-            row3.0[0], row3.0[1], row3.0[2],
+            row1.0[0], row1.0[1], row1.0[2],
+            row2.0[0], row2.0[1], row2.0[2],
+            row3.0[0], row3.0[1], row3.0[2]
         ])
     }
 
@@ -108,7 +113,7 @@ impl Mat3d {
     ///     vectors::{Cartesian, CartesianBuilder, Vec3d},
     ///     matrices::Mat3d,
     /// };
-    /// 
+    ///
     /// let row1 = CartesianBuilder::with(1.0, 2.0, 3.0).build();
     /// let row2 = CartesianBuilder::with(4.0, 5.0, 6.0).build();
     /// let row3 = CartesianBuilder::with(7.0, 8.0, 9.0).build();
@@ -122,22 +127,20 @@ impl Mat3d {
     /// ```
     #[inline]
     pub fn rows(&self) -> Mat3dView {
-        Mat3dView(
-            [
-                Vec3d::<Cartesian> (
-                    [self.0[0], self.0[1], self.0[2]], 
-                    PhantomData::<Cartesian> {}
-                ),
-                Vec3d::<Cartesian> (
-                    [self.0[3], self.0[4], self.0[5]], 
-                    PhantomData::<Cartesian> {}
-                ),
-                Vec3d::<Cartesian> (
-                    [self.0[6], self.0[7], self.0[8]], 
-                    PhantomData::<Cartesian> {}
-                )
-            ],
-        )
+        Mat3dView([
+            Vec3d::<Cartesian>(
+                [self.0[0], self.0[1], self.0[2]],
+                PhantomData::<Cartesian> {},
+            ),
+            Vec3d::<Cartesian>(
+                [self.0[3], self.0[4], self.0[5]],
+                PhantomData::<Cartesian> {},
+            ),
+            Vec3d::<Cartesian>(
+                [self.0[6], self.0[7], self.0[8]],
+                PhantomData::<Cartesian> {},
+            ),
+        ])
     }
 
     /// Returns a view of the matrix as columns.
@@ -155,7 +158,7 @@ impl Mat3d {
     ///     vectors::{Cartesian, CartesianBuilder, Vec3d},
     ///     matrices::Mat3d,
     /// };
-    /// 
+    ///
     /// let col1 = CartesianBuilder::with(1.0, 2.0, 3.0).build();
     /// let col2 = CartesianBuilder::with(4.0, 5.0, 6.0).build();
     /// let col3 = CartesianBuilder::with(7.0, 8.0, 9.0).build();
@@ -169,22 +172,20 @@ impl Mat3d {
     /// ```
     #[inline]
     pub fn columns(&self) -> Mat3dView {
-        Mat3dView(
-            [
-                Vec3d::<Cartesian> (
-                    [self.0[0], self.0[3], self.0[6]], 
-                    PhantomData::<Cartesian> {}
-                ),
-                Vec3d::<Cartesian> (
-                    [self.0[1], self.0[4], self.0[7]], 
-                    PhantomData::<Cartesian> {}
-                ),
-                Vec3d::<Cartesian> (
-                    [self.0[2], self.0[5], self.0[8]], 
-                    PhantomData::<Cartesian> {}
-                )
-            ],
-        )
+        Mat3dView([
+            Vec3d::<Cartesian>(
+                [self.0[0], self.0[3], self.0[6]],
+                PhantomData::<Cartesian> {},
+            ),
+            Vec3d::<Cartesian>(
+                [self.0[1], self.0[4], self.0[7]],
+                PhantomData::<Cartesian> {},
+            ),
+            Vec3d::<Cartesian>(
+                [self.0[2], self.0[5], self.0[8]],
+                PhantomData::<Cartesian> {},
+            ),
+        ])
     }
 
     #[inline(always)]
@@ -204,17 +205,118 @@ impl Mat3d {
     }
 }
 
+/// Implements the `AsRef` trait for `Mat3d`.
+///
+/// This trait allows obtaining a reference to the inner array of `f64` values
+/// stored in a `Mat3d` instance. The reference returned by `as_ref` provides
+/// access to the raw data of the `Mat3d` in the form of a slice.
 impl AsRef<[f64]> for Mat3d {
+    /// `as_ref` returns a reference to the underlying array of `f64` values. This
+    /// can be useful when interoperating with functions or libraries that expect
+    /// a slice of `f64` values.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ephem::core::matrices::Mat3d;
+    ///
+    /// let mat = Mat3d::eye();
+    /// let data_ref: &[f64] = mat.as_ref();
+    /// assert_eq!(data_ref.len(), 9);
+    /// ```
     #[inline(always)]
     fn as_ref(&self) -> &[f64] {
         &self.0
     }
 }
 
+/// Implements the `AsMut` trait for `Mat3d`.
+///
+/// This trait allows obtaining a mutable reference to the inner array of `f64` values
+/// stored in a `Mat3d` instance. The reference returned by `as_mut` provides
+/// mutable access to the raw data of the `Mat3d` in the form of a slice.
 impl AsMut<[f64]> for Mat3d {
+    /// `as_mut` returns a mutable reference to the underlying array of `f64` values. This
+    /// can be useful when modifying the contents of the `Mat3d` directly through the
+    /// raw data array.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ephem::core::matrices::Mat3d;
+    ///
+    /// let mut mat = Mat3d::eye();
+    /// {
+    ///     let data_ref: &mut [f64] = mat.as_mut();
+    ///     data_ref[0] = 2.0;
+    /// }
+    /// assert_eq!(mat[(0, 0)], 2.0);
+    /// ```
     #[inline(always)]
     fn as_mut(&mut self) -> &mut [f64] {
         &mut self.0
+    }
+}
+
+/// Implements the `Clone` trait for `Mat3d`.
+///
+/// This trait allows creating a deep copy of a `Mat3d` instance, including its inner data.
+impl Clone for Mat3d {
+    /// The `clone` method performs a deep copy of the `Mat3d` instance, creating a new instance
+    /// with the same values as the original. This includes copying the underlying array of `f64` values.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ephem::core::matrices::Mat3d;
+    ///
+    /// let mat1 = Mat3d::eye();
+    /// let mat2 = mat1.clone();
+    ///
+    /// for i in 0..3 {
+    ///     for j in 0..3 {
+    ///         assert_eq!(mat1[(i, j)], mat2[(i, j)]);
+    ///     }
+    /// }
+    /// ```
+    #[inline(always)]
+    #[rustfmt::skip]
+    fn clone(&self) -> Self {
+        Self([
+            self.0[0], self.0[1], self.0[2],
+            self.0[3], self.0[4], self.0[5],
+            self.0[6], self.0[7], self.0[8]
+        ])
+    }
+}
+
+/// Implements the `PartialEq` trait for `Mat3d`.
+///
+/// This trait allows comparing two `Mat3d` instances for equality.
+impl PartialEq for Mat3d {
+    /// The `eq` method checks if each corresponding element in the two matrices are equal.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ephem::core::matrices::Mat3d;
+    ///
+    /// let mat1 = Mat3d::eye();
+    /// let mat2 = Mat3d::eye();
+    ///
+    /// assert_eq!(mat1, mat2); // Both matrices are equal
+    /// ```
+    #[inline(always)]
+    fn eq(&self, other: &Self) -> bool {
+        self.0[0].eq(&other.0[0])
+            && self.0[1].eq(&other.0[1])
+            && self.0[2].eq(&other.0[2])
+            && self.0[3].eq(&other.0[3])
+            && self.0[4].eq(&other.0[4])
+            && self.0[5].eq(&other.0[5])
+            && self.0[6].eq(&other.0[6])
+            && self.0[7].eq(&other.0[7])
+            && self.0[8].eq(&other.0[8])
     }
 }
 
@@ -320,8 +422,9 @@ impl<'a> Iterator for Mat3dIter<'a> {
 
     #[inline(always)]
     fn last(self) -> Option<Self::Item>
-        where
-            Self: Sized, {
+    where
+        Self: Sized,
+    {
         Some(self.data[self.data.len() - 1])
     }
 }
@@ -354,8 +457,9 @@ impl<'a> Iterator for Mat3dMutIter<'a> {
 
     #[inline]
     fn last(self) -> Option<Self::Item>
-        where
-            Self: Sized, {
+    where
+        Self: Sized,
+    {
         let data_ptr = self.data.as_mut_ptr();
         unsafe { Some(&mut *data_ptr.add(self.data.len() - 1)) }
     }
@@ -388,8 +492,9 @@ impl Iterator for Mat3dIntoIter {
 
     #[inline(always)]
     fn last(self) -> Option<Self::Item>
-        where
-            Self: Sized, {
+    where
+        Self: Sized,
+    {
         Some(self.data[self.data.len() - 1])
     }
 }

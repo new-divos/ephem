@@ -53,7 +53,7 @@ pub trait Normalizable {
     /// # Returns
     ///
     /// The norm of the object.
-    /// 
+    ///
     /// # Examples
     ///
     /// ```
@@ -96,7 +96,7 @@ pub trait DotMul<Rhs = Self> {
     /// # Returns
     ///
     /// The result of the dot multiplication operation.
-    /// 
+    ///
     /// # Examples
     ///
     /// ```
@@ -140,7 +140,7 @@ pub trait CrossMul<Rhs = Self> {
     /// # Returns
     ///
     /// The result of the cross multiplication operation.
-    /// 
+    ///
     /// # Examples
     ///
     /// ```
