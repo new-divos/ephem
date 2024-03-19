@@ -161,7 +161,7 @@ impl<S: CoordinateSystem> Vec3d<S> {
     ///     }
     /// }
     /// ```
-    #[inline]
+    #[inline(always)]
     pub fn iter(&self) -> Vec3dIter<'_> {
         Vec3dIter {
             data: &self.0,
@@ -185,7 +185,7 @@ impl<S: CoordinateSystem> Vec3d<S> {
     /// assert_eq!(vector.y(), 3.0);
     /// assert_eq!(vector.z(), 4.0);
     /// ```
-    #[inline]
+    #[inline(always)]
     pub fn iter_mut(&mut self) -> Vec3dMutIter<'_> {
         Vec3dMutIter {
             data: &mut self.0,
@@ -252,7 +252,7 @@ impl<S: CoordinateSystem> AsRef<[f64]> for Vec3d<S> {
     /// let vector = CartesianBuilder::with(1.0, 2.0, 3.0).build(); // (x, y, z)
     /// let slice: &[f64] = vector.as_ref();
     /// assert_eq!(slice, &[1.0, 2.0, 3.0]);
-    #[inline]
+    #[inline(always)]
     fn as_ref(&self) -> &[f64] {
         &self.0
     }
@@ -275,7 +275,7 @@ impl<S: CoordinateSystem> AsMut<[f64]> for Vec3d<S> {
     /// slice[0] = 4.0;
     /// assert_eq!(vector.x(), 4.0);
     /// ```
-    #[inline]
+    #[inline(always)]
     fn as_mut(&mut self) -> &mut [f64] {
         &mut self.0
     }
@@ -302,7 +302,7 @@ impl<S: CoordinateSystem> Clone for Vec3d<S> {
     /// assert_eq!(cloned_v.y(), 2.0);
     /// assert_eq!(cloned_v.z(), 3.0);
     /// ```
-    #[inline]
+    #[inline(always)]
     fn clone(&self) -> Self {
         Self([self.0[0], self.0[1], self.0[2]], PhantomData::<S> {})
     }
@@ -331,7 +331,7 @@ impl<S: CoordinateSystem> PartialEq for Vec3d<S> {
     /// let v3 = CartesianBuilder::with(4.0, 5.0, 6.0).build();
     /// assert_ne!(v1, v3);
     /// ```
-    #[inline]
+    #[inline(always)]
     fn eq(&self, other: &Self) -> bool {
         self.0[0].eq(&other.0[0]) && self.0[1].eq(&other.0[1]) && self.0[2].eq(&other.0[2])
     }
@@ -344,8 +344,8 @@ impl<S: CoordinateSystem> PartialEq for Vec3d<S> {
 /// The elements of the tuple correspond to the coordinates in the vector according to the
 /// indices defined in the coordinate system.
 impl<S: CoordinateSystem> From<Vec3d<S>> for (f64, f64, f64) {
-    #[inline]
     /// Converts the given 3-dimensional vector to a tuple of coordinates.
+    #[inline(always)]
     fn from(vector: Vec3d<S>) -> Self {
         (
             vector.0[S::E1_IDX],
@@ -386,37 +386,9 @@ where
     /// assert_eq!(result.y(), 4.0);
     /// assert_eq!(result.z(), 6.0);
     /// ```
-    #[inline]
+    #[inline(always)]
     fn mul(self, rhs: Vec3d<S>) -> Self::Output {
         rhs.mul(self)
-    }
-}
-
-/// Implements conversion from a 3D vector (`Vec3d<S>`) in any coordinate system `S`
-/// to an iterator over its components (`Vec3dIntoIter`), consuming the vector in the process.
-impl<S: CoordinateSystem> IntoIterator for Vec3d<S> {
-    type Item = f64;
-    type IntoIter = Vec3dIntoIter;
-
-    /// Converts the 3D vector into an iterator over its components, consuming the vector in the process.
-    ///
-    /// # Example
-    /// ```
-    /// use ephem::core::vectors::{Cartesian, CartesianBuilder, Vec3d};
-    ///
-    /// let vector = CartesianBuilder::with(1.0, 2.0, 3.0).build(); // (x, y, z)
-    /// let mut iter = vector.into_iter();
-    /// assert_eq!(iter.next(), Some(1.0));
-    /// assert_eq!(iter.next(), Some(2.0));
-    /// assert_eq!(iter.next(), Some(3.0));
-    /// assert_eq!(iter.next(), None);
-    /// ```
-    #[inline]
-    fn into_iter(self) -> Self::IntoIter {
-        Vec3dIntoIter {
-            data: self.0,
-            cursor: 0,
-        }
     }
 }
 
@@ -441,7 +413,7 @@ impl<'a, S: CoordinateSystem> IntoIterator for &'a Vec3d<S> {
     /// let u = CartesianBuilder::from_iter(t).build();
     /// assert_eq!(u, vector);
     /// ```
-    #[inline]
+    #[inline(always)]
     fn into_iter(self) -> Self::IntoIter {
         self.iter()
     }
@@ -465,8 +437,37 @@ impl<'a, S: CoordinateSystem> IntoIterator for &'a mut Vec3d<S> {
     /// }
     /// assert_eq!(vector, CartesianBuilder::with(2.0, 3.0, 4.0).build());
     /// ```
+    #[inline(always)]
     fn into_iter(self) -> Self::IntoIter {
         self.iter_mut()
+    }
+}
+
+/// Implements conversion from a 3D vector (`Vec3d<S>`) in any coordinate system `S`
+/// to an iterator over its components (`Vec3dIntoIter`), consuming the vector in the process.
+impl<S: CoordinateSystem> IntoIterator for Vec3d<S> {
+    type Item = f64;
+    type IntoIter = Vec3dIntoIter;
+
+    /// Converts the 3D vector into an iterator over its components, consuming the vector in the process.
+    ///
+    /// # Example
+    /// ```
+    /// use ephem::core::vectors::{Cartesian, CartesianBuilder, Vec3d};
+    ///
+    /// let vector = CartesianBuilder::with(1.0, 2.0, 3.0).build(); // (x, y, z)
+    /// let mut iter = vector.into_iter();
+    /// assert_eq!(iter.next(), Some(1.0));
+    /// assert_eq!(iter.next(), Some(2.0));
+    /// assert_eq!(iter.next(), Some(3.0));
+    /// assert_eq!(iter.next(), None);
+    /// ```
+    #[inline(always)]
+    fn into_iter(self) -> Self::IntoIter {
+        Vec3dIntoIter {
+            data: self.0,
+            cursor: 0,
+        }
     }
 }
 
@@ -487,7 +488,7 @@ impl<'a> Iterator for Vec3dIter<'a> {
     /// Returns `None` when all components have been iterated.
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        if (0..self.data.len()).contains(&self.cursor) {
+        if self.cursor < self.data.len() {
             let value = self.data[self.cursor];
             self.cursor += 1;
 
@@ -501,13 +502,13 @@ impl<'a> Iterator for Vec3dIter<'a> {
     ///
     /// This returns a tuple where the first element is the exact size of the iterator,
     /// and the second element is `Some(size)` representing the upper bound (same as the exact size).
-    #[inline]
+    #[inline(always)]
     fn size_hint(&self) -> (usize, Option<usize>) {
         (self.data.len(), Some(self.data.len()))
     }
 
     /// Consumes the iterator and returns the last component of the vector.
-    #[inline]
+    #[inline(always)]
     fn last(self) -> Option<Self::Item> {
         Some(self.data[self.data.len() - 1])
     }
@@ -528,8 +529,9 @@ impl<'a> Iterator for Vec3dMutIter<'a> {
 
     /// Advances the iterator and returns a mutable reference to the next component of the vector.
     /// Returns `None` when all components have been iterated.
+    #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        if (0..self.data.len()).contains(&self.cursor) {
+        if self.cursor < self.data.len() {
             let i = self.cursor;
             self.cursor += 1;
 
@@ -544,9 +546,19 @@ impl<'a> Iterator for Vec3dMutIter<'a> {
     ///
     /// This returns a tuple where the first element is the exact size of the iterator,
     /// and the second element is `Some(size)` representing the upper bound (same as the exact size).
-    #[inline]
+    #[inline(always)]
     fn size_hint(&self) -> (usize, Option<usize>) {
         (self.data.len(), Some(self.data.len()))
+    }
+
+    /// Consumes the iterator and returns the last component of the vector.
+    #[inline]
+    fn last(self) -> Option<Self::Item>
+    where
+        Self: Sized,
+    {
+        let data_ptr = self.data.as_mut_ptr();
+        unsafe { Some(&mut *data_ptr.add(self.data.len() - 1)) }
     }
 }
 
@@ -567,7 +579,7 @@ impl Iterator for Vec3dIntoIter {
     /// Returns `None` when all components have been iterated.
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        if (0..=2).contains(&self.cursor) {
+        if self.cursor < self.data.len() {
             let value = self.data[self.cursor];
             self.cursor += 1;
 
@@ -581,15 +593,15 @@ impl Iterator for Vec3dIntoIter {
     ///
     /// This returns a tuple where the first element is the exact size of the iterator,
     /// and the second element is `Some(size)` representing the upper bound (same as the exact size).
-    #[inline]
+    #[inline(always)]
     fn size_hint(&self) -> (usize, Option<usize>) {
-        (3, Some(3))
+        (self.data.len(), Some(self.data.len()))
     }
 
     /// Consumes the iterator and returns the last component of the vector.
-    #[inline]
+    #[inline(always)]
     fn last(self) -> Option<Self::Item> {
-        Some(self.data[2])
+        Some(self.data[self.data.len() - 1])
     }
 }
 
@@ -630,19 +642,19 @@ impl CoordinateSystem for Cartesian {
 /// vector, as well as implements the `Vec3dNorm` trait to calculate the vector's magnitude.
 impl Vec3d<Cartesian> {
     /// Returns the X-component of the three-dimensional vector.
-    #[inline]
+    #[inline(always)]
     pub fn x(&self) -> f64 {
         self.0[Cartesian::X_IDX]
     }
 
     /// Returns the Y-component of the three-dimensional vector.
-    #[inline]
+    #[inline(always)]
     pub fn y(&self) -> f64 {
         self.0[Cartesian::Y_IDX]
     }
 
     /// Returns the Z-component of the three-dimensional vector.
-    #[inline]
+    #[inline(always)]
     pub fn z(&self) -> f64 {
         self.0[Cartesian::Z_IDX]
     }
@@ -1368,19 +1380,19 @@ impl CoordinateSystem for Cylindrical {
 /// components of the vector.
 impl Vec3d<Cylindrical> {
     /// Returns the radius component of the three-dimensional vector.
-    #[inline]
+    #[inline(always)]
     pub fn radius(&self) -> f64 {
         self.0[Cylindrical::RADIUS_IDX]
     }
 
     /// Returns the azimuth component of the three-dimensional vector.
-    #[inline]
+    #[inline(always)]
     pub fn azimuth(&self) -> f64 {
         self.0[Cylindrical::AZIMUTH_IDX]
     }
 
     /// Returns the altitude component of the three-dimensional vector.
-    #[inline]
+    #[inline(always)]
     pub fn altitude(&self) -> f64 {
         self.0[Cylindrical::ALTITUDE_IDX]
     }
@@ -1894,19 +1906,19 @@ impl CoordinateSystem for Spherical {
 /// components of the vector.
 impl Vec3d<Spherical> {
     /// Returns the radius component of the three-dimensional vector.
-    #[inline]
+    #[inline(always)]
     pub fn radius(&self) -> f64 {
         self.0[Spherical::RADIUS_IDX]
     }
 
     /// Returns the azimuth component of the three-dimensional vector.
-    #[inline]
+    #[inline(always)]
     pub fn azimuth(&self) -> f64 {
         self.0[Spherical::AZIMUTH_IDX]
     }
 
     /// Returns the latitude component of the three-dimensional vector.
-    #[inline]
+    #[inline(always)]
     pub fn latitude(&self) -> f64 {
         self.0[Spherical::LATITUDE_IDX]
     }

@@ -7,13 +7,13 @@ pub struct Mat3d([f64; 9]);
 
 impl Mat3d {
     /// Constructs a new matrix filled with zeros.
-    #[inline]
+    #[inline(always)]
     pub fn zeros() -> Self {
         Self([0.0; 9])
     }
 
     /// Constructs a new matrix filled with ones.
-    #[inline]
+    #[inline(always)]
     pub fn ones() -> Self {
         Self([1.0; 9])
     }
@@ -22,7 +22,7 @@ impl Mat3d {
     ///
     /// The identity matrix is a square matrix with ones on the main diagonal
     /// and zeros elsewhere.
-    #[inline]
+    #[inline(always)]
     pub fn eye() -> Self {
         Self([1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0])
     }
@@ -186,6 +186,36 @@ impl Mat3d {
             ],
         )
     }
+
+    #[inline(always)]
+    pub fn iter(&self) -> Mat3dIter<'_> {
+        Mat3dIter {
+            data: &self.0,
+            cursor: 0,
+        }
+    }
+
+    #[inline(always)]
+    pub fn iter_mut(&mut self) -> Mat3dMutIter<'_> {
+        Mat3dMutIter {
+            data: &mut self.0,
+            cursor: 0,
+        }
+    }
+}
+
+impl AsRef<[f64]> for Mat3d {
+    #[inline(always)]
+    fn as_ref(&self) -> &[f64] {
+        &self.0
+    }
+}
+
+impl AsMut<[f64]> for Mat3d {
+    #[inline(always)]
+    fn as_mut(&mut self) -> &mut [f64] {
+        &mut self.0
+    }
 }
 
 /// Implements indexing for accessing elements of the `Mat3d` matrix using `(row, column)` tuples.
@@ -204,11 +234,9 @@ impl Index<(usize, usize)> for Mat3d {
     /// # Returns
     ///
     /// A reference to the element at the specified row and column.
+    #[inline(always)]
     fn index(&self, index: (usize, usize)) -> &Self::Output {
-        let (row, col) = index;
-        let index = 3 * row + col;
-
-        &self.0[index]
+        &self.0[3 * index.0 + index.1]
     }
 }
 
@@ -226,11 +254,143 @@ impl IndexMut<(usize, usize)> for Mat3d {
     /// # Returns
     ///
     /// A mutable reference to the element at the specified row and column.
+    #[inline(always)]
     fn index_mut(&mut self, index: (usize, usize)) -> &mut Self::Output {
-        let (row, col) = index;
-        let index = 3 * row + col;
+        &mut self.0[3 * index.0 + index.1]
+    }
+}
 
-        &mut self.0[index]
+impl<'a> IntoIterator for &'a Mat3d {
+    type Item = f64;
+    type IntoIter = Mat3dIter<'a>;
+
+    #[inline(always)]
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+
+impl<'a> IntoIterator for &'a mut Mat3d {
+    type Item = &'a mut f64;
+    type IntoIter = Mat3dMutIter<'a>;
+
+    #[inline(always)]
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter_mut()
+    }
+}
+
+impl IntoIterator for Mat3d {
+    type Item = f64;
+    type IntoIter = Mat3dIntoIter;
+
+    #[inline(always)]
+    fn into_iter(self) -> Self::IntoIter {
+        Mat3dIntoIter {
+            data: self.0,
+            cursor: 0,
+        }
+    }
+}
+
+pub struct Mat3dIter<'a> {
+    data: &'a [f64],
+    cursor: usize,
+}
+
+impl<'a> Iterator for Mat3dIter<'a> {
+    type Item = f64;
+
+    #[inline]
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.cursor < self.data.len() {
+            let value = self.data[self.cursor];
+            self.cursor += 1;
+
+            Some(value)
+        } else {
+            None
+        }
+    }
+
+    #[inline(always)]
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        (self.data.len(), Some(self.data.len()))
+    }
+
+    #[inline(always)]
+    fn last(self) -> Option<Self::Item>
+        where
+            Self: Sized, {
+        Some(self.data[self.data.len() - 1])
+    }
+}
+
+pub struct Mat3dMutIter<'a> {
+    data: &'a mut [f64],
+    cursor: usize,
+}
+
+impl<'a> Iterator for Mat3dMutIter<'a> {
+    type Item = &'a mut f64;
+
+    #[inline]
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.cursor < self.data.len() {
+            let i = self.cursor;
+            self.cursor += 1;
+
+            let data_ptr = self.data.as_mut_ptr();
+            unsafe { Some(&mut *data_ptr.add(i)) }
+        } else {
+            None
+        }
+    }
+
+    #[inline(always)]
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        (self.data.len(), Some(self.data.len()))
+    }
+
+    #[inline]
+    fn last(self) -> Option<Self::Item>
+        where
+            Self: Sized, {
+        let data_ptr = self.data.as_mut_ptr();
+        unsafe { Some(&mut *data_ptr.add(self.data.len() - 1)) }
+    }
+}
+
+pub struct Mat3dIntoIter {
+    data: [f64; 9],
+    cursor: usize,
+}
+
+impl Iterator for Mat3dIntoIter {
+    type Item = f64;
+
+    #[inline]
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.cursor < self.data.len() {
+            let value = self.data[self.cursor];
+            self.cursor += 1;
+
+            Some(value)
+        } else {
+            None
+        }
+    }
+
+    #[inline(always)]
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        (self.data.len(), Some(self.data.len()))
+    }
+
+    #[inline(always)]
+    fn last(self) -> Option<Self::Item>
+        where
+            Self: Sized, {
+        Some(self.data[self.data.len() - 1])
     }
 }
 
@@ -244,7 +404,7 @@ impl Mat3dView {
     ///
     /// This method constructs and returns an iterator over the rows of the matrix view,
     /// allowing iteration through each row.
-    #[inline]
+    #[inline(always)]
     pub fn iter(&self) -> Mat3dViewIter<'_> {
         Mat3dViewIter {
             data: &self.0,
@@ -263,7 +423,7 @@ impl AsRef<[Vec3d<Cartesian>]> for Mat3dView {
     /// # Returns
     ///
     /// A reference to the array of Cartesian vectors contained within the `Mat3dView`.
-    #[inline]
+    #[inline(always)]
     fn as_ref(&self) -> &[Vec3d<Cartesian>] {
         &self.0
     }
@@ -284,9 +444,28 @@ impl Index<usize> for Mat3dView {
     /// # Returns
     ///
     /// A reference to the Cartesian vector representing the row at the specified index.
-    #[inline]
+    #[inline(always)]
     fn index(&self, index: usize) -> &Self::Output {
         &self.0[index]
+    }
+}
+
+/// Implements conversion into an iterator for borrowing a reference to a `Mat3dView`, yielding shared references to `Vec3d<Cartesian>` vectors.
+///
+/// This implementation converts a reference to a `Mat3dView` into an iterator, allowing iteration over its rows while retaining ownership of the view.
+/// It yields shared references to `Vec3d<Cartesian>` vectors as it iterates through each row of the matrix view.
+impl<'a> IntoIterator for &'a Mat3dView {
+    /// The type of the items yielded by the iterator, which is a shared reference to `Vec3d<Cartesian>` vector.
+    type Item = &'a Vec3d<Cartesian>;
+    /// The type of the iterator produced by the conversion, which is a `Mat3dViewIter`.
+    type IntoIter = Mat3dViewIter<'a>;
+
+    /// Borrows the `Mat3dView` and returns an iterator over its rows.
+    ///
+    /// Each row of the matrix view is yielded as a shared reference to a `Vec3d<Cartesian>` vector.
+    #[inline(always)]
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
     }
 }
 
@@ -312,25 +491,6 @@ impl IntoIterator for Mat3dView {
     }
 }
 
-/// Implements conversion into an iterator for borrowing a reference to a `Mat3dView`, yielding shared references to `Vec3d<Cartesian>` vectors.
-///
-/// This implementation converts a reference to a `Mat3dView` into an iterator, allowing iteration over its rows while retaining ownership of the view.
-/// It yields shared references to `Vec3d<Cartesian>` vectors as it iterates through each row of the matrix view.
-impl<'a> IntoIterator for &'a Mat3dView {
-    /// The type of the items yielded by the iterator, which is a shared reference to `Vec3d<Cartesian>` vector.
-    type Item = &'a Vec3d<Cartesian>;
-    /// The type of the iterator produced by the conversion, which is a `Mat3dViewIter`.
-    type IntoIter = Mat3dViewIter<'a>;
-
-    /// Borrows the `Mat3dView` and returns an iterator over its rows.
-    ///
-    /// Each row of the matrix view is yielded as a shared reference to a `Vec3d<Cartesian>` vector.
-    #[inline]
-    fn into_iter(self) -> Self::IntoIter {
-        self.iter()
-    }
-}
-
 /// Iterator over the rows of a `Mat3dView`.
 ///
 /// This iterator allows iterating over the rows of a `Mat3dView`, providing references to each row's `Vec3d<Cartesian>` vector.
@@ -348,8 +508,9 @@ impl<'a> Iterator for Mat3dViewIter<'a> {
     /// Advances the iterator and returns the next row of the matrix view.
     ///
     /// Returns `Some(reference)` to the next row if available, otherwise `None`.
+    #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        if (0..3).contains(&self.cursor) {
+        if self.cursor < self.data.len() {
             let i = self.cursor;
             self.cursor += 1;
 
@@ -372,6 +533,7 @@ impl Iterator for Mat3dViewIntoIter {
     /// Advances the iterator and returns the next `Vec3d<Cartesian>` vector.
     ///
     /// Returns `Some(vector)` if a vector is available, otherwise `None`.
+    #[inline]
     fn next(&mut self) -> Option<Self::Item> {
         if !self.0.is_empty() {
             self.0.pop()
