@@ -1,5 +1,5 @@
 use std::{
-    iter::{IntoIterator, Iterator},
+    iter::{FromIterator, IntoIterator, Iterator},
     marker::PhantomData,
     ops::{Index, IndexMut},
 };
@@ -392,6 +392,52 @@ impl IntoIterator for Mat3d {
             data: self.0,
             cursor: 0,
         }
+    }
+}
+
+/// Implements the `FromIterator` trait for `Mat3d`.
+///
+/// This trait allows creating a `Mat3d` from an iterator over elements convertible to `f64`.
+impl<R> FromIterator<R> for Mat3d
+where
+    f64: From<R>,
+{
+    /// The `from_iter` method consumes the provided iterator and constructs a `Mat3d` using its elements.
+    /// If the iterator produces less than 9 elements, the remaining elements are initialized with zeros.
+    /// If the iterator produces more than 9 elements, the excess elements are ignored.
+    ///
+    /// # Type Parameters
+    ///
+    /// - `R`: The type of elements convertible to `f64`.
+    /// 
+    /// # Arguments
+    ///
+    /// * `iter` - An iterator over elements convertible to `f64` values.
+    ///
+    /// # Returns
+    ///
+    /// A matrix 3x3 constructed from the first nine values encountered in the iterator.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use std::iter::FromIterator;
+    /// use ephem::core::matrices::Mat3d;
+    ///
+    /// let data = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0];
+    /// let mat: Mat3d = data.into_iter().collect();
+    ///
+    /// assert_eq!(mat[(0, 0)], 1.0);
+    /// assert_eq!(mat[(1, 1)], 5.0);
+    /// assert_eq!(mat[(2, 2)], 9.0);
+    /// ```
+    fn from_iter<T: IntoIterator<Item = R>>(iter: T) -> Self {
+        let mut arr = [0.0f64; 9];
+        for (idx, value) in iter.into_iter().enumerate().take(arr.len()) {
+            arr[idx] = value.into();
+        }
+
+        Self(arr)
     }
 }
 

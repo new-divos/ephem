@@ -1295,21 +1295,28 @@ impl Default for CartesianBuilder {
     }
 }
 
-/// Implements conversion from an iterator over `f64` values into a Cartesian vector builder.
-impl FromIterator<f64> for CartesianBuilder {
-    /// Constructs a Cartesian vector builder from an iterator over `f64` values.
+/// Implements conversion from an iterator over convertible to `f64` values into a Cartesian vector builder.
+impl<R> FromIterator<R> for CartesianBuilder
+where
+    f64: From<R>,
+{
+    /// Constructs a Cartesian vector builder from an iterator over convertible to `f64` values.
     ///
-    /// This function consumes the iterator and constructs a Cartesian vector builder from the first three `f64` values
+    /// This function consumes the iterator and constructs a Cartesian vector builder from the first three values
     /// encountered in the iterator. If the iterator contains fewer than three values, the remaining components are set to zero.
     /// If the iterator contains more than three values, only the first three values are used to construct the vector.
     ///
+    /// # Type Parameters
+    ///
+    /// - `R`: The type of elements convertible to `f64`.
+    /// 
     /// # Arguments
     ///
-    /// * `iter` - An iterator over `f64` values.
+    /// * `iter` - An iterator over convertible to `f64` values.
     ///
     /// # Returns
     ///
-    /// A Cartesian vector builder constructed from the first three `f64` values encountered in the iterator.
+    /// A Cartesian vector builder constructed from the first three values encountered in the iterator.
     ///
     /// # Examples
     ///
@@ -1317,24 +1324,24 @@ impl FromIterator<f64> for CartesianBuilder {
     /// use std::iter::FromIterator;
     /// use ephem::core::vectors::{Cartesian, CartesianBuilder, Vec3d};
     ///
-    /// let iter = vec![1.0, 2.0, 3.0, 4.0].into_iter();
-    /// let builder = CartesianBuilder::from_iter(iter);
+    /// let data = vec![1.0, 2.0, 3.0, 4.0];
+    /// let builder = CartesianBuilder::from_iter(data);
     /// let vector = builder.build();
     ///
     /// assert_eq!(vector.x(), 1.0);
     /// assert_eq!(vector.y(), 2.0);
     /// assert_eq!(vector.z(), 3.0);
     /// ```
-    fn from_iter<T: IntoIterator<Item = f64>>(iter: T) -> Self {
-        let mut x = 0.0;
-        let mut y = 0.0;
-        let mut z = 0.0;
+    fn from_iter<T: IntoIterator<Item = R>>(iter: T) -> Self {
+        let mut x = 0.0f64;
+        let mut y = 0.0f64;
+        let mut z = 0.0f64;
 
         for (idx, value) in iter.into_iter().enumerate() {
             match idx {
-                Cartesian::X_IDX => x = value,
-                Cartesian::Y_IDX => y = value,
-                Cartesian::Z_IDX => z = value,
+                Cartesian::X_IDX => x = value.into(),
+                Cartesian::Y_IDX => y = value.into(),
+                Cartesian::Z_IDX => z = value.into(),
                 _ => continue,
             }
         }
@@ -1821,21 +1828,28 @@ impl Default for CylindricalBuilder {
     }
 }
 
-/// Implements conversion from an iterator over `f64` values into a Cylindrical vector builder.
-impl FromIterator<f64> for CylindricalBuilder {
-    /// Constructs a Cylindrical vector builder from an iterator over `f64` values.
+/// Implements conversion from an iterator over convertible to `f64` values into a Cylindrical vector builder.
+impl<R> FromIterator<R> for CylindricalBuilder
+where
+    f64: From<R>,
+{
+    /// Constructs a Cylindrical vector builder from an iterator over convertible to `f64` values.
     ///
-    /// This function consumes the iterator and constructs a Cylindrical vector builder from the first three `f64` values
+    /// This function consumes the iterator and constructs a Cylindrical vector builder from the first three values
     /// encountered in the iterator. If the iterator contains fewer than three values, the remaining components are set to zero.
     /// If the iterator contains more than three values, only the first three values are used to construct the vector.
     ///
+    /// # Type Parameters
+    ///
+    /// - `R`: The type of elements convertible to `f64`.
+    ///
     /// # Arguments
     ///
-    /// * `iter` - An iterator over `f64` values.
+    /// * `iter` - An iterator over convertible to `f64` values.
     ///
     /// # Returns
     ///
-    /// A Cylindrical vector builder constructed from the first three `f64` values encountered in the iterator.
+    /// A Cylindrical vector builder constructed from the first three values encountered in the iterator.
     ///
     /// # Examples
     ///
@@ -1843,24 +1857,24 @@ impl FromIterator<f64> for CylindricalBuilder {
     /// use std::iter::FromIterator;
     /// use ephem::core::vectors::{Cylindrical, CylindricalBuilder, Vec3d};
     ///
-    /// let iter = vec![1.0, 2.0, 3.0, 4.0].into_iter();
-    /// let builder = CylindricalBuilder::from_iter(iter);
+    /// let data = vec![1.0, 2.0, 3.0, 4.0];
+    /// let builder = CylindricalBuilder::from_iter(data);
     /// let vector = builder.build();
     ///
     /// assert_eq!(vector.radius(), 1.0);
     /// assert_eq!(vector.azimuth(), 2.0);
     /// assert_eq!(vector.altitude(), 3.0);
     /// ```
-    fn from_iter<T: IntoIterator<Item = f64>>(iter: T) -> Self {
-        let mut radius = 0.0;
-        let mut azimuth = 0.0;
-        let mut altitude = 0.0;
+    fn from_iter<T: IntoIterator<Item = R>>(iter: T) -> Self {
+        let mut radius = 0.0f64;
+        let mut azimuth = 0.0f64;
+        let mut altitude = 0.0f64;
 
         for (idx, value) in iter.into_iter().enumerate() {
             match idx {
-                Cylindrical::RADIUS_IDX => radius = value,
-                Cylindrical::AZIMUTH_IDX => azimuth = value,
-                Cylindrical::ALTITUDE_IDX => altitude = value,
+                Cylindrical::RADIUS_IDX => radius = value.into(),
+                Cylindrical::AZIMUTH_IDX => azimuth = value.into(),
+                Cylindrical::ALTITUDE_IDX => altitude = value.into(),
                 _ => continue,
             }
         }
@@ -2389,21 +2403,28 @@ impl<S: SpatialDirection> From<&S> for SphericalBuilder {
     }
 }
 
-/// Implements conversion from an iterator over `f64` values into a Spherical vector builder.
-impl FromIterator<f64> for SphericalBuilder {
-    /// Constructs a Spherical vector builder from an iterator over `f64` values.
+/// Implements conversion from an iterator over convertible to `f64` values into a Spherical vector builder.
+impl<R> FromIterator<R> for SphericalBuilder
+where
+    f64: From<R>,
+{
+    /// Constructs a Spherical vector builder from an iterator over convertible to `f64` values.
     ///
-    /// This function consumes the iterator and constructs a Spherical vector builder from the first three `f64` values
+    /// This function consumes the iterator and constructs a Spherical vector builder from the first three values
     /// encountered in the iterator. If the iterator contains fewer than three values, the remaining components are set to zero.
     /// If the iterator contains more than three values, only the first three values are used to construct the vector.
     ///
+    /// # Type Parameters
+    ///
+    /// - `R`: The type of elements convertible to `f64`.
+    ///
     /// # Arguments
     ///
-    /// * `iter` - An iterator over `f64` values.
+    /// * `iter` - An iterator over convertible to `f64` values.
     ///
     /// # Returns
     ///
-    /// A Spherical vector builder constructed from the first three `f64` values encountered in the iterator.
+    /// A Spherical vector builder constructed from the first three values encountered in the iterator.
     ///
     /// # Examples
     ///
@@ -2411,24 +2432,24 @@ impl FromIterator<f64> for SphericalBuilder {
     /// use std::iter::FromIterator;
     /// use ephem::core::vectors::{Spherical, SphericalBuilder, Vec3d};
     ///
-    /// let iter = vec![3.0, 2.0, 1.0, 0.0].into_iter();
-    /// let builder = SphericalBuilder::from_iter(iter);
+    /// let data = vec![3.0, 2.0, 1.0, 0.0];
+    /// let builder = SphericalBuilder::from_iter(data);
     /// let vector = builder.build();
     ///
     /// assert_eq!(vector.radius(), 3.0);
     /// assert_eq!(vector.azimuth(), 2.0);
     /// assert_eq!(vector.latitude(), 1.0);
     /// ```
-    fn from_iter<T: IntoIterator<Item = f64>>(iter: T) -> Self {
-        let mut radius = 0.0;
-        let mut azimuth = 0.0;
-        let mut latitude = 0.0;
+    fn from_iter<T: IntoIterator<Item = R>>(iter: T) -> Self {
+        let mut radius = 0.0f64;
+        let mut azimuth = 0.0f64;
+        let mut latitude = 0.0f64;
 
         for (idx, value) in iter.into_iter().enumerate() {
             match idx {
-                Spherical::RADIUS_IDX => radius = value,
-                Spherical::AZIMUTH_IDX => azimuth = value,
-                Spherical::LATITUDE_IDX => latitude = value,
+                Spherical::RADIUS_IDX => radius = value.into(),
+                Spherical::AZIMUTH_IDX => azimuth = value.into(),
+                Spherical::LATITUDE_IDX => latitude = value.into(),
                 _ => continue,
             }
         }
