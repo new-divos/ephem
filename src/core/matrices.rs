@@ -1,7 +1,7 @@
 use std::{
     iter::{FromIterator, IntoIterator, Iterator},
     marker::PhantomData,
-    ops::{Index, IndexMut},
+    ops::{Add, AddAssign, Index, IndexMut, Neg, Sub, SubAssign},
 };
 
 use crate::core::vectors::{Cartesian, Vec3d};
@@ -66,8 +66,8 @@ impl Mat3d {
     ///
     /// Constructs a matrix using three row vectors. The row vectors represent
     /// the rows of the resulting matrix.
-    #[inline]
     #[rustfmt::skip]
+    #[inline]
     pub fn with_rows(
         row1: Vec3d<Cartesian>,
         row2: Vec3d<Cartesian>,
@@ -84,8 +84,8 @@ impl Mat3d {
     ///
     /// Constructs a matrix using three column vectors. The column vectors represent
     /// the columns of the resulting matrix.
-    #[inline]
     #[rustfmt::skip]
+    #[inline]
     pub fn with_columns(
         col1: Vec3d<Cartesian>,
         col2: Vec3d<Cartesian>,
@@ -279,8 +279,8 @@ impl Clone for Mat3d {
     ///     }
     /// }
     /// ```
-    #[inline(always)]
     #[rustfmt::skip]
+    #[inline(always)]
     fn clone(&self) -> Self {
         Self([
             self.0[0], self.0[1], self.0[2],
@@ -409,7 +409,7 @@ where
     /// # Type Parameters
     ///
     /// - `R`: The type of elements convertible to `f64`.
-    /// 
+    ///
     /// # Arguments
     ///
     /// * `iter` - An iterator over elements convertible to `f64` values.
@@ -438,6 +438,164 @@ where
         }
 
         Self(arr)
+    }
+}
+
+impl<'a> Neg for &'a Mat3d {
+    type Output = Mat3d;
+
+    #[rustfmt::skip]
+    #[inline]
+    fn neg(self) -> Self::Output {
+        Mat3d([
+            -self.0[0], -self.0[1], -self.0[2],
+            -self.0[3], -self.0[4], -self.0[5],
+            -self.0[6], -self.0[7], -self.0[8],
+        ])
+    }
+}
+
+impl Neg for Mat3d {
+    type Output = Mat3d;
+
+    #[inline(always)]
+    fn neg(self) -> Self::Output {
+        (&self).neg()
+    }
+}
+
+impl<'a> Add for &'a Mat3d {
+    type Output = Mat3d;
+
+    #[inline]
+    fn add(self, rhs: Self) -> Self::Output {
+        Mat3d([
+            self.0[0] + rhs.0[0],
+            self.0[1] + rhs.0[1],
+            self.0[2] + rhs.0[2],
+            self.0[3] + rhs.0[3],
+            self.0[4] + rhs.0[4],
+            self.0[5] + rhs.0[5],
+            self.0[6] + rhs.0[6],
+            self.0[7] + rhs.0[7],
+            self.0[8] + rhs.0[8],
+        ])
+    }
+}
+
+impl<'a> Add<Mat3d> for &'a Mat3d {
+    type Output = Mat3d;
+
+    #[inline(always)]
+    fn add(self, rhs: Mat3d) -> Self::Output {
+        self.add(&rhs)
+    }
+}
+
+impl<'a> Add<&'a Mat3d> for Mat3d {
+    type Output = Mat3d;
+
+    #[inline(always)]
+    fn add(self, rhs: &'a Mat3d) -> Self::Output {
+        (&self).add(rhs)
+    }
+}
+
+impl Add for Mat3d {
+    type Output = Mat3d;
+
+    #[inline(always)]
+    fn add(self, rhs: Self) -> Self::Output {
+        (&self).add(&rhs)
+    }
+}
+
+impl<'a> AddAssign<&'a Mat3d> for Mat3d {
+    #[inline]
+    fn add_assign(&mut self, rhs: &'a Mat3d) {
+        self.0[0] += rhs.0[0];
+        self.0[1] += rhs.0[1];
+        self.0[2] += rhs.0[2];
+        self.0[3] += rhs.0[3];
+        self.0[4] += rhs.0[4];
+        self.0[5] += rhs.0[5];
+        self.0[6] += rhs.0[6];
+        self.0[7] += rhs.0[7];
+        self.0[8] += rhs.0[8];
+    }
+}
+
+impl AddAssign for Mat3d {
+    #[inline(always)]
+    fn add_assign(&mut self, rhs: Self) {
+        self.add_assign(&rhs)
+    }
+}
+
+impl<'a> Sub for &'a Mat3d {
+    type Output = Mat3d;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        Mat3d([
+            self.0[0] - rhs.0[0],
+            self.0[1] - rhs.0[1],
+            self.0[2] - rhs.0[2],
+            self.0[3] - rhs.0[3],
+            self.0[4] - rhs.0[4],
+            self.0[5] - rhs.0[5],
+            self.0[6] - rhs.0[6],
+            self.0[7] - rhs.0[7],
+            self.0[8] - rhs.0[8],
+        ])
+    }
+}
+
+impl<'a> Sub<Mat3d> for &'a Mat3d {
+    type Output = Mat3d;
+
+    #[inline(always)]
+    fn sub(self, rhs: Mat3d) -> Self::Output {
+        self.sub(&rhs)
+    }
+}
+
+impl<'a> Sub<&'a Mat3d> for Mat3d {
+    type Output = Mat3d;
+
+    #[inline(always)]
+    fn sub(self, rhs: &'a Mat3d) -> Self::Output {
+        (&self).sub(rhs)
+    }
+}
+
+impl Sub for Mat3d {
+    type Output = Mat3d;
+
+    #[inline(always)]
+    fn sub(self, rhs: Self) -> Self::Output {
+        (&self).sub(&rhs)
+    }
+}
+
+impl<'a> SubAssign<&'a Mat3d> for Mat3d {
+    #[inline]
+    fn sub_assign(&mut self, rhs: &'a Mat3d) {
+        self.0[0] -= rhs.0[0];
+        self.0[1] -= rhs.0[1];
+        self.0[2] -= rhs.0[2];
+        self.0[3] -= rhs.0[3];
+        self.0[4] -= rhs.0[4];
+        self.0[5] -= rhs.0[5];
+        self.0[6] -= rhs.0[6];
+        self.0[7] -= rhs.0[7];
+        self.0[8] -= rhs.0[8];
+    }
+}
+
+impl SubAssign for Mat3d {
+    #[inline(always)]
+    fn sub_assign(&mut self, rhs: Self) {
+        self.sub_assign(&rhs)
     }
 }
 
