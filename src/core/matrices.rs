@@ -1,7 +1,7 @@
 use std::{
     iter::{FromIterator, IntoIterator, Iterator},
     marker::PhantomData,
-    ops::{Add, AddAssign, Index, IndexMut, Neg, Sub, SubAssign},
+    ops::{Add, AddAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub, SubAssign},
 };
 
 use crate::core::vectors::{Cartesian, Vec3d};
@@ -441,9 +441,24 @@ where
     }
 }
 
+/// Implements the unary negation operation for a reference to `Mat3d`.
 impl<'a> Neg for &'a Mat3d {
     type Output = Mat3d;
 
+    /// The `neg` method negates each element of the matrix and returns a new `Mat3d` with the result.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ephem::core::matrices::Mat3d;
+    ///
+    /// let mat = Mat3d::eye();
+    /// let neg_mat = -&mat;
+    ///
+    /// assert_eq!(neg_mat[(0, 0)], -1.0);
+    /// assert_eq!(neg_mat[(1, 1)], -1.0);
+    /// assert_eq!(neg_mat[(2, 2)], -1.0);
+    /// ```
     #[rustfmt::skip]
     #[inline]
     fn neg(self) -> Self::Output {
@@ -455,18 +470,55 @@ impl<'a> Neg for &'a Mat3d {
     }
 }
 
+/// Implements the unary negation operation for `Mat3d`.
 impl Neg for Mat3d {
     type Output = Mat3d;
 
+    /// The `neg` method negates each element of the matrix and returns a new `Mat3d` with the result.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ephem::core::matrices::Mat3d;
+    ///
+    /// let mat = Mat3d::eye();
+    /// let neg_mat = -mat;
+    ///
+    /// assert_eq!(neg_mat[(0, 0)], -1.0);
+    /// assert_eq!(neg_mat[(1, 1)], -1.0);
+    /// assert_eq!(neg_mat[(2, 2)], -1.0);
+    /// ```
     #[inline(always)]
     fn neg(self) -> Self::Output {
         (&self).neg()
     }
 }
 
+/// Implements the addition operation for two references to `Mat3d`, returning a new `Mat3d`.
 impl<'a> Add for &'a Mat3d {
     type Output = Mat3d;
 
+    /// This function performs element-wise addition of the corresponding elements of the two matrices.
+    /// The resulting matrix contains the sum of each corresponding pair of elements from the input matrices.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ephem::core::matrices::Mat3d;
+    ///
+    /// let m1 = Mat3d::eye();
+    /// let m2 = Mat3d::ones();
+    ///
+    /// let result = &m1 + &m2;
+    ///
+    /// assert_eq!(result[(0, 0)], 2.0);
+    /// assert_eq!(result[(1, 1)], 2.0);
+    /// assert_eq!(result[(2, 2)], 2.0);
+    /// ```
+    /// 
+    /// # Panics
+    /// 
+    /// This function will panic if any of the elements in the resulting matrix is NaN.
     #[inline]
     fn add(self, rhs: Self) -> Self::Output {
         Mat3d([
@@ -483,34 +535,122 @@ impl<'a> Add for &'a Mat3d {
     }
 }
 
+/// Implements addition between a reference to a `Mat3d` matrix and an owned `Mat3d` matrix, returning a new `Mat3d`.
 impl<'a> Add<Mat3d> for &'a Mat3d {
     type Output = Mat3d;
 
+    /// This function performs element-wise addition of the corresponding elements of the two matrices.
+    /// The resulting matrix contains the sum of each corresponding pair of elements from the input matrices.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ephem::core::matrices::Mat3d;
+    ///
+    /// let m1 = Mat3d::eye();
+    /// let m2 = Mat3d::ones();
+    ///
+    /// let result = &m1 + m2;
+    ///
+    /// assert_eq!(result[(0, 0)], 2.0);
+    /// assert_eq!(result[(1, 1)], 2.0);
+    /// assert_eq!(result[(2, 2)], 2.0);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This function will panic if any of the elements in the resulting matrix is NaN.
     #[inline(always)]
     fn add(self, rhs: Mat3d) -> Self::Output {
         self.add(&rhs)
     }
 }
 
+/// Implements addition between an owned `Mat3d` matrix and a reference to a `Mat3d` matrix, returning a new `Mat3d`.
 impl<'a> Add<&'a Mat3d> for Mat3d {
     type Output = Mat3d;
 
+    /// This function performs element-wise addition of the corresponding elements of the two matrices.
+    /// The resulting matrix contains the sum of each corresponding pair of elements from the input matrices.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ephem::core::matrices::Mat3d;
+    ///
+    /// let m1 = Mat3d::eye();
+    /// let m2 = Mat3d::ones();
+    ///
+    /// let result = m1 + &m2;
+    ///
+    /// assert_eq!(result[(0, 0)], 2.0);
+    /// assert_eq!(result[(1, 1)], 2.0);
+    /// assert_eq!(result[(2, 2)], 2.0);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This function will panic if any of the elements in the resulting matrix is NaN.
     #[inline(always)]
     fn add(self, rhs: &'a Mat3d) -> Self::Output {
         (&self).add(rhs)
     }
 }
 
+/// Implements addition between two owned `Mat3d` matrices, returning a new `Mat3d`.
 impl Add for Mat3d {
     type Output = Mat3d;
 
+    /// This function performs element-wise addition of the corresponding elements of the two matrices.
+    /// The resulting matrix contains the sum of each corresponding pair of elements from the input matrices.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ephem::core::matrices::Mat3d;
+    ///
+    /// let m1 = Mat3d::eye();
+    /// let m2 = Mat3d::ones();
+    ///
+    /// let result = m1 + m2;
+    ///
+    /// assert_eq!(result[(0, 0)], 2.0);
+    /// assert_eq!(result[(1, 1)], 2.0);
+    /// assert_eq!(result[(2, 2)], 2.0);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This function will panic if any of the elements in the resulting matrix is NaN.
     #[inline(always)]
     fn add(self, rhs: Self) -> Self::Output {
         (&self).add(&rhs)
     }
 }
 
+/// Implements in-place addition between a mutable `Mat3d` matrix and an immutable reference to another `Mat3d`.
 impl<'a> AddAssign<&'a Mat3d> for Mat3d {
+    /// This function performs element-wise addition of the corresponding elements of the two matrices
+    /// and assigns the result to the mutable matrix.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ephem::core::matrices::Mat3d;
+    ///
+    /// let mut m1 = Mat3d::eye();
+    /// let m2 = Mat3d::ones();
+    ///
+    /// m1 += &m2;
+    ///
+    /// assert_eq!(m1[(0, 0)], 2.0);
+    /// assert_eq!(m1[(1, 1)], 2.0);
+    /// assert_eq!(m1[(2, 2)], 2.0);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This function will panic if any of the elements in the resulting matrix is NaN.
     #[inline]
     fn add_assign(&mut self, rhs: &'a Mat3d) {
         self.0[0] += rhs.0[0];
@@ -525,16 +665,60 @@ impl<'a> AddAssign<&'a Mat3d> for Mat3d {
     }
 }
 
+/// Implements in-place addition between two `Mat3d` matrices.
 impl AddAssign for Mat3d {
+    /// This function performs element-wise addition of the corresponding elements of the two matrices
+    /// and assigns the result to the mutable matrix.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ephem::core::matrices::Mat3d;
+    ///
+    /// let mut m1 = Mat3d::eye();
+    /// let m2 = Mat3d::ones();
+    ///
+    /// m1 += m2;
+    ///
+    /// assert_eq!(m1[(0, 0)], 2.0);
+    /// assert_eq!(m1[(1, 1)], 2.0);
+    /// assert_eq!(m1[(2, 2)], 2.0);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This function will panic if any of the elements in the resulting matrix is NaN.
     #[inline(always)]
     fn add_assign(&mut self, rhs: Self) {
         self.add_assign(&rhs)
     }
 }
 
+/// Implements the substraction operation for two references to `Mat3d`, returning a new `Mat3d`.
 impl<'a> Sub for &'a Mat3d {
     type Output = Mat3d;
 
+    /// This function performs element-wise substraction of the corresponding elements of the two matrices.
+    /// The resulting matrix contains the difference of each corresponding pair of elements from the input matrices.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ephem::core::matrices::Mat3d;
+    ///
+    /// let m1 = Mat3d::eye();
+    /// let m2 = Mat3d::ones();
+    ///
+    /// let result = &m1 - &m2;
+    ///
+    /// assert_eq!(result[(0, 0)], 0.0);
+    /// assert_eq!(result[(1, 1)], 0.0);
+    /// assert_eq!(result[(2, 2)], 0.0);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This function will panic if any of the elements in the resulting matrix is NaN.
     fn sub(self, rhs: Self) -> Self::Output {
         Mat3d([
             self.0[0] - rhs.0[0],
@@ -550,34 +734,122 @@ impl<'a> Sub for &'a Mat3d {
     }
 }
 
+/// Implements substraction between a reference to a `Mat3d` matrix and an owned `Mat3d` matrix, returning a new `Mat3d`.
 impl<'a> Sub<Mat3d> for &'a Mat3d {
     type Output = Mat3d;
 
+    /// This function performs element-wise substraction of the corresponding elements of the two matrices.
+    /// The resulting matrix contains the difference of each corresponding pair of elements from the input matrices.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ephem::core::matrices::Mat3d;
+    ///
+    /// let m1 = Mat3d::eye();
+    /// let m2 = Mat3d::ones();
+    ///
+    /// let result = &m1 - m2;
+    ///
+    /// assert_eq!(result[(0, 0)], 0.0);
+    /// assert_eq!(result[(1, 1)], 0.0);
+    /// assert_eq!(result[(2, 2)], 0.0);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This function will panic if any of the elements in the resulting matrix is NaN.
     #[inline(always)]
     fn sub(self, rhs: Mat3d) -> Self::Output {
         self.sub(&rhs)
     }
 }
 
+/// Implements substraction between an owned `Mat3d` matrix and a reference to a `Mat3d` matrix, returning a new `Mat3d`.
 impl<'a> Sub<&'a Mat3d> for Mat3d {
     type Output = Mat3d;
 
+    /// This function performs element-wise substraction of the corresponding elements of the two matrices.
+    /// The resulting matrix contains the difference of each corresponding pair of elements from the input matrices.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ephem::core::matrices::Mat3d;
+    ///
+    /// let m1 = Mat3d::eye();
+    /// let m2 = Mat3d::ones();
+    ///
+    /// let result = m1 - &m2;
+    ///
+    /// assert_eq!(result[(0, 0)], 0.0);
+    /// assert_eq!(result[(1, 1)], 0.0);
+    /// assert_eq!(result[(2, 2)], 0.0);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This function will panic if any of the elements in the resulting matrix is NaN.
     #[inline(always)]
     fn sub(self, rhs: &'a Mat3d) -> Self::Output {
         (&self).sub(rhs)
     }
 }
 
+/// Implements addition between two owned `Mat3d` matrices, returning a new `Mat3d`.
 impl Sub for Mat3d {
     type Output = Mat3d;
 
+    /// This function performs element-wise substraction of the corresponding elements of the two matrices.
+    /// The resulting matrix contains the difference of each corresponding pair of elements from the input matrices.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ephem::core::matrices::Mat3d;
+    ///
+    /// let m1 = Mat3d::eye();
+    /// let m2 = Mat3d::ones();
+    ///
+    /// let result = m1 - m2;
+    ///
+    /// assert_eq!(result[(0, 0)], 0.0);
+    /// assert_eq!(result[(1, 1)], 0.0);
+    /// assert_eq!(result[(2, 2)], 0.0);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This function will panic if any of the elements in the resulting matrix is NaN.
     #[inline(always)]
     fn sub(self, rhs: Self) -> Self::Output {
         (&self).sub(&rhs)
     }
 }
 
+/// Implements in-place substraction between a mutable `Mat3d` matrix and an immutable reference to another `Mat3d`.
 impl<'a> SubAssign<&'a Mat3d> for Mat3d {
+    /// This function performs element-wise substraction of the corresponding elements of the two matrices
+    /// and assigns the result to the mutable matrix.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ephem::core::matrices::Mat3d;
+    ///
+    /// let mut m1 = Mat3d::eye();
+    /// let m2 = Mat3d::ones();
+    ///
+    /// m1 -= &m2;
+    ///
+    /// assert_eq!(m1[(0, 0)], 0.0);
+    /// assert_eq!(m1[(1, 1)], 0.0);
+    /// assert_eq!(m1[(2, 2)], 0.0);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This function will panic if any of the elements in the resulting matrix is NaN.
     #[inline]
     fn sub_assign(&mut self, rhs: &'a Mat3d) {
         self.0[0] -= rhs.0[0];
@@ -592,10 +864,118 @@ impl<'a> SubAssign<&'a Mat3d> for Mat3d {
     }
 }
 
+/// Implements in-place substraction between two `Mat3d` matrices.
 impl SubAssign for Mat3d {
+    /// This function performs element-wise substraction of the corresponding elements of the two matrices
+    /// and assigns the result to the mutable matrix.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ephem::core::matrices::Mat3d;
+    ///
+    /// let mut m1 = Mat3d::eye();
+    /// let m2 = Mat3d::ones();
+    ///
+    /// m1 -= m2;
+    ///
+    /// assert_eq!(m1[(0, 0)], 0.0);
+    /// assert_eq!(m1[(1, 1)], 0.0);
+    /// assert_eq!(m1[(2, 2)], 0.0);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This function will panic if any of the elements in the resulting matrix is NaN.
     #[inline(always)]
     fn sub_assign(&mut self, rhs: Self) {
         self.sub_assign(&rhs)
+    }
+}
+
+impl<'a> Mul<f64> for &'a Mat3d {
+    type Output = Mat3d;
+
+    #[inline]
+    fn mul(self, rhs: f64) -> Self::Output {
+        Mat3d([
+            rhs * self.0[0],
+            rhs * self.0[1],
+            rhs * self.0[2],
+            rhs * self.0[3],
+            rhs * self.0[4],
+            rhs * self.0[5],
+            rhs * self.0[6],
+            rhs * self.0[7],
+            rhs * self.0[8],
+        ])
+    }
+}
+
+impl<'a> Mul<&'a Mat3d> for f64 {
+    type Output = Mat3d;
+
+    #[inline(always)]
+    fn mul(self, rhs: &'a Mat3d) -> Self::Output {
+        rhs.mul(self)
+    }
+}
+
+impl Mul<f64> for Mat3d {
+    type Output = Mat3d;
+
+    #[inline(always)]
+    fn mul(self, rhs: f64) -> Self::Output {
+        (&self).mul(rhs)
+    }
+}
+
+impl Mul<Mat3d> for f64 {
+    type Output = Mat3d;
+
+    #[inline(always)]
+    fn mul(self, rhs: Mat3d) -> Self::Output {
+        (&rhs).mul(self)
+    }
+}
+
+impl MulAssign<f64> for Mat3d {
+    #[inline]
+    fn mul_assign(&mut self, rhs: f64) {
+        self.0[0] *= rhs;
+        self.0[1] *= rhs;
+        self.0[2] *= rhs;
+        self.0[3] *= rhs;
+        self.0[4] *= rhs;
+        self.0[5] *= rhs;
+        self.0[6] *= rhs;
+        self.0[7] *= rhs;
+        self.0[8] *= rhs;
+    }
+}
+
+impl<'a> Mul<Vec3d<Cartesian>> for &'a Mat3d {
+    type Output = Vec3d<Cartesian>;
+
+    #[inline]
+    fn mul(self, rhs: Vec3d<Cartesian>) -> Self::Output {
+        Vec3d::<Cartesian>(
+            [
+                self.0[0] * rhs.0[0] + self.0[1] * rhs.0[1] + self.0[2] * rhs.0[2],
+                self.0[3] * rhs.0[0] + self.0[4] * rhs.0[1] + self.0[5] * rhs.0[2],
+                self.0[6] * rhs.0[0] + self.0[7] * rhs.0[1] + self.0[8] * rhs.0[2],
+            ],
+            PhantomData::<Cartesian> {},
+        )
+    }
+}
+
+impl Mul<Vec3d<Cartesian>> for Mat3d {
+    type Output = Vec3d<Cartesian>;
+
+    #[inline(always)]
+    fn mul(self, rhs: Vec3d<Cartesian>) -> Self::Output {
+        (&self).mul(rhs)
     }
 }
 
