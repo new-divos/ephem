@@ -1,8 +1,10 @@
 use std::{
     iter::{FromIterator, IntoIterator, Iterator},
     marker::PhantomData,
-    ops::{Add, AddAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub, SubAssign},
+    ops::{Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub, SubAssign},
 };
+
+use num_traits::Float;
 
 use crate::core::vectors::{Cartesian, Vec3d};
 
@@ -186,6 +188,16 @@ impl Mat3d {
                 PhantomData::<Cartesian> {},
             ),
         ])
+    }
+
+    pub fn checked_div<R: Float>(&self, rhs: R) -> Option<Mat3d> {
+        if !rhs.is_zero() {
+            if let Some(rhs) = rhs.to_f64() {
+                return Some(private::div(self, rhs));
+            }
+        }
+
+        None
     }
 
     #[inline(always)]
@@ -515,23 +527,13 @@ impl<'a> Add for &'a Mat3d {
     /// assert_eq!(result[(1, 1)], 2.0);
     /// assert_eq!(result[(2, 2)], 2.0);
     /// ```
-    /// 
+    ///
     /// # Panics
-    /// 
+    ///
     /// This function will panic if any of the elements in the resulting matrix is NaN.
-    #[inline]
+    #[inline(always)]
     fn add(self, rhs: Self) -> Self::Output {
-        Mat3d([
-            self.0[0] + rhs.0[0],
-            self.0[1] + rhs.0[1],
-            self.0[2] + rhs.0[2],
-            self.0[3] + rhs.0[3],
-            self.0[4] + rhs.0[4],
-            self.0[5] + rhs.0[5],
-            self.0[6] + rhs.0[6],
-            self.0[7] + rhs.0[7],
-            self.0[8] + rhs.0[8],
-        ])
+        private::add(self, rhs)
     }
 }
 
@@ -562,7 +564,7 @@ impl<'a> Add<Mat3d> for &'a Mat3d {
     /// This function will panic if any of the elements in the resulting matrix is NaN.
     #[inline(always)]
     fn add(self, rhs: Mat3d) -> Self::Output {
-        self.add(&rhs)
+        private::add(self, &rhs)
     }
 }
 
@@ -593,7 +595,7 @@ impl<'a> Add<&'a Mat3d> for Mat3d {
     /// This function will panic if any of the elements in the resulting matrix is NaN.
     #[inline(always)]
     fn add(self, rhs: &'a Mat3d) -> Self::Output {
-        (&self).add(rhs)
+        private::add(&self, rhs)
     }
 }
 
@@ -624,7 +626,7 @@ impl Add for Mat3d {
     /// This function will panic if any of the elements in the resulting matrix is NaN.
     #[inline(always)]
     fn add(self, rhs: Self) -> Self::Output {
-        (&self).add(&rhs)
+        private::add(&self, &rhs)
     }
 }
 
@@ -651,17 +653,9 @@ impl<'a> AddAssign<&'a Mat3d> for Mat3d {
     /// # Panics
     ///
     /// This function will panic if any of the elements in the resulting matrix is NaN.
-    #[inline]
+    #[inline(always)]
     fn add_assign(&mut self, rhs: &'a Mat3d) {
-        self.0[0] += rhs.0[0];
-        self.0[1] += rhs.0[1];
-        self.0[2] += rhs.0[2];
-        self.0[3] += rhs.0[3];
-        self.0[4] += rhs.0[4];
-        self.0[5] += rhs.0[5];
-        self.0[6] += rhs.0[6];
-        self.0[7] += rhs.0[7];
-        self.0[8] += rhs.0[8];
+        private::add_assign(self, rhs);
     }
 }
 
@@ -690,7 +684,7 @@ impl AddAssign for Mat3d {
     /// This function will panic if any of the elements in the resulting matrix is NaN.
     #[inline(always)]
     fn add_assign(&mut self, rhs: Self) {
-        self.add_assign(&rhs)
+        private::add_assign(self, &rhs);
     }
 }
 
@@ -893,22 +887,15 @@ impl SubAssign for Mat3d {
     }
 }
 
-impl<'a> Mul<f64> for &'a Mat3d {
+impl<'a, R> Mul<R> for &'a Mat3d
+where
+    R: Float,
+{
     type Output = Mat3d;
 
-    #[inline]
-    fn mul(self, rhs: f64) -> Self::Output {
-        Mat3d([
-            rhs * self.0[0],
-            rhs * self.0[1],
-            rhs * self.0[2],
-            rhs * self.0[3],
-            rhs * self.0[4],
-            rhs * self.0[5],
-            rhs * self.0[6],
-            rhs * self.0[7],
-            rhs * self.0[8],
-        ])
+    #[inline(always)]
+    fn mul(self, rhs: R) -> Self::Output {
+        private::mul(self, rhs.to_f64().expect("Unconvertible multiplier"))
     }
 }
 
@@ -917,16 +904,28 @@ impl<'a> Mul<&'a Mat3d> for f64 {
 
     #[inline(always)]
     fn mul(self, rhs: &'a Mat3d) -> Self::Output {
-        rhs.mul(self)
+        private::mul(rhs, self)
     }
 }
 
-impl Mul<f64> for Mat3d {
+impl<'a> Mul<&'a Mat3d> for f32 {
     type Output = Mat3d;
 
     #[inline(always)]
-    fn mul(self, rhs: f64) -> Self::Output {
-        (&self).mul(rhs)
+    fn mul(self, rhs: &'a Mat3d) -> Self::Output {
+        private::mul(rhs, self as f64)
+    }
+}
+
+impl<R> Mul<R> for Mat3d
+where
+    R: Float,
+{
+    type Output = Mat3d;
+
+    #[inline(always)]
+    fn mul(self, rhs: R) -> Self::Output {
+        private::mul(&self, rhs.to_f64().expect("Unconvertible multiplier"))
     }
 }
 
@@ -935,22 +934,26 @@ impl Mul<Mat3d> for f64 {
 
     #[inline(always)]
     fn mul(self, rhs: Mat3d) -> Self::Output {
-        (&rhs).mul(self)
+        private::mul(&rhs, self)
     }
 }
 
-impl MulAssign<f64> for Mat3d {
-    #[inline]
-    fn mul_assign(&mut self, rhs: f64) {
-        self.0[0] *= rhs;
-        self.0[1] *= rhs;
-        self.0[2] *= rhs;
-        self.0[3] *= rhs;
-        self.0[4] *= rhs;
-        self.0[5] *= rhs;
-        self.0[6] *= rhs;
-        self.0[7] *= rhs;
-        self.0[8] *= rhs;
+impl Mul<Mat3d> for f32 {
+    type Output = Mat3d;
+
+    #[inline(always)]
+    fn mul(self, rhs: Mat3d) -> Self::Output {
+        private::mul(&rhs, self as f64)
+    }
+}
+
+impl<R> MulAssign<R> for Mat3d
+where
+    R: Float,
+{
+    #[inline(always)]
+    fn mul_assign(&mut self, rhs: R) {
+        private::mul_assign(self, rhs.to_f64().expect("Unconvertible multiplier"))
     }
 }
 
@@ -976,6 +979,100 @@ impl Mul<Vec3d<Cartesian>> for Mat3d {
     #[inline(always)]
     fn mul(self, rhs: Vec3d<Cartesian>) -> Self::Output {
         (&self).mul(rhs)
+    }
+}
+
+impl<'a> Mul for &'a Mat3d {
+    type Output = Mat3d;
+
+    #[inline]
+    fn mul(self, rhs: Self) -> Self::Output {
+        Mat3d([
+            self.0[0] * rhs.0[0] + self.0[1] * rhs.0[3] + self.0[2] * rhs.0[6],
+            self.0[0] * rhs.0[1] + self.0[1] * rhs.0[4] + self.0[2] * rhs.0[7],
+            self.0[0] * rhs.0[2] + self.0[1] * rhs.0[5] + self.0[2] * rhs.0[8],
+            self.0[3] * rhs.0[0] + self.0[4] * rhs.0[3] + self.0[5] * rhs.0[6],
+            self.0[3] * rhs.0[1] + self.0[4] * rhs.0[4] + self.0[5] * rhs.0[7],
+            self.0[3] * rhs.0[2] + self.0[4] * rhs.0[5] + self.0[5] * rhs.0[8],
+            self.0[6] * rhs.0[0] + self.0[7] * rhs.0[3] + self.0[8] * rhs.0[6],
+            self.0[6] * rhs.0[1] + self.0[7] * rhs.0[4] + self.0[8] * rhs.0[7],
+            self.0[6] * rhs.0[2] + self.0[7] * rhs.0[5] + self.0[8] * rhs.0[8],
+        ])
+    }
+}
+
+impl<'a> Mul<Mat3d> for &'a Mat3d {
+    type Output = Mat3d;
+
+    #[inline(always)]
+    fn mul(self, rhs: Mat3d) -> Self::Output {
+        self.mul(&rhs)
+    }
+}
+
+impl<'a> Mul<&'a Mat3d> for Mat3d {
+    type Output = Mat3d;
+
+    #[inline(always)]
+    fn mul(self, rhs: &'a Mat3d) -> Self::Output {
+        (&self).mul(rhs)
+    }
+}
+
+impl Mul for Mat3d {
+    type Output = Mat3d;
+
+    #[inline(always)]
+    fn mul(self, rhs: Self) -> Self::Output {
+        (&self).mul(&rhs)
+    }
+}
+
+impl<'a> MulAssign<&'a Mat3d> for Mat3d {
+    #[inline(always)]
+    fn mul_assign(&mut self, rhs: &'a Mat3d) {
+        *self = (&self.clone()).mul(rhs);
+    }
+}
+
+impl MulAssign for Mat3d {
+    #[inline(always)]
+    fn mul_assign(&mut self, rhs: Self) {
+        *self = (&self.clone()).mul(&rhs);
+    }
+}
+
+impl<'a, R> Div<R> for &'a Mat3d
+where
+    R: Float,
+{
+    type Output = Mat3d;
+
+    #[inline(always)]
+    fn div(self, rhs: R) -> Self::Output {
+        private::div(self, rhs.to_f64().expect("Unconvertible divisor"))
+    }
+}
+
+impl<R> Div<R> for Mat3d
+where
+    R: Float,
+{
+    type Output = Mat3d;
+
+    #[inline(always)]
+    fn div(self, rhs: R) -> Self::Output {
+        private::div(&self, rhs.to_f64().expect("Unconvertible divisor"))
+    }
+}
+
+impl<R> DivAssign<R> for Mat3d
+where
+    R: Float,
+{
+    #[inline(always)]
+    fn div_assign(&mut self, rhs: R) {
+        private::div_assign(self, rhs.to_f64().expect("Unconvertible divisor"));
     }
 }
 
@@ -1229,6 +1326,84 @@ impl Iterator for Mat3dViewIntoIter {
         } else {
             None
         }
+    }
+}
+
+mod private {
+    use super::Mat3d;
+
+    #[inline]
+    pub(super) fn add(lhs: &Mat3d, rhs: &Mat3d) -> Mat3d {
+        Mat3d([
+            lhs.0[0] + rhs.0[0],
+            lhs.0[1] + rhs.0[1],
+            lhs.0[2] + rhs.0[2],
+            lhs.0[3] + rhs.0[3],
+            lhs.0[4] + rhs.0[4],
+            lhs.0[5] + rhs.0[5],
+            lhs.0[6] + rhs.0[6],
+            lhs.0[7] + rhs.0[7],
+            lhs.0[8] + rhs.0[8],
+        ])
+    }
+
+    #[inline]
+    pub(super) fn add_assign(lhs: &mut Mat3d, rhs: &Mat3d) {
+        lhs.0[0] += rhs.0[0];
+        lhs.0[1] += rhs.0[1];
+        lhs.0[2] += rhs.0[2];
+        lhs.0[3] += rhs.0[3];
+        lhs.0[4] += rhs.0[4];
+        lhs.0[5] += rhs.0[5];
+        lhs.0[6] += rhs.0[6];
+        lhs.0[7] += rhs.0[7];
+        lhs.0[8] += rhs.0[8];
+    }
+
+    #[rustfmt::skip]
+    #[inline]
+    pub(super) fn mul(lhs: &Mat3d, rhs: f64) -> Mat3d {
+        Mat3d([
+            lhs.0[0] * rhs, lhs.0[1] * rhs, lhs.0[2] * rhs,
+            lhs.0[3] * rhs, lhs.0[4] * rhs, lhs.0[5] * rhs,
+            lhs.0[6] * rhs, lhs.0[7] * rhs, lhs.0[8] * rhs,
+        ])
+    }
+
+    #[inline]
+    pub(super) fn mul_assign(lhs: &mut Mat3d, rhs: f64) {
+        lhs.0[0] *= rhs;
+        lhs.0[1] *= rhs;
+        lhs.0[2] *= rhs;
+        lhs.0[3] *= rhs;
+        lhs.0[4] *= rhs;
+        lhs.0[5] *= rhs;
+        lhs.0[6] *= rhs;
+        lhs.0[7] *= rhs;
+        lhs.0[8] *= rhs;
+    }
+
+    #[rustfmt::skip]
+    #[inline]
+    pub(super) fn div(lhs: &Mat3d, rhs: f64) -> Mat3d {
+        Mat3d([
+            lhs.0[0] / rhs, lhs.0[1] / rhs, lhs.0[2] / rhs,
+            lhs.0[3] / rhs, lhs.0[4] / rhs, lhs.0[5] / rhs,
+            lhs.0[6] / rhs, lhs.0[7] / rhs, lhs.0[8] / rhs,
+        ])
+    }
+
+    #[inline]
+    pub(super) fn div_assign(lhs: &mut Mat3d, rhs: f64) {
+        lhs.0[0] /= rhs;
+        lhs.0[1] /= rhs;
+        lhs.0[2] /= rhs;
+        lhs.0[3] /= rhs;
+        lhs.0[4] /= rhs;
+        lhs.0[5] /= rhs;
+        lhs.0[6] /= rhs;
+        lhs.0[7] /= rhs;
+        lhs.0[8] /= rhs;
     }
 }
 
