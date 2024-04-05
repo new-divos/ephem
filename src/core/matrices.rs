@@ -408,11 +408,9 @@ impl IntoIterator for Mat3d {
 }
 
 /// Implements the `FromIterator` trait for `Mat3d`.
-///
-/// This trait allows creating a `Mat3d` from an iterator over elements convertible to `f64`.
 impl<R> FromIterator<R> for Mat3d
 where
-    f64: From<R>,
+    R: Float,
 {
     /// The `from_iter` method consumes the provided iterator and constructs a `Mat3d` using its elements.
     /// If the iterator produces less than 9 elements, the remaining elements are initialized with zeros.
@@ -445,9 +443,10 @@ where
     /// ```
     fn from_iter<T: IntoIterator<Item = R>>(iter: T) -> Self {
         let mut arr = [0.0f64; 9];
-        for (idx, value) in iter.into_iter().enumerate().take(arr.len()) {
-            arr[idx] = value.into();
-        }
+        iter.into_iter()
+            .filter_map(|e| e.to_f64())
+            .zip(arr.iter_mut())
+            .for_each(|(e, p)| *p = e);
 
         Self(arr)
     }
@@ -471,14 +470,9 @@ impl<'a> Neg for &'a Mat3d {
     /// assert_eq!(neg_mat[(1, 1)], -1.0);
     /// assert_eq!(neg_mat[(2, 2)], -1.0);
     /// ```
-    #[rustfmt::skip]
-    #[inline]
+    #[inline(always)]
     fn neg(self) -> Self::Output {
-        Mat3d([
-            -self.0[0], -self.0[1], -self.0[2],
-            -self.0[3], -self.0[4], -self.0[5],
-            -self.0[6], -self.0[7], -self.0[8],
-        ])
+        private::neg(self)
     }
 }
 
@@ -502,7 +496,7 @@ impl Neg for Mat3d {
     /// ```
     #[inline(always)]
     fn neg(self) -> Self::Output {
-        (&self).neg()
+        private::neg(&self)
     }
 }
 
@@ -713,18 +707,9 @@ impl<'a> Sub for &'a Mat3d {
     /// # Panics
     ///
     /// This function will panic if any of the elements in the resulting matrix is NaN.
+    #[inline(always)]
     fn sub(self, rhs: Self) -> Self::Output {
-        Mat3d([
-            self.0[0] - rhs.0[0],
-            self.0[1] - rhs.0[1],
-            self.0[2] - rhs.0[2],
-            self.0[3] - rhs.0[3],
-            self.0[4] - rhs.0[4],
-            self.0[5] - rhs.0[5],
-            self.0[6] - rhs.0[6],
-            self.0[7] - rhs.0[7],
-            self.0[8] - rhs.0[8],
-        ])
+        private::sub(self, rhs)
     }
 }
 
@@ -755,7 +740,7 @@ impl<'a> Sub<Mat3d> for &'a Mat3d {
     /// This function will panic if any of the elements in the resulting matrix is NaN.
     #[inline(always)]
     fn sub(self, rhs: Mat3d) -> Self::Output {
-        self.sub(&rhs)
+        private::sub(self, &rhs)
     }
 }
 
@@ -786,7 +771,7 @@ impl<'a> Sub<&'a Mat3d> for Mat3d {
     /// This function will panic if any of the elements in the resulting matrix is NaN.
     #[inline(always)]
     fn sub(self, rhs: &'a Mat3d) -> Self::Output {
-        (&self).sub(rhs)
+        private::sub(&self, rhs)
     }
 }
 
@@ -817,7 +802,7 @@ impl Sub for Mat3d {
     /// This function will panic if any of the elements in the resulting matrix is NaN.
     #[inline(always)]
     fn sub(self, rhs: Self) -> Self::Output {
-        (&self).sub(&rhs)
+        private::sub(&self, &rhs)
     }
 }
 
@@ -844,17 +829,9 @@ impl<'a> SubAssign<&'a Mat3d> for Mat3d {
     /// # Panics
     ///
     /// This function will panic if any of the elements in the resulting matrix is NaN.
-    #[inline]
+    #[inline(always)]
     fn sub_assign(&mut self, rhs: &'a Mat3d) {
-        self.0[0] -= rhs.0[0];
-        self.0[1] -= rhs.0[1];
-        self.0[2] -= rhs.0[2];
-        self.0[3] -= rhs.0[3];
-        self.0[4] -= rhs.0[4];
-        self.0[5] -= rhs.0[5];
-        self.0[6] -= rhs.0[6];
-        self.0[7] -= rhs.0[7];
-        self.0[8] -= rhs.0[8];
+        private::sub_assign(self, rhs);
     }
 }
 
@@ -883,7 +860,7 @@ impl SubAssign for Mat3d {
     /// This function will panic if any of the elements in the resulting matrix is NaN.
     #[inline(always)]
     fn sub_assign(&mut self, rhs: Self) {
-        self.sub_assign(&rhs)
+        private::sub_assign(self, &rhs);
     }
 }
 
@@ -957,19 +934,30 @@ where
     }
 }
 
+impl<'a> Mul<&'a Vec3d<Cartesian>> for &'a Mat3d {
+    type Output = Vec3d<Cartesian>;
+
+    #[inline(always)]
+    fn mul(self, rhs: &'a Vec3d<Cartesian>) -> Self::Output {
+        private::vmul(self, rhs)
+    }
+}
+
 impl<'a> Mul<Vec3d<Cartesian>> for &'a Mat3d {
     type Output = Vec3d<Cartesian>;
 
-    #[inline]
+    #[inline(always)]
     fn mul(self, rhs: Vec3d<Cartesian>) -> Self::Output {
-        Vec3d::<Cartesian>(
-            [
-                self.0[0] * rhs.0[0] + self.0[1] * rhs.0[1] + self.0[2] * rhs.0[2],
-                self.0[3] * rhs.0[0] + self.0[4] * rhs.0[1] + self.0[5] * rhs.0[2],
-                self.0[6] * rhs.0[0] + self.0[7] * rhs.0[1] + self.0[8] * rhs.0[2],
-            ],
-            PhantomData::<Cartesian> {},
-        )
+        private::vmul(self, &rhs)
+    }
+}
+
+impl<'a> Mul<&'a Vec3d<Cartesian>> for Mat3d {
+    type Output = Vec3d<Cartesian>;
+
+    #[inline(always)]
+    fn mul(self, rhs: &'a Vec3d<Cartesian>) -> Self::Output {
+        private::vmul(&self, rhs)
     }
 }
 
@@ -978,26 +966,16 @@ impl Mul<Vec3d<Cartesian>> for Mat3d {
 
     #[inline(always)]
     fn mul(self, rhs: Vec3d<Cartesian>) -> Self::Output {
-        (&self).mul(rhs)
+        private::vmul(&self, &rhs)
     }
 }
 
 impl<'a> Mul for &'a Mat3d {
     type Output = Mat3d;
 
-    #[inline]
+    #[inline(always)]
     fn mul(self, rhs: Self) -> Self::Output {
-        Mat3d([
-            self.0[0] * rhs.0[0] + self.0[1] * rhs.0[3] + self.0[2] * rhs.0[6],
-            self.0[0] * rhs.0[1] + self.0[1] * rhs.0[4] + self.0[2] * rhs.0[7],
-            self.0[0] * rhs.0[2] + self.0[1] * rhs.0[5] + self.0[2] * rhs.0[8],
-            self.0[3] * rhs.0[0] + self.0[4] * rhs.0[3] + self.0[5] * rhs.0[6],
-            self.0[3] * rhs.0[1] + self.0[4] * rhs.0[4] + self.0[5] * rhs.0[7],
-            self.0[3] * rhs.0[2] + self.0[4] * rhs.0[5] + self.0[5] * rhs.0[8],
-            self.0[6] * rhs.0[0] + self.0[7] * rhs.0[3] + self.0[8] * rhs.0[6],
-            self.0[6] * rhs.0[1] + self.0[7] * rhs.0[4] + self.0[8] * rhs.0[7],
-            self.0[6] * rhs.0[2] + self.0[7] * rhs.0[5] + self.0[8] * rhs.0[8],
-        ])
+        private::mmul(self, rhs)
     }
 }
 
@@ -1006,7 +984,7 @@ impl<'a> Mul<Mat3d> for &'a Mat3d {
 
     #[inline(always)]
     fn mul(self, rhs: Mat3d) -> Self::Output {
-        self.mul(&rhs)
+        private::mmul(self, &rhs)
     }
 }
 
@@ -1015,7 +993,7 @@ impl<'a> Mul<&'a Mat3d> for Mat3d {
 
     #[inline(always)]
     fn mul(self, rhs: &'a Mat3d) -> Self::Output {
-        (&self).mul(rhs)
+        private::mmul(&self, rhs)
     }
 }
 
@@ -1024,21 +1002,21 @@ impl Mul for Mat3d {
 
     #[inline(always)]
     fn mul(self, rhs: Self) -> Self::Output {
-        (&self).mul(&rhs)
+        private::mmul(&self, &rhs)
     }
 }
 
 impl<'a> MulAssign<&'a Mat3d> for Mat3d {
     #[inline(always)]
     fn mul_assign(&mut self, rhs: &'a Mat3d) {
-        *self = (&self.clone()).mul(rhs);
+        *self = private::mmul(self, rhs);
     }
 }
 
 impl MulAssign for Mat3d {
     #[inline(always)]
     fn mul_assign(&mut self, rhs: Self) {
-        *self = (&self.clone()).mul(&rhs);
+        *self = private::mmul(self, &rhs);
     }
 }
 
@@ -1330,7 +1308,20 @@ impl Iterator for Mat3dViewIntoIter {
 }
 
 mod private {
+    use std::marker::PhantomData;
+
     use super::Mat3d;
+    use crate::core::vectors::{Cartesian, Vec3d};
+
+    #[rustfmt::skip]
+    #[inline]
+    pub(super) fn neg(lhs: &Mat3d) -> Mat3d {
+        Mat3d([
+            -lhs.0[0], -lhs.0[1], -lhs.0[2],
+            -lhs.0[3], -lhs.0[4], -lhs.0[5],
+            -lhs.0[6], -lhs.0[7], -lhs.0[8],
+        ])
+    }
 
     #[inline]
     pub(super) fn add(lhs: &Mat3d, rhs: &Mat3d) -> Mat3d {
@@ -1360,6 +1351,34 @@ mod private {
         lhs.0[8] += rhs.0[8];
     }
 
+    #[inline]
+    pub(super) fn sub(lhs: &Mat3d, rhs: &Mat3d) -> Mat3d {
+        Mat3d([
+            lhs.0[0] - rhs.0[0],
+            lhs.0[1] - rhs.0[1],
+            lhs.0[2] - rhs.0[2],
+            lhs.0[3] - rhs.0[3],
+            lhs.0[4] - rhs.0[4],
+            lhs.0[5] - rhs.0[5],
+            lhs.0[6] - rhs.0[6],
+            lhs.0[7] - rhs.0[7],
+            lhs.0[8] - rhs.0[8],
+        ])
+    }
+
+    #[inline]
+    pub(super) fn sub_assign(lhs: &mut Mat3d, rhs: &Mat3d) {
+        lhs.0[0] -= rhs.0[0];
+        lhs.0[1] -= rhs.0[1];
+        lhs.0[2] -= rhs.0[2];
+        lhs.0[3] -= rhs.0[3];
+        lhs.0[4] -= rhs.0[4];
+        lhs.0[5] -= rhs.0[5];
+        lhs.0[6] -= rhs.0[6];
+        lhs.0[7] -= rhs.0[7];
+        lhs.0[8] -= rhs.0[8];
+    }
+
     #[rustfmt::skip]
     #[inline]
     pub(super) fn mul(lhs: &Mat3d, rhs: f64) -> Mat3d {
@@ -1367,6 +1386,33 @@ mod private {
             lhs.0[0] * rhs, lhs.0[1] * rhs, lhs.0[2] * rhs,
             lhs.0[3] * rhs, lhs.0[4] * rhs, lhs.0[5] * rhs,
             lhs.0[6] * rhs, lhs.0[7] * rhs, lhs.0[8] * rhs,
+        ])
+    }
+
+    #[inline]
+    pub(super) fn vmul(lhs: &Mat3d, rhs: &Vec3d<Cartesian>) -> Vec3d<Cartesian> {
+        Vec3d::<Cartesian>(
+            [
+                lhs.0[0] * rhs.0[0] + lhs.0[1] * rhs.0[1] + lhs.0[2] * rhs.0[2],
+                lhs.0[3] * rhs.0[0] + lhs.0[4] * rhs.0[1] + lhs.0[5] * rhs.0[2],
+                lhs.0[6] * rhs.0[0] + lhs.0[7] * rhs.0[1] + lhs.0[8] * rhs.0[2],
+            ],
+            PhantomData::<Cartesian> {},
+        )
+    }
+
+    #[inline]
+    pub(super) fn mmul(lhs: &Mat3d, rhs: &Mat3d) -> Mat3d {
+        Mat3d([
+            lhs.0[0] * rhs.0[0] + lhs.0[1] * rhs.0[3] + lhs.0[2] * rhs.0[6],
+            lhs.0[0] * rhs.0[1] + lhs.0[1] * rhs.0[4] + lhs.0[2] * rhs.0[7],
+            lhs.0[0] * rhs.0[2] + lhs.0[1] * rhs.0[5] + lhs.0[2] * rhs.0[8],
+            lhs.0[3] * rhs.0[0] + lhs.0[4] * rhs.0[3] + lhs.0[5] * rhs.0[6],
+            lhs.0[3] * rhs.0[1] + lhs.0[4] * rhs.0[4] + lhs.0[5] * rhs.0[7],
+            lhs.0[3] * rhs.0[2] + lhs.0[4] * rhs.0[5] + lhs.0[5] * rhs.0[8],
+            lhs.0[6] * rhs.0[0] + lhs.0[7] * rhs.0[3] + lhs.0[8] * rhs.0[6],
+            lhs.0[6] * rhs.0[1] + lhs.0[7] * rhs.0[4] + lhs.0[8] * rhs.0[7],
+            lhs.0[6] * rhs.0[2] + lhs.0[7] * rhs.0[5] + lhs.0[8] * rhs.0[8],
         ])
     }
 
