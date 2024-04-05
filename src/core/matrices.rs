@@ -407,14 +407,13 @@ impl IntoIterator for Mat3d {
     }
 }
 
-/// Implements the `FromIterator` trait for `Mat3d`.
+/// Implements conversion from an iterator of floating-point numbers to a Mat3d.
 impl<R> FromIterator<R> for Mat3d
 where
     R: Float,
 {
-    /// The `from_iter` method consumes the provided iterator and constructs a `Mat3d` using its elements.
-    /// If the iterator produces less than 9 elements, the remaining elements are initialized with zeros.
-    /// If the iterator produces more than 9 elements, the excess elements are ignored.
+    /// This implementation creates a Mat3d from an iterator of floating-point numbers,
+    /// filtering out non-float values and converting each element to f64.
     ///
     /// # Type Parameters
     ///

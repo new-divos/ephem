@@ -7,6 +7,8 @@ use std::{
     ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign},
 };
 
+use num_traits::Float;
+
 use crate::core::{consts::PI2, Canonizable, CrossMul, DotMul, FloatExt, Normalizable};
 
 /// Trait representing a coordinate system.
@@ -1298,7 +1300,7 @@ impl Default for CartesianBuilder {
 /// Implements conversion from an iterator over convertible to `f64` values into a Cartesian vector builder.
 impl<R> FromIterator<R> for CartesianBuilder
 where
-    f64: From<R>,
+    R: Float,
 {
     /// Constructs a Cartesian vector builder from an iterator over convertible to `f64` values.
     ///
@@ -1309,7 +1311,7 @@ where
     /// # Type Parameters
     ///
     /// - `R`: The type of elements convertible to `f64`.
-    /// 
+    ///
     /// # Arguments
     ///
     /// * `iter` - An iterator over convertible to `f64` values.
@@ -1337,11 +1339,11 @@ where
         let mut y = 0.0f64;
         let mut z = 0.0f64;
 
-        for (idx, value) in iter.into_iter().enumerate() {
+        for (idx, value) in iter.into_iter().filter_map(|e| e.to_f64()).enumerate() {
             match idx {
-                Cartesian::X_IDX => x = value.into(),
-                Cartesian::Y_IDX => y = value.into(),
-                Cartesian::Z_IDX => z = value.into(),
+                Cartesian::X_IDX => x = value,
+                Cartesian::Y_IDX => y = value,
+                Cartesian::Z_IDX => z = value,
                 _ => continue,
             }
         }
@@ -1831,7 +1833,7 @@ impl Default for CylindricalBuilder {
 /// Implements conversion from an iterator over convertible to `f64` values into a Cylindrical vector builder.
 impl<R> FromIterator<R> for CylindricalBuilder
 where
-    f64: From<R>,
+    R: Float,
 {
     /// Constructs a Cylindrical vector builder from an iterator over convertible to `f64` values.
     ///
@@ -1870,11 +1872,11 @@ where
         let mut azimuth = 0.0f64;
         let mut altitude = 0.0f64;
 
-        for (idx, value) in iter.into_iter().enumerate() {
+        for (idx, value) in iter.into_iter().filter_map(|e| e.to_f64()).enumerate() {
             match idx {
-                Cylindrical::RADIUS_IDX => radius = value.into(),
-                Cylindrical::AZIMUTH_IDX => azimuth = value.into(),
-                Cylindrical::ALTITUDE_IDX => altitude = value.into(),
+                Cylindrical::RADIUS_IDX => radius = value,
+                Cylindrical::AZIMUTH_IDX => azimuth = value,
+                Cylindrical::ALTITUDE_IDX => altitude = value,
                 _ => continue,
             }
         }
@@ -2406,7 +2408,7 @@ impl<S: SpatialDirection> From<&S> for SphericalBuilder {
 /// Implements conversion from an iterator over convertible to `f64` values into a Spherical vector builder.
 impl<R> FromIterator<R> for SphericalBuilder
 where
-    f64: From<R>,
+    R: Float,
 {
     /// Constructs a Spherical vector builder from an iterator over convertible to `f64` values.
     ///
@@ -2445,11 +2447,11 @@ where
         let mut azimuth = 0.0f64;
         let mut latitude = 0.0f64;
 
-        for (idx, value) in iter.into_iter().enumerate() {
+        for (idx, value) in iter.into_iter().filter_map(|e| e.to_f64()).enumerate() {
             match idx {
-                Spherical::RADIUS_IDX => radius = value.into(),
-                Spherical::AZIMUTH_IDX => azimuth = value.into(),
-                Spherical::LATITUDE_IDX => latitude = value.into(),
+                Spherical::RADIUS_IDX => radius = value,
+                Spherical::AZIMUTH_IDX => azimuth = value,
+                Spherical::LATITUDE_IDX => latitude = value,
                 _ => continue,
             }
         }
