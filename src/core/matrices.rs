@@ -215,6 +215,83 @@ impl Mat3d {
             cursor: 0,
         }
     }
+
+    #[inline]
+    pub fn det(&self) -> f64 {
+        self.0[0] * (self.0[4] * self.0[8] - self.0[5] * self.0[7])
+            - self.0[1] * (self.0[3] * self.0[8] - self.0[5] * self.0[6])
+            + self.0[2] * (self.0[3] * self.0[7] - self.0[4] * self.0[6])
+    }
+
+    #[inline]
+    pub fn trace(&self) -> f64 {
+        self.0[0] + self.0[4] + self.0[8]
+    }
+
+    #[inline]
+    pub fn diag(&self) -> Vec3d<Cartesian> {
+        Vec3d::<Cartesian>(
+            [self.0[0], self.0[4], self.0[8]],
+            PhantomData::<Cartesian> {},
+        )
+    }
+
+    #[rustfmt::skip]
+    #[inline]
+    pub fn transpose(&self) -> Mat3d {
+        Mat3d([
+            self.0[0], self.0[3], self.0[6],
+            self.0[1], self.0[4], self.0[7],
+            self.0[2], self.0[5], self.0[8],
+        ])
+    }
+
+    pub fn inv(&self) -> Option<Mat3d> {
+        let d = self.det();
+        if d.abs() <= f64::EPSILON {
+            return None;
+        }
+
+        Some(Mat3d([
+            (self.0[4] * self.0[8] - self.0[5] * self.0[7]) / d,
+            (self.0[5] * self.0[6] - self.0[3] * self.0[8]) / d,
+            (self.0[3] * self.0[7] - self.0[4] * self.0[6]) / d,
+            (self.0[2] * self.0[7] - self.0[1] * self.0[8]) / d,
+            (self.0[0] * self.0[8] - self.0[2] * self.0[6]) / d,
+            (self.0[1] * self.0[6] - self.0[0] * self.0[7]) / d,
+            (self.0[1] * self.0[5] - self.0[2] * self.0[4]) / d,
+            (self.0[2] * self.0[3] - self.0[0] * self.0[5]) / d,
+            (self.0[0] * self.0[4] - self.0[1] * self.0[3]) / d,
+        ]))
+    }
+
+    #[rustfmt::skip]
+    pub fn solve(&self, values: &Vec3d<Cartesian>) -> Option<Vec3d<Cartesian>> {
+        let d = self.det();
+        if d.abs() <= f64::EPSILON {
+            return None;
+        }
+
+        let d1 = Mat3d([
+            values.0[0], self.0[1], self.0[2],
+            values.0[1], self.0[4], self.0[5],
+            values.0[2], self.0[7], self.0[8],
+        ]).det();
+
+        let d2 = Mat3d([
+            self.0[0], values.0[0], self.0[2],
+            self.0[3], values.0[1], self.0[5],
+            self.0[6], values.0[2], self.0[8],
+        ]).det();
+
+        let d3 = Mat3d([
+            self.0[0], self.0[1], values.0[0],
+            self.0[3], self.0[4], values.0[1],
+            self.0[6], self.0[7], values.0[2],
+        ]).det();
+
+        Some(Vec3d::<Cartesian>([d1 / d, d2 / d, d3 / d], PhantomData::<Cartesian> {}))
+    }
 }
 
 /// Implements the `AsRef` trait for `Mat3d`.
