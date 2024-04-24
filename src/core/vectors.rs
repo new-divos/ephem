@@ -771,6 +771,15 @@ where
     }
 }
 
+impl<'a> Neg for &'a Vec3d<Cartesian> {
+    type Output = Vec3d<Cartesian>;
+
+    #[inline(always)]
+    fn neg(self) -> Self::Output {
+        private::neg_c(self)
+    }
+}
+
 /// Implementation block for negating a Cartesian vector.
 impl Neg for Vec3d<Cartesian> {
     /// The type of the result of the negation operation.
@@ -793,16 +802,36 @@ impl Neg for Vec3d<Cartesian> {
     /// assert_eq!(negated_vector.y(), -2.0);
     /// assert_eq!(negated_vector.z(), -3.0);
     /// ```
-    #[inline]
+    #[inline(always)]
     fn neg(self) -> Self::Output {
-        Vec3d::<Cartesian>(
-            [
-                -self.0[Cartesian::X_IDX],
-                -self.0[Cartesian::Y_IDX],
-                -self.0[Cartesian::Z_IDX],
-            ],
-            PhantomData::<Cartesian> {},
-        )
+        private::neg_c(&self)
+    }
+}
+
+impl<'a> Add for &'a Vec3d<Cartesian> {
+    type Output = Vec3d<Cartesian>;
+
+    #[inline(always)]
+    fn add(self, rhs: Self) -> Self::Output {
+        private::add_c(self, rhs)
+    }
+}
+
+impl<'a> Add<Vec3d<Cartesian>> for &'a Vec3d<Cartesian> {
+    type Output = Vec3d<Cartesian>;
+
+    #[inline(always)]
+    fn add(self, rhs: Vec3d<Cartesian>) -> Self::Output {
+        private::add_c(self, &rhs)
+    }
+}
+
+impl<'a> Add<&'a Vec3d<Cartesian>> for Vec3d<Cartesian> {
+    type Output = Vec3d<Cartesian>;
+
+    #[inline(always)]
+    fn add(self, rhs: &'a Vec3d<Cartesian>) -> Self::Output {
+        private::add_c(&self, rhs)
     }
 }
 
@@ -834,16 +863,16 @@ impl Add for Vec3d<Cartesian> {
     /// assert_eq!(sum.y(), 7.0);
     /// assert_eq!(sum.z(), 9.0);
     /// ```
-    #[inline]
+    #[inline(always)]
     fn add(self, rhs: Self) -> Self::Output {
-        Vec3d::<Cartesian>(
-            [
-                self.0[Cartesian::X_IDX] + rhs.0[Cartesian::X_IDX],
-                self.0[Cartesian::Y_IDX] + rhs.0[Cartesian::Y_IDX],
-                self.0[Cartesian::Z_IDX] + rhs.0[Cartesian::Z_IDX],
-            ],
-            PhantomData::<Cartesian> {},
-        )
+        private::add_c(&self, &rhs)
+    }
+}
+
+impl<'a> AddAssign<&'a Vec3d<Cartesian>> for Vec3d<Cartesian> {
+    #[inline(always)]
+    fn add_assign(&mut self, rhs: &'a Vec3d<Cartesian>) {
+        private::add_assign_c(self, rhs);
     }
 }
 
@@ -867,11 +896,36 @@ impl AddAssign for Vec3d<Cartesian> {
     /// assert_eq!(v1.y(), 7.0);
     /// assert_eq!(v1.z(), 9.0);
     /// ```
-    #[inline]
+    #[inline(always)]
     fn add_assign(&mut self, rhs: Self) {
-        self.0[Cartesian::X_IDX] += rhs.0[Cartesian::X_IDX];
-        self.0[Cartesian::Y_IDX] += rhs.0[Cartesian::Y_IDX];
-        self.0[Cartesian::Z_IDX] += rhs.0[Cartesian::Z_IDX];
+        private::add_assign_c(self, &rhs);
+    }
+}
+
+impl<'a> Sub for &'a Vec3d<Cartesian> {
+    type Output = Vec3d<Cartesian>;
+
+    #[inline(always)]
+    fn sub(self, rhs: Self) -> Self::Output {
+        private::sub_c(self, rhs)
+    }
+}
+
+impl<'a> Sub<Vec3d<Cartesian>> for &'a Vec3d<Cartesian> {
+    type Output = Vec3d<Cartesian>;
+
+    #[inline(always)]
+    fn sub(self, rhs: Vec3d<Cartesian>) -> Self::Output {
+        private::sub_c(self, &rhs)
+    }
+}
+
+impl<'a> Sub<&'a Vec3d<Cartesian>> for Vec3d<Cartesian> {
+    type Output = Vec3d<Cartesian>;
+
+    #[inline(always)]
+    fn sub(self, rhs: &'a Vec3d<Cartesian>) -> Self::Output {
+        private::sub_c(&self, rhs)
     }
 }
 
@@ -903,17 +957,16 @@ impl Sub for Vec3d<Cartesian> {
     /// assert_eq!(difference.y(), -3.0);
     /// assert_eq!(difference.z(), -3.0);
     /// ```
-
-    #[inline]
+    #[inline(always)]
     fn sub(self, rhs: Self) -> Self::Output {
-        Vec3d::<Cartesian>(
-            [
-                self.0[Cartesian::X_IDX] - rhs.0[Cartesian::X_IDX],
-                self.0[Cartesian::Y_IDX] - rhs.0[Cartesian::Y_IDX],
-                self.0[Cartesian::Z_IDX] - rhs.0[Cartesian::Z_IDX],
-            ],
-            PhantomData::<Cartesian> {},
-        )
+        private::sub_c(&self, &rhs)
+    }
+}
+
+impl<'a> SubAssign<&'a Vec3d<Cartesian>> for Vec3d<Cartesian> {
+    #[inline(always)]
+    fn sub_assign(&mut self, rhs: &'a Vec3d<Cartesian>) {
+        private::sub_assign_c(self, rhs)
     }
 }
 
@@ -937,18 +990,31 @@ impl SubAssign for Vec3d<Cartesian> {
     /// assert_eq!(v1.y(), -3.0);
     /// assert_eq!(v1.z(), -3.0);
     /// ```
-    #[inline]
+    #[inline(always)]
     fn sub_assign(&mut self, rhs: Self) {
-        self.0[Cartesian::X_IDX] -= rhs.0[Cartesian::X_IDX];
-        self.0[Cartesian::Y_IDX] -= rhs.0[Cartesian::Y_IDX];
-        self.0[Cartesian::Z_IDX] -= rhs.0[Cartesian::Z_IDX];
+        private::sub_assign_c(self, &rhs);
+    }
+}
+
+impl<'a, R> Mul<R> for &'a Vec3d<Cartesian>
+where
+    R: Float,
+{
+    type Output = Vec3d<Cartesian>;
+
+    #[inline(always)]
+    fn mul(self, rhs: R) -> Self::Output {
+        private::mul_c(self, rhs.to_f64().expect("Unconvertible multiplier"))
     }
 }
 
 /// Implementation block for scalar multiplication of Cartesian `Vec3d` vectors.
-impl Mul<f64> for Vec3d<Cartesian> {
+impl<R> Mul<R> for Vec3d<Cartesian>
+where
+    R: Float,
+{
     /// The type of the result of the multiplication by a floating-point scalar operation.
-    type Output = Self;
+    type Output = Vec3d<Cartesian>;
 
     /// Multiplies each component of the vector by a floating-point scalar value.
     ///
@@ -967,21 +1033,17 @@ impl Mul<f64> for Vec3d<Cartesian> {
     /// assert_eq!(result.y(), 4.0);
     /// assert_eq!(result.z(), 6.0);
     /// ```
-    #[inline]
-    fn mul(self, rhs: f64) -> Self::Output {
-        Vec3d::<Cartesian>(
-            [
-                self.0[Cartesian::X_IDX] * rhs,
-                self.0[Cartesian::Y_IDX] * rhs,
-                self.0[Cartesian::Z_IDX] * rhs,
-            ],
-            PhantomData::<Cartesian> {},
-        )
+    #[inline(always)]
+    fn mul(self, rhs: R) -> Self::Output {
+        private::mul_c(&self, rhs.to_f64().expect("Unconvertible multiplier"))
     }
 }
 
 /// Implementation block for multiplying `Vec3d<Cartesian>` vectors by a scalar in-place.
-impl MulAssign<f64> for Vec3d<Cartesian> {
+impl<R> MulAssign<R> for Vec3d<Cartesian>
+where
+    R: Float,
+{
     /// Multiplies the vector components by the scalar in-place.
     ///
     /// This method modifies the components of the vector by multiplying them with the given scalar.
@@ -1001,16 +1063,29 @@ impl MulAssign<f64> for Vec3d<Cartesian> {
     /// assert_eq!(v.y(), 4.0);
     /// assert_eq!(v.z(), 6.0);
     /// ```
-    #[inline]
-    fn mul_assign(&mut self, rhs: f64) {
-        self.0[Cartesian::X_IDX] *= rhs;
-        self.0[Cartesian::Y_IDX] *= rhs;
-        self.0[Cartesian::Z_IDX] *= rhs;
+    #[inline(always)]
+    fn mul_assign(&mut self, rhs: R) {
+        private::mul_assign_c(self, rhs.to_f64().expect("Unconvertible multiplier"))
+    }
+}
+
+impl<'a, R> Div<R> for &'a Vec3d<Cartesian>
+where
+    R: Float,
+{
+    type Output = Vec3d<Cartesian>;
+
+    #[inline(always)]
+    fn div(self, rhs: R) -> Self::Output {
+        private::div_c(self, rhs.to_f64().expect("Unconvertible divisor"))
     }
 }
 
 /// Implementation block for scalar division of Cartesian `Vec3d` vectors.
-impl Div<f64> for Vec3d<Cartesian> {
+impl<R> Div<R> for Vec3d<Cartesian>
+where
+    R: Float,
+{
     /// The type of the result of the division by a floating-point scalar operation.
     type Output = Self;
 
@@ -1039,21 +1114,17 @@ impl Div<f64> for Vec3d<Cartesian> {
     /// assert_eq!(result.y(), 1.0);
     /// assert_eq!(result.z(), 1.5);
     /// ```
-    #[inline]
-    fn div(self, rhs: f64) -> Self::Output {
-        Vec3d::<Cartesian>(
-            [
-                self.0[Cartesian::X_IDX] / rhs,
-                self.0[Cartesian::Y_IDX] / rhs,
-                self.0[Cartesian::Z_IDX] / rhs,
-            ],
-            PhantomData::<Cartesian> {},
-        )
+    #[inline(always)]
+    fn div(self, rhs: R) -> Self::Output {
+        private::div_c(&self, rhs.to_f64().expect("Unconvertible divisor"))
     }
 }
 
 /// Implementation block for dividing `Vec3d<Cartesian>` vectors by a scalar in-place.
-impl DivAssign<f64> for Vec3d<Cartesian> {
+impl<R> DivAssign<R> for Vec3d<Cartesian>
+where
+    R: Float,
+{
     /// Divides the vector components by the scalar in-place.
     ///
     /// This method modifies the components of the vector by dividing them with the given scalar.
@@ -1077,11 +1148,9 @@ impl DivAssign<f64> for Vec3d<Cartesian> {
     /// assert_eq!(v.y(), 1.0);
     /// assert_eq!(v.z(), 1.5);
     /// ```
-    #[inline]
-    fn div_assign(&mut self, rhs: f64) {
-        self.0[Cartesian::X_IDX] /= rhs;
-        self.0[Cartesian::Y_IDX] /= rhs;
-        self.0[Cartesian::Z_IDX] /= rhs;
+    #[inline(always)]
+    fn div_assign(&mut self, rhs: R) {
+        private::div_assign_c(self, rhs.to_f64().expect("Unconvertible divisor"));
     }
 }
 
@@ -2457,5 +2526,87 @@ where
         }
 
         Self::with(radius, azimuth, latitude)
+    }
+}
+
+mod private {
+    use std::marker::PhantomData;
+
+    use super::{Cartesian, Vec3d};
+
+    #[inline]
+    pub fn neg_c(rhs: &Vec3d<Cartesian>) -> Vec3d<Cartesian> {
+        Vec3d::<Cartesian>(
+            [-rhs.0[0], -rhs.0[1], -rhs.0[2]],
+            PhantomData::<Cartesian> {},
+        )
+    }
+
+    #[inline]
+    pub fn add_c(lhs: &Vec3d<Cartesian>, rhs: &Vec3d<Cartesian>) -> Vec3d<Cartesian> {
+        Vec3d::<Cartesian>(
+            [
+                lhs.0[0] + rhs.0[0],
+                lhs.0[1] + rhs.0[1],
+                lhs.0[2] + rhs.0[2],
+            ],
+            PhantomData::<Cartesian> {},
+        )
+    }
+
+    #[inline]
+    pub fn add_assign_c(lhs: &mut Vec3d<Cartesian>, rhs: &Vec3d<Cartesian>) {
+        lhs.0[0] += rhs.0[0];
+        lhs.0[1] += rhs.0[1];
+        lhs.0[2] += rhs.0[2];
+    }
+
+    #[inline]
+    pub fn sub_c(lhs: &Vec3d<Cartesian>, rhs: &Vec3d<Cartesian>) -> Vec3d<Cartesian> {
+        Vec3d::<Cartesian>(
+            [
+                lhs.0[0] - rhs.0[0],
+                lhs.0[1] - rhs.0[1],
+                lhs.0[2] - rhs.0[2],
+            ],
+            PhantomData::<Cartesian> {},
+        )
+    }
+
+    #[inline]
+    pub fn sub_assign_c(lhs: &mut Vec3d<Cartesian>, rhs: &Vec3d<Cartesian>) {
+        lhs.0[0] -= rhs.0[0];
+        lhs.0[1] -= rhs.0[1];
+        lhs.0[2] -= rhs.0[2];
+    }
+
+    #[inline]
+    pub fn mul_c(lhs: &Vec3d<Cartesian>, rhs: f64) -> Vec3d<Cartesian> {
+        Vec3d::<Cartesian>(
+            [lhs.0[0] * rhs, lhs.0[1] * rhs, lhs.0[2] * rhs],
+            PhantomData::<Cartesian> {},
+        )
+    }
+
+    #[inline]
+    pub fn mul_assign_c(lhs: &mut Vec3d<Cartesian>, rhs: f64) {
+        lhs.0[0] *= rhs;
+        lhs.0[1] *= rhs;
+        lhs.0[2] *= rhs;
+    }
+
+    #[inline]
+    pub fn div_c(lhs: &Vec3d<Cartesian>, rhs: f64) -> Vec3d<Cartesian> {
+        Vec3d::<Cartesian>(
+            [lhs.0[0] / rhs, lhs.0[1] / rhs, lhs.0[2] / rhs],
+            PhantomData::<Cartesian> {},
+        )
+    }
+
+    #[inline]
+    pub fn div_assign_c(lhs: &mut Vec3d<Cartesian>, rhs: f64) {
+        lhs.0[0] /= rhs;
+        lhs.0[1] /= rhs;
+        lhs.0[2] /= rhs;
     }
 }

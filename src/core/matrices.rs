@@ -1391,11 +1391,11 @@ mod private {
 
     #[rustfmt::skip]
     #[inline]
-    pub(super) fn neg(lhs: &Mat3d) -> Mat3d {
+    pub(super) fn neg(rhs: &Mat3d) -> Mat3d {
         Mat3d([
-            -lhs.0[0], -lhs.0[1], -lhs.0[2],
-            -lhs.0[3], -lhs.0[4], -lhs.0[5],
-            -lhs.0[6], -lhs.0[7], -lhs.0[8],
+            -rhs.0[0], -rhs.0[1], -rhs.0[2],
+            -rhs.0[3], -rhs.0[4], -rhs.0[5],
+            -rhs.0[6], -rhs.0[7], -rhs.0[8],
         ])
     }
 
