@@ -9,7 +9,10 @@ use std::{
 
 use num_traits::Float;
 
-use crate::core::{consts::PI2, Canonizable, CrossMul, DotMul, FloatExt, Normalizable};
+use crate::core::{
+    consts::PI2, AdditivelyProcessable, Canonizable, CrossMul, DotMul, FloatExt,
+    MultiplyByScalarProcessable, NegativelyProcessable, Normalizable,
+};
 
 /// Trait representing a coordinate system.
 ///
@@ -357,6 +360,166 @@ impl<S: CoordinateSystem> From<Vec3d<S>> for (f64, f64, f64) {
     }
 }
 
+impl<'a, S> Neg for &'a Vec3d<S>
+where
+    S: CoordinateSystem + NegativelyProcessable<Vec3d<S>, Output = Vec3d<S>>,
+{
+    type Output = Vec3d<S>;
+
+    #[inline(always)]
+    fn neg(self) -> Self::Output {
+        S::neg(self)
+    }
+}
+
+impl<S> Neg for Vec3d<S>
+where
+    S: CoordinateSystem + NegativelyProcessable<Vec3d<S>, Output = Vec3d<S>>,
+{
+    type Output = Vec3d<S>;
+
+    #[inline(always)]
+    fn neg(self) -> Self::Output {
+        S::neg(&self)
+    }
+}
+
+impl<'a, S> Add for &'a Vec3d<S>
+where
+    S: CoordinateSystem + AdditivelyProcessable<Vec3d<S>, Vec3d<S>, Output = Vec3d<S>>,
+{
+    type Output = Vec3d<S>;
+
+    #[inline(always)]
+    fn add(self, rhs: Self) -> Self::Output {
+        S::add(self, rhs)
+    }
+}
+
+impl<'a, S> Add<Vec3d<S>> for &'a Vec3d<S>
+where
+    S: CoordinateSystem + AdditivelyProcessable<Vec3d<S>, Vec3d<S>, Output = Vec3d<S>>,
+{
+    type Output = Vec3d<S>;
+
+    #[inline(always)]
+    fn add(self, rhs: Vec3d<S>) -> Self::Output {
+        S::add(self, &rhs)
+    }
+}
+
+impl<'a, S> Add<&'a Vec3d<S>> for Vec3d<S>
+where
+    S: CoordinateSystem + AdditivelyProcessable<Vec3d<S>, Vec3d<S>, Output = Vec3d<S>>,
+{
+    type Output = Vec3d<S>;
+
+    #[inline(always)]
+    fn add(self, rhs: &'a Vec3d<S>) -> Self::Output {
+        S::add(&self, rhs)
+    }
+}
+
+impl<S> Add for Vec3d<S>
+where
+    S: CoordinateSystem + AdditivelyProcessable<Vec3d<S>, Vec3d<S>, Output = Vec3d<S>>,
+{
+    type Output = Vec3d<S>;
+
+    #[inline(always)]
+    fn add(self, rhs: Self) -> Self::Output {
+        S::add(&self, &rhs)
+    }
+}
+
+impl<'a, S> AddAssign<&'a Vec3d<S>> for Vec3d<S>
+where
+    S: CoordinateSystem + AdditivelyProcessable<Vec3d<S>, Vec3d<S>, Output = Vec3d<S>>,
+{
+    #[inline(always)]
+    fn add_assign(&mut self, rhs: &'a Vec3d<S>) {
+        S::add_assign(self, rhs);
+    }
+}
+
+impl<S> AddAssign for Vec3d<S>
+where
+    S: CoordinateSystem + AdditivelyProcessable<Vec3d<S>, Vec3d<S>, Output = Vec3d<S>>,
+{
+    #[inline(always)]
+    fn add_assign(&mut self, rhs: Self) {
+        S::add_assign(self, &rhs);
+    }
+}
+
+impl<'a, S> Sub for &'a Vec3d<S>
+where
+    S: CoordinateSystem + AdditivelyProcessable<Vec3d<S>, Vec3d<S>, Output = Vec3d<S>>,
+{
+    type Output = Vec3d<S>;
+
+    #[inline(always)]
+    fn sub(self, rhs: Self) -> Self::Output {
+        S::sub(self, rhs)
+    }
+}
+
+impl<'a, S> Sub<Vec3d<S>> for &'a Vec3d<S>
+where
+    S: CoordinateSystem + AdditivelyProcessable<Vec3d<S>, Vec3d<S>, Output = Vec3d<S>>,
+{
+    type Output = Vec3d<S>;
+
+    #[inline(always)]
+    fn sub(self, rhs: Vec3d<S>) -> Self::Output {
+        S::sub(self, &rhs)
+    }
+}
+
+impl<'a, S> Sub<&'a Vec3d<S>> for Vec3d<S>
+where
+    S: CoordinateSystem + AdditivelyProcessable<Vec3d<S>, Vec3d<S>, Output = Vec3d<S>>,
+{
+    type Output = Vec3d<S>;
+
+    #[inline(always)]
+    fn sub(self, rhs: &'a Vec3d<S>) -> Self::Output {
+        S::sub(&self, rhs)
+    }
+}
+
+impl<S> Sub for Vec3d<S>
+where
+    S: CoordinateSystem + AdditivelyProcessable<Vec3d<S>, Vec3d<S>, Output = Vec3d<S>>,
+{
+    type Output = Vec3d<S>;
+
+    #[inline(always)]
+    fn sub(self, rhs: Self) -> Self::Output {
+        S::sub(&self, &rhs)
+    }
+}
+
+impl<'a, S> SubAssign<&'a Vec3d<S>> for Vec3d<S>
+where
+    S: CoordinateSystem + AdditivelyProcessable<Vec3d<S>, Vec3d<S>, Output = Vec3d<S>>,
+{
+    #[inline(always)]
+    fn sub_assign(&mut self, rhs: &'a Vec3d<S>) {
+        S::sub_assign(self, rhs);
+    }
+}
+
+impl<S> SubAssign for Vec3d<S>
+where
+    S: CoordinateSystem + AdditivelyProcessable<Vec3d<S>, Vec3d<S>, Output = Vec3d<S>>,
+{
+    #[inline(always)]
+    fn sub_assign(&mut self, rhs: Self) {
+        S::sub_assign(self, &rhs);
+    }
+}
+
 /// Implementation block for multiplication of a scalar by a `Vec3d`.
 impl<S> Mul<Vec3d<S>> for f64
 where
@@ -637,6 +800,94 @@ impl CoordinateSystem for Cartesian {
     const E3_IDX: usize = Self::Z_IDX;
 }
 
+impl NegativelyProcessable<Vec3d<Cartesian>> for Cartesian {
+    type Output = Vec3d<Cartesian>;
+
+    #[inline]
+    fn neg(lhs: &Vec3d<Cartesian>) -> Self::Output {
+        Vec3d::<Cartesian>(
+            [-lhs.0[0], -lhs.0[1], -lhs.0[2]],
+            PhantomData::<Cartesian> {},
+        )
+    }
+}
+
+impl AdditivelyProcessable<Vec3d<Cartesian>, Vec3d<Cartesian>> for Cartesian {
+    type Output = Vec3d<Cartesian>;
+
+    #[inline]
+    fn add(lhs: &Vec3d<Cartesian>, rhs: &Vec3d<Cartesian>) -> Self::Output {
+        Vec3d::<Cartesian>(
+            [
+                lhs.0[0] + rhs.0[0],
+                lhs.0[1] + rhs.0[1],
+                lhs.0[2] + rhs.0[2],
+            ],
+            PhantomData::<Cartesian> {},
+        )
+    }
+
+    #[inline]
+    fn add_assign(lhs: &mut Vec3d<Cartesian>, rhs: &Vec3d<Cartesian>) {
+        lhs.0[0] += rhs.0[0];
+        lhs.0[1] += rhs.0[1];
+        lhs.0[2] += rhs.0[2];
+    }
+
+    #[inline]
+    fn sub(lhs: &Vec3d<Cartesian>, rhs: &Vec3d<Cartesian>) -> Self::Output {
+        Vec3d::<Cartesian>(
+            [
+                lhs.0[0] - rhs.0[0],
+                lhs.0[1] - rhs.0[1],
+                lhs.0[2] - rhs.0[2],
+            ],
+            PhantomData::<Cartesian> {},
+        )
+    }
+
+    #[inline]
+    fn sub_assign(lhs: &mut Vec3d<Cartesian>, rhs: &Vec3d<Cartesian>) {
+        lhs.0[0] -= rhs.0[0];
+        lhs.0[1] -= rhs.0[1];
+        lhs.0[2] -= rhs.0[2];
+    }
+}
+
+impl MultiplyByScalarProcessable<Vec3d<Cartesian>> for Cartesian {
+    type Output = Vec3d<Cartesian>;
+
+    #[inline]
+    fn mul(lhs: &Vec3d<Cartesian>, rhs: f64) -> Self::Output {
+        Vec3d::<Cartesian>(
+            [lhs.0[0] * rhs, lhs.0[1] * rhs, lhs.0[2] * rhs],
+            PhantomData::<Cartesian> {},
+        )
+    }
+
+    #[inline]
+    fn mul_assign(lhs: &mut Vec3d<Cartesian>, rhs: f64) {
+        lhs.0[0] *= rhs;
+        lhs.0[1] *= rhs;
+        lhs.0[2] *= rhs;
+    }
+
+    #[inline]
+    fn div(lhs: &Vec3d<Cartesian>, rhs: f64) -> Self::Output {
+        Vec3d::<Cartesian>(
+            [lhs.0[0] / rhs, lhs.0[1] / rhs, lhs.0[2] / rhs],
+            PhantomData::<Cartesian> {},
+        )
+    }
+
+    #[inline]
+    fn div_assign(lhs: &mut Vec3d<Cartesian>, rhs: f64) {
+        lhs.0[0] /= rhs;
+        lhs.0[1] /= rhs;
+        lhs.0[2] /= rhs;
+    }
+}
+
 /// Additional methods for three-dimensional vectors in the Cartesian coordinate system.
 ///
 /// This implementation block adds convenience methods to the `Vec3d` struct when the chosen
@@ -768,231 +1019,6 @@ where
     #[inline]
     fn from(vector: Vec3d<S>) -> Self {
         vector.to_c()
-    }
-}
-
-impl<'a> Neg for &'a Vec3d<Cartesian> {
-    type Output = Vec3d<Cartesian>;
-
-    #[inline(always)]
-    fn neg(self) -> Self::Output {
-        private::neg_c(self)
-    }
-}
-
-/// Implementation block for negating a Cartesian vector.
-impl Neg for Vec3d<Cartesian> {
-    /// The type of the result of the negation operation.
-    type Output = Self;
-
-    /// Negates a Cartesian `Vec3d` vector.
-    ///
-    /// # Returns
-    ///
-    /// A new Cartesian `Vec3d` vector with negated components.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use ephem::core::vectors::{Cartesian, CartesianBuilder, Vec3d};
-    ///
-    /// let vector = CartesianBuilder::with(1.0, 2.0, 3.0).build();
-    /// let negated_vector = -vector;
-    /// assert_eq!(negated_vector.x(), -1.0);
-    /// assert_eq!(negated_vector.y(), -2.0);
-    /// assert_eq!(negated_vector.z(), -3.0);
-    /// ```
-    #[inline(always)]
-    fn neg(self) -> Self::Output {
-        private::neg_c(&self)
-    }
-}
-
-impl<'a> Add for &'a Vec3d<Cartesian> {
-    type Output = Vec3d<Cartesian>;
-
-    #[inline(always)]
-    fn add(self, rhs: Self) -> Self::Output {
-        private::add_c(self, rhs)
-    }
-}
-
-impl<'a> Add<Vec3d<Cartesian>> for &'a Vec3d<Cartesian> {
-    type Output = Vec3d<Cartesian>;
-
-    #[inline(always)]
-    fn add(self, rhs: Vec3d<Cartesian>) -> Self::Output {
-        private::add_c(self, &rhs)
-    }
-}
-
-impl<'a> Add<&'a Vec3d<Cartesian>> for Vec3d<Cartesian> {
-    type Output = Vec3d<Cartesian>;
-
-    #[inline(always)]
-    fn add(self, rhs: &'a Vec3d<Cartesian>) -> Self::Output {
-        private::add_c(&self, rhs)
-    }
-}
-
-/// Implementation block for adding two Cartesian `Vec3d` vectors.
-impl Add for Vec3d<Cartesian> {
-    /// The type of the result of the addition operation.
-    type Output = Self;
-
-    /// Adds two Cartesian `Vec3d` vectors.
-    ///
-    /// # Arguments
-    ///
-    /// * `rhs` - The right-hand side vector to be added to the left-hand side vector.
-    ///
-    /// # Returns
-    ///
-    /// A new Cartesian `Vec3d` vector with components equal to the sum of the corresponding
-    /// components of the input vectors.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use ephem::core::vectors::{Cartesian, CartesianBuilder, Vec3d};
-    ///
-    /// let v1 = CartesianBuilder::with(1.0, 2.0, 3.0).build();
-    /// let v2 = CartesianBuilder::with(4.0, 5.0, 6.0).build();
-    /// let sum = v1 + v2;
-    /// assert_eq!(sum.x(), 5.0);
-    /// assert_eq!(sum.y(), 7.0);
-    /// assert_eq!(sum.z(), 9.0);
-    /// ```
-    #[inline(always)]
-    fn add(self, rhs: Self) -> Self::Output {
-        private::add_c(&self, &rhs)
-    }
-}
-
-impl<'a> AddAssign<&'a Vec3d<Cartesian>> for Vec3d<Cartesian> {
-    #[inline(always)]
-    fn add_assign(&mut self, rhs: &'a Vec3d<Cartesian>) {
-        private::add_assign_c(self, rhs);
-    }
-}
-
-/// Implementation block for in-place addition of Cartesian `Vec3d` vectors.
-impl AddAssign for Vec3d<Cartesian> {
-    /// Performs in-place addition of Cartesian `Vec3d` vectors.
-    ///
-    /// # Arguments
-    ///
-    /// * `rhs` - The right-hand side vector to be added to the left-hand side vector.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use ephem::core::vectors::{Cartesian, CartesianBuilder, Vec3d};
-    ///
-    /// let mut v1 = CartesianBuilder::with(1.0, 2.0, 3.0).build();
-    /// let v2 = CartesianBuilder::with(4.0, 5.0, 6.0).build();
-    /// v1 += v2;
-    /// assert_eq!(v1.x(), 5.0);
-    /// assert_eq!(v1.y(), 7.0);
-    /// assert_eq!(v1.z(), 9.0);
-    /// ```
-    #[inline(always)]
-    fn add_assign(&mut self, rhs: Self) {
-        private::add_assign_c(self, &rhs);
-    }
-}
-
-impl<'a> Sub for &'a Vec3d<Cartesian> {
-    type Output = Vec3d<Cartesian>;
-
-    #[inline(always)]
-    fn sub(self, rhs: Self) -> Self::Output {
-        private::sub_c(self, rhs)
-    }
-}
-
-impl<'a> Sub<Vec3d<Cartesian>> for &'a Vec3d<Cartesian> {
-    type Output = Vec3d<Cartesian>;
-
-    #[inline(always)]
-    fn sub(self, rhs: Vec3d<Cartesian>) -> Self::Output {
-        private::sub_c(self, &rhs)
-    }
-}
-
-impl<'a> Sub<&'a Vec3d<Cartesian>> for Vec3d<Cartesian> {
-    type Output = Vec3d<Cartesian>;
-
-    #[inline(always)]
-    fn sub(self, rhs: &'a Vec3d<Cartesian>) -> Self::Output {
-        private::sub_c(&self, rhs)
-    }
-}
-
-/// Implementation block for subtracting Cartesian `Vec3d` vectors.
-impl Sub for Vec3d<Cartesian> {
-    /// The type of the result of the substraction operation.
-    type Output = Self;
-
-    /// Subtracts two Cartesian `Vec3d` vectors.
-    ///
-    /// # Arguments
-    ///
-    /// * `rhs` - The right-hand side vector to be subtracted from the left-hand side vector.
-    ///
-    /// # Returns
-    ///
-    /// A new Cartesian `Vec3d` vector with components equal to the difference between the corresponding components
-    /// of the input vectors.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use ephem::core::vectors::{Cartesian, CartesianBuilder, Vec3d};
-    ///
-    /// let v1 = CartesianBuilder::with(1.0, 2.0, 3.0).build();
-    /// let v2 = CartesianBuilder::with(4.0, 5.0, 6.0).build();
-    /// let difference = v1 - v2;
-    /// assert_eq!(difference.x(), -3.0);
-    /// assert_eq!(difference.y(), -3.0);
-    /// assert_eq!(difference.z(), -3.0);
-    /// ```
-    #[inline(always)]
-    fn sub(self, rhs: Self) -> Self::Output {
-        private::sub_c(&self, &rhs)
-    }
-}
-
-impl<'a> SubAssign<&'a Vec3d<Cartesian>> for Vec3d<Cartesian> {
-    #[inline(always)]
-    fn sub_assign(&mut self, rhs: &'a Vec3d<Cartesian>) {
-        private::sub_assign_c(self, rhs)
-    }
-}
-
-/// Implementation block for in-place subtraction of Cartesian `Vec3d` vectors.
-impl SubAssign for Vec3d<Cartesian> {
-    /// Subtracts the components of another Cartesian `Vec3d` vector from the components of this vector.
-    ///
-    /// # Arguments
-    ///
-    /// * `rhs` - The right-hand side vector whose components are subtracted from the components of the left-hand side vector.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use ephem::core::vectors::{Cartesian, CartesianBuilder, Vec3d};
-    ///
-    /// let mut v1 = CartesianBuilder::with(1.0, 2.0, 3.0).build();
-    /// let v2 = CartesianBuilder::with(4.0, 5.0, 6.0).build();
-    /// v1 -= v2;
-    /// assert_eq!(v1.x(), -3.0);
-    /// assert_eq!(v1.y(), -3.0);
-    /// assert_eq!(v1.z(), -3.0);
-    /// ```
-    #[inline(always)]
-    fn sub_assign(&mut self, rhs: Self) {
-        private::sub_assign_c(self, &rhs);
     }
 }
 
@@ -1451,6 +1477,22 @@ impl CoordinateSystem for Cylindrical {
     const E3_IDX: usize = Self::ALTITUDE_IDX;
 }
 
+impl NegativelyProcessable<Vec3d<Cylindrical>> for Cylindrical {
+    type Output = Vec3d<Cylindrical>;
+
+    #[inline]
+    fn neg(lhs: &Vec3d<Cylindrical>) -> Self::Output {
+        Vec3d::<Cylindrical>(
+            [
+                -lhs.0[Cylindrical::RADIUS_IDX],
+                lhs.0[Cylindrical::AZIMUTH_IDX],
+                -lhs.0[Cylindrical::ALTITUDE_IDX],
+            ],
+            PhantomData::<Cylindrical> {},
+        )
+    }
+}
+
 /// Additional methods for three-dimensional vectors in the cylindrical coordinate system.
 ///
 /// This implementation block adds convenience methods to the `Vec3d` struct when the chosen
@@ -1588,46 +1630,6 @@ where
     #[inline]
     fn from(vector: Vec3d<S>) -> Self {
         vector.to_y()
-    }
-}
-
-/// Implements the negation operation for vectors in cylindrical coordinates.
-impl Neg for Vec3d<Cylindrical> {
-    /// The type of the result of the negation operation.
-    type Output = Self;
-
-    /// Negates each component of the vector in cylindrical coordinates.
-    ///
-    /// # Arguments
-    ///
-    /// * `self` - The vector to be negated.
-    ///
-    /// # Returns
-    ///
-    /// A new vector with negated components.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use std::f64::consts::PI;
-    /// use ephem::core::vectors::{Cylindrical, CylindricalBuilder, Vec3d};
-    ///
-    /// let vector = CylindricalBuilder::with(1.0, PI, 3.0).build();
-    /// let negated_vector = -vector;
-    /// assert_eq!(negated_vector.radius(), -1.0);
-    /// assert_eq!(negated_vector.azimuth(), PI);
-    /// assert_eq!(negated_vector.altitude(), -3.0);
-    /// ```
-    #[inline]
-    fn neg(self) -> Self::Output {
-        Vec3d::<Cylindrical>(
-            [
-                -self.0[Cylindrical::RADIUS_IDX],
-                self.0[Cylindrical::AZIMUTH_IDX],
-                -self.0[Cylindrical::ALTITUDE_IDX],
-            ],
-            PhantomData::<Cylindrical> {},
-        )
     }
 }
 
@@ -1984,6 +1986,22 @@ impl CoordinateSystem for Spherical {
     const E3_IDX: usize = Self::LATITUDE_IDX;
 }
 
+impl NegativelyProcessable<Vec3d<Spherical>> for Spherical {
+    type Output = Vec3d<Spherical>;
+
+    #[inline]
+    fn neg(lhs: &Vec3d<Spherical>) -> Self::Output {
+        Vec3d::<Spherical>(
+            [
+                -lhs.0[Spherical::RADIUS_IDX],
+                lhs.0[Spherical::AZIMUTH_IDX],
+                lhs.0[Spherical::LATITUDE_IDX],
+            ],
+            PhantomData::<Spherical> {},
+        )
+    }
+}
+
 /// Additional methods for three-dimensional vectors in the spherical coordinate system.
 ///
 /// This implementation block adds convenience methods to the `Vec3d` struct when the chosen
@@ -2120,50 +2138,6 @@ where
     #[inline]
     fn from(vector: Vec3d<S>) -> Self {
         vector.to_s()
-    }
-}
-
-/// Implements unary negation for Spherical vectors.
-impl Neg for Vec3d<Spherical> {
-    /// The type of the result of the negation operation.
-    type Output = Self;
-
-    /// Negates the Spherical vector.
-    ///
-    /// This function returns a new Spherical vector where the radius component is negated, and the azimuth and latitude
-    /// components remain unchanged.
-    ///
-    /// # Arguments
-    ///
-    /// * `self` - The Spherical vector to be negated.
-    ///
-    /// # Returns
-    ///
-    /// A new Spherical vector with the radius component negated and other components unchanged.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use std::ops::Neg;
-    /// use ephem::core::vectors::{Spherical, SphericalBuilder, Vec3d};
-    ///
-    /// let vector = SphericalBuilder::with(1.0, 2.0, 3.0).build();
-    /// let negated_vector = -vector;
-    ///
-    /// assert_eq!(negated_vector.radius(), -1.0);
-    /// assert_eq!(negated_vector.azimuth(), 2.0);
-    /// assert_eq!(negated_vector.latitude(), 3.0);
-    /// ```
-    #[inline]
-    fn neg(self) -> Self::Output {
-        Self(
-            [
-                -self.0[Spherical::RADIUS_IDX],
-                self.0[Spherical::AZIMUTH_IDX],
-                self.0[Spherical::LATITUDE_IDX],
-            ],
-            PhantomData::<Spherical> {},
-        )
     }
 }
 
@@ -2533,52 +2507,6 @@ mod private {
     use std::marker::PhantomData;
 
     use super::{Cartesian, Vec3d};
-
-    #[inline]
-    pub fn neg_c(rhs: &Vec3d<Cartesian>) -> Vec3d<Cartesian> {
-        Vec3d::<Cartesian>(
-            [-rhs.0[0], -rhs.0[1], -rhs.0[2]],
-            PhantomData::<Cartesian> {},
-        )
-    }
-
-    #[inline]
-    pub fn add_c(lhs: &Vec3d<Cartesian>, rhs: &Vec3d<Cartesian>) -> Vec3d<Cartesian> {
-        Vec3d::<Cartesian>(
-            [
-                lhs.0[0] + rhs.0[0],
-                lhs.0[1] + rhs.0[1],
-                lhs.0[2] + rhs.0[2],
-            ],
-            PhantomData::<Cartesian> {},
-        )
-    }
-
-    #[inline]
-    pub fn add_assign_c(lhs: &mut Vec3d<Cartesian>, rhs: &Vec3d<Cartesian>) {
-        lhs.0[0] += rhs.0[0];
-        lhs.0[1] += rhs.0[1];
-        lhs.0[2] += rhs.0[2];
-    }
-
-    #[inline]
-    pub fn sub_c(lhs: &Vec3d<Cartesian>, rhs: &Vec3d<Cartesian>) -> Vec3d<Cartesian> {
-        Vec3d::<Cartesian>(
-            [
-                lhs.0[0] - rhs.0[0],
-                lhs.0[1] - rhs.0[1],
-                lhs.0[2] - rhs.0[2],
-            ],
-            PhantomData::<Cartesian> {},
-        )
-    }
-
-    #[inline]
-    pub fn sub_assign_c(lhs: &mut Vec3d<Cartesian>, rhs: &Vec3d<Cartesian>) {
-        lhs.0[0] -= rhs.0[0];
-        lhs.0[1] -= rhs.0[1];
-        lhs.0[2] -= rhs.0[2];
-    }
 
     #[inline]
     pub fn mul_c(lhs: &Vec3d<Cartesian>, rhs: f64) -> Vec3d<Cartesian> {

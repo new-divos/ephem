@@ -689,6 +689,14 @@ fn cartesian_vec3d_negation_test() {
         let v = CartesianBuilder::with(x, y, z).build();
 
         // Perform negation
+        let n = -&v;
+
+        // Verify components of the resulting vector
+        assert_eq!(n.x(), -x);
+        assert_eq!(n.y(), -y);
+        assert_eq!(n.z(), -z);
+
+        // Perform negation
         let n = -v;
 
         // Verify components of the resulting vector
@@ -709,6 +717,30 @@ fn cartesian_vec3d_addition_test() {
 
         let (x2, y2, z2) = shared::gen_cartesian(&mut rng);
         let v2 = CartesianBuilder::with(x2, y2, z2).build();
+
+        // Perform addition
+        let r = &v1 + &v2;
+
+        // Verify components of the resulting vector
+        assert_eq!(r.x(), x1 + x2);
+        assert_eq!(r.y(), y1 + y2);
+        assert_eq!(r.z(), z1 + z2);
+
+        // Perform addition
+        let r = &v1 + v2.clone();
+
+        // Verify components of the resulting vector
+        assert_eq!(r.x(), x1 + x2);
+        assert_eq!(r.y(), y1 + y2);
+        assert_eq!(r.z(), z1 + z2);
+
+        // Perform addition
+        let r = v1.clone() + &v2;
+
+        // Verify components of the resulting vector
+        assert_eq!(r.x(), x1 + x2);
+        assert_eq!(r.y(), y1 + y2);
+        assert_eq!(r.z(), z1 + z2);
 
         // Perform addition
         let r = v1 + v2;
@@ -733,6 +765,15 @@ fn cartesian_vec3d_addition_with_assignment_test() {
         let v2 = CartesianBuilder::with(x2, y2, z2).build();
 
         // Perform addition with assignment
+        let mut v3 = v1.clone();
+        v3 += &v2;
+
+        // Verify components of the resulting vector
+        assert_eq!(v3.x(), x1 + x2);
+        assert_eq!(v3.y(), y1 + y2);
+        assert_eq!(v3.z(), z1 + z2);
+
+        // Perform addition with assignment
         v1 += v2;
 
         // Verify components of the resulting vector
@@ -755,6 +796,30 @@ fn cartesian_vec3d_substraction_test() {
         let v2 = CartesianBuilder::with(x2, y2, z2).build();
 
         // Perform subtraction
+        let r = &v1 - &v2;
+
+        // Verify components of the resulting vector
+        assert_eq!(r.x(), x1 - x2);
+        assert_eq!(r.y(), y1 - y2);
+        assert_eq!(r.z(), z1 - z2);
+
+        // Perform subtraction
+        let r = &v1 - v2.clone();
+
+        // Verify components of the resulting vector
+        assert_eq!(r.x(), x1 - x2);
+        assert_eq!(r.y(), y1 - y2);
+        assert_eq!(r.z(), z1 - z2);
+
+        // Perform subtraction
+        let r = v1.clone() - &v2;
+
+        // Verify components of the resulting vector
+        assert_eq!(r.x(), x1 - x2);
+        assert_eq!(r.y(), y1 - y2);
+        assert_eq!(r.z(), z1 - z2);
+
+        // Perform subtraction
         let r = v1 - v2;
 
         // Verify components of the resulting vector
@@ -775,6 +840,15 @@ fn cartesian_vec3d_substraction_with_assignment_test() {
 
         let (x2, y2, z2) = shared::gen_cartesian(&mut rng);
         let v2 = CartesianBuilder::with(x2, y2, z2).build();
+
+        // Perform subtraction with assignment
+        let mut v3 = v1.clone();
+        v3 -= &v2;
+
+        // Verify components of the resulting vector
+        assert_eq!(v3.x(), x1 - x2);
+        assert_eq!(v3.y(), y1 - y2);
+        assert_eq!(v3.z(), z1 - z2);
 
         // Perform subtraction with assignment
         v1 -= v2;
@@ -984,6 +1058,14 @@ fn cylindrical_vec3d_negation_test() {
         let v = CylindricalBuilder::with(radius, azimuth, altitude).build();
 
         // Perform negation
+        let n = -&v;
+
+        // Verify components of the resulting vector
+        assert_eq!(n.radius(), -radius);
+        assert_eq!(n.azimuth(), azimuth);
+        assert_eq!(n.altitude(), -altitude);
+
+        // Perform negation
         let n = -v;
 
         // Verify components of the resulting vector
@@ -1103,6 +1185,14 @@ fn spherical_vec3d_negation_test() {
         // Generate random Spherical vector
         let (radius, azimuth, latitude) = shared::gen_spherical(&mut rng);
         let v = SphericalBuilder::with(radius, azimuth, latitude).build();
+
+        // Perform negation
+        let n = -&v;
+
+        // Verify components of the resulting vector
+        assert_eq!(n.radius(), -radius);
+        assert_eq!(n.azimuth(), azimuth);
+        assert_eq!(n.latitude(), latitude);
 
         // Perform negation
         let n = -v;
