@@ -10,8 +10,10 @@ use std::{
 use num_traits::Float;
 
 use crate::core::{
-    consts::PI2, error::Fault, AdditivelyProcessable, Canonizable, CrossMul, DotMul, FloatExt,
-    MultiplyByScalarProcessable, NegativelyProcessable, Normalizable,
+    consts::PI2,
+    error::Fault,
+    process::{AdditivelyProcessable, MultiplyByScalarProcessable, NegativelyProcessable},
+    Canonizable, CrossMul, DotMul, FloatExt, Normalizable,
 };
 
 /// Trait representing a coordinate system.

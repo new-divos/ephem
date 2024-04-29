@@ -3,6 +3,7 @@ use num_traits::float::Float;
 pub mod consts;
 pub mod error;
 pub mod matrices;
+pub(crate) mod process;
 pub mod vectors;
 
 pub type Result<T> = std::result::Result<T, crate::core::error::Error>;
@@ -166,32 +167,6 @@ pub trait CrossMul<Rhs = Self> {
     /// assert_eq!(cross_product.y, 0.0_f64);
     /// ```
     fn cross(self, rhs: Rhs) -> Self::Output;
-}
-
-pub(crate) trait NegativelyProcessable<Lhs> {
-    type Output;
-
-    fn neg(lhs: &Lhs) -> Self::Output;
-}
-
-pub(crate) trait AdditivelyProcessable<Lhs, Rhs> {
-    type Output;
-
-    fn add(lhs: &Lhs, rhs: &Rhs) -> Self::Output;
-    fn add_assign(lhs: &mut Lhs, rhs: &Rhs);
-
-    fn sub(lhs: &Lhs, rhs: &Rhs) -> Self::Output;
-    fn sub_assign(lhs: &mut Lhs, rhs: &Rhs);
-}
-
-pub(crate) trait MultiplyByScalarProcessable<Lhs> {
-    type Output;
-
-    fn mul(lhs: &Lhs, rhs: f64) -> Self::Output;
-    fn mul_assign(lhs: &mut Lhs, rhs: f64);
-
-    fn div(lhs: &Lhs, rhs: f64) -> Self::Output;
-    fn div_assign(lhs: &mut Lhs, rhs: f64);
 }
 
 /// A trait extending the functionality of floating-point numbers.
