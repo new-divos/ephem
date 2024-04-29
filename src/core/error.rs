@@ -63,3 +63,10 @@ impl fmt::Display for Error {
         }
     }
 }
+
+pub(crate) struct Fault {}
+
+impl Fault {
+    pub const UNCONV_MUL: &'static str = "Unconvertible multiplier";
+    pub const UNCONV_DIV: &'static str = "Unconvertible divisor";
+}

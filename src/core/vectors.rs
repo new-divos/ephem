@@ -10,7 +10,7 @@ use std::{
 use num_traits::Float;
 
 use crate::core::{
-    consts::PI2, AdditivelyProcessable, Canonizable, CrossMul, DotMul, FloatExt,
+    consts::PI2, error::Fault, AdditivelyProcessable, Canonizable, CrossMul, DotMul, FloatExt,
     MultiplyByScalarProcessable, NegativelyProcessable, Normalizable,
 };
 
@@ -520,11 +520,48 @@ where
     }
 }
 
+impl<'a, S, R> Mul<R> for &'a Vec3d<S>
+where
+    S: CoordinateSystem + MultiplyByScalarProcessable<Vec3d<S>, Output = Vec3d<S>>,
+    R: Float,
+{
+    type Output = Vec3d<S>;
+
+    #[inline(always)]
+    fn mul(self, rhs: R) -> Self::Output {
+        S::mul(self, rhs.to_f64().expect(Fault::UNCONV_MUL))
+    }
+}
+
+impl<S, R> Mul<R> for Vec3d<S>
+where
+    S: CoordinateSystem + MultiplyByScalarProcessable<Vec3d<S>, Output = Vec3d<S>>,
+    R: Float,
+{
+    type Output = Vec3d<S>;
+
+    #[inline(always)]
+    fn mul(self, rhs: R) -> Self::Output {
+        S::mul(&self, rhs.to_f64().expect(Fault::UNCONV_MUL))
+    }
+}
+
+impl<'a, S> Mul<&'a Vec3d<S>> for f64
+where
+    S: CoordinateSystem + MultiplyByScalarProcessable<Vec3d<S>, Output = Vec3d<S>>,
+{
+    type Output = Vec3d<S>;
+
+    #[inline(always)]
+    fn mul(self, rhs: &'a Vec3d<S>) -> Self::Output {
+        S::mul(rhs, self)
+    }
+}
+
 /// Implementation block for multiplication of a scalar by a `Vec3d`.
 impl<S> Mul<Vec3d<S>> for f64
 where
-    S: CoordinateSystem,
-    Vec3d<S>: Mul<f64, Output = Vec3d<S>>,
+    S: CoordinateSystem + MultiplyByScalarProcessable<Vec3d<S>, Output = Vec3d<S>>,
 {
     /// The type of the output when multiplying a scalar by a `Vec3d`.
     type Output = Vec3d<S>;
@@ -546,14 +583,86 @@ where
     ///
     /// let scalar = 2.0;
     /// let vector = CartesianBuilder::with(1.0, 2.0, 3.0).build();
-    /// let result = scalar * vector;
+    /// let result: Vec3d<Cartesian> = scalar * vector;
     /// assert_eq!(result.x(), 2.0);
     /// assert_eq!(result.y(), 4.0);
     /// assert_eq!(result.z(), 6.0);
     /// ```
     #[inline(always)]
     fn mul(self, rhs: Vec3d<S>) -> Self::Output {
-        rhs.mul(self)
+        S::mul(&rhs, self)
+    }
+}
+
+impl<'a, S> Mul<&'a Vec3d<S>> for f32
+where
+    S: CoordinateSystem + MultiplyByScalarProcessable<Vec3d<S>, Output = Vec3d<S>>,
+{
+    type Output = Vec3d<S>;
+
+    #[inline(always)]
+    fn mul(self, rhs: &'a Vec3d<S>) -> Self::Output {
+        S::mul(rhs, self as f64)
+    }
+}
+
+impl<S> Mul<Vec3d<S>> for f32
+where
+    S: CoordinateSystem + MultiplyByScalarProcessable<Vec3d<S>, Output = Vec3d<S>>,
+{
+    type Output = Vec3d<S>;
+
+    #[inline(always)]
+    fn mul(self, rhs: Vec3d<S>) -> Self::Output {
+        S::mul(&rhs, self as f64)
+    }
+}
+
+impl<S, R> MulAssign<R> for Vec3d<S>
+where
+    S: CoordinateSystem + MultiplyByScalarProcessable<Vec3d<S>, Output = Vec3d<S>>,
+    R: Float,
+{
+    #[inline(always)]
+    fn mul_assign(&mut self, rhs: R) {
+        S::mul_assign(self, rhs.to_f64().expect(Fault::UNCONV_MUL));
+    }
+}
+
+impl<'a, S, R> Div<R> for &'a Vec3d<S>
+where
+    S: CoordinateSystem + MultiplyByScalarProcessable<Vec3d<S>, Output = Vec3d<S>>,
+    R: Float,
+{
+    type Output = Vec3d<S>;
+
+    #[inline(always)]
+    fn div(self, rhs: R) -> Self::Output {
+        S::div(self, rhs.to_f64().expect(Fault::UNCONV_DIV))
+    }
+}
+
+impl<S, R> Div<R> for Vec3d<S>
+where
+    S: CoordinateSystem + MultiplyByScalarProcessable<Vec3d<S>, Output = Vec3d<S>>,
+    R: Float,
+{
+    type Output = Vec3d<S>;
+
+    #[inline(always)]
+    fn div(self, rhs: R) -> Self::Output {
+        S::div(&self, rhs.to_f64().expect(Fault::UNCONV_DIV))
+    }
+}
+
+impl<S, R> DivAssign<R> for Vec3d<S>
+where
+    S: CoordinateSystem + MultiplyByScalarProcessable<Vec3d<S>, Output = Vec3d<S>>,
+    R: Float,
+{
+    #[inline(always)]
+    fn div_assign(&mut self, rhs: R) {
+        S::div_assign(self, rhs.to_f64().expect(Fault::UNCONV_DIV))
     }
 }
 
@@ -1022,164 +1131,6 @@ where
     }
 }
 
-impl<'a, R> Mul<R> for &'a Vec3d<Cartesian>
-where
-    R: Float,
-{
-    type Output = Vec3d<Cartesian>;
-
-    #[inline(always)]
-    fn mul(self, rhs: R) -> Self::Output {
-        private::mul_c(self, rhs.to_f64().expect("Unconvertible multiplier"))
-    }
-}
-
-/// Implementation block for scalar multiplication of Cartesian `Vec3d` vectors.
-impl<R> Mul<R> for Vec3d<Cartesian>
-where
-    R: Float,
-{
-    /// The type of the result of the multiplication by a floating-point scalar operation.
-    type Output = Vec3d<Cartesian>;
-
-    /// Multiplies each component of the vector by a floating-point scalar value.
-    ///
-    /// # Arguments
-    ///
-    /// * `rhs` - The floating-point scalar value to multiply with each component of the vector.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use ephem::core::vectors::{Cartesian, CartesianBuilder, Vec3d};
-    ///
-    /// let v = CartesianBuilder::with(1.0, 2.0, 3.0).build();
-    /// let result = v * 2.0;
-    /// assert_eq!(result.x(), 2.0);
-    /// assert_eq!(result.y(), 4.0);
-    /// assert_eq!(result.z(), 6.0);
-    /// ```
-    #[inline(always)]
-    fn mul(self, rhs: R) -> Self::Output {
-        private::mul_c(&self, rhs.to_f64().expect("Unconvertible multiplier"))
-    }
-}
-
-/// Implementation block for multiplying `Vec3d<Cartesian>` vectors by a scalar in-place.
-impl<R> MulAssign<R> for Vec3d<Cartesian>
-where
-    R: Float,
-{
-    /// Multiplies the vector components by the scalar in-place.
-    ///
-    /// This method modifies the components of the vector by multiplying them with the given scalar.
-    ///
-    /// # Arguments
-    ///
-    /// * `rhs` - The scalar value to multiply the vector components by.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use ephem::core::vectors::{Cartesian, CartesianBuilder, Vec3d};
-    ///
-    /// let mut v = CartesianBuilder::with(1.0, 2.0, 3.0).build();
-    /// v *= 2.0;
-    /// assert_eq!(v.x(), 2.0);
-    /// assert_eq!(v.y(), 4.0);
-    /// assert_eq!(v.z(), 6.0);
-    /// ```
-    #[inline(always)]
-    fn mul_assign(&mut self, rhs: R) {
-        private::mul_assign_c(self, rhs.to_f64().expect("Unconvertible multiplier"))
-    }
-}
-
-impl<'a, R> Div<R> for &'a Vec3d<Cartesian>
-where
-    R: Float,
-{
-    type Output = Vec3d<Cartesian>;
-
-    #[inline(always)]
-    fn div(self, rhs: R) -> Self::Output {
-        private::div_c(self, rhs.to_f64().expect("Unconvertible divisor"))
-    }
-}
-
-/// Implementation block for scalar division of Cartesian `Vec3d` vectors.
-impl<R> Div<R> for Vec3d<Cartesian>
-where
-    R: Float,
-{
-    /// The type of the result of the division by a floating-point scalar operation.
-    type Output = Self;
-
-    /// Divides each component of the vector by a scalar value.
-    ///
-    /// # Arguments
-    ///
-    /// * `rhs` - The scalar value to divide each component by.
-    ///
-    /// # Returns
-    ///
-    /// The resulting vector after dividing each component by the scalar value.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the divisor is zero.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use ephem::core::vectors::{Cartesian, CartesianBuilder, Vec3d};
-    ///
-    /// let v = CartesianBuilder::with(1.0, 2.0, 3.0).build();
-    /// let result = v / 2.0;
-    /// assert_eq!(result.x(), 0.5);
-    /// assert_eq!(result.y(), 1.0);
-    /// assert_eq!(result.z(), 1.5);
-    /// ```
-    #[inline(always)]
-    fn div(self, rhs: R) -> Self::Output {
-        private::div_c(&self, rhs.to_f64().expect("Unconvertible divisor"))
-    }
-}
-
-/// Implementation block for dividing `Vec3d<Cartesian>` vectors by a scalar in-place.
-impl<R> DivAssign<R> for Vec3d<Cartesian>
-where
-    R: Float,
-{
-    /// Divides the vector components by the scalar in-place.
-    ///
-    /// This method modifies the components of the vector by dividing them with the given scalar.
-    ///
-    /// # Arguments
-    ///
-    /// * `rhs` - The scalar value to divide the vector components by.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the divisor is zero.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use ephem::core::vectors::{Cartesian, CartesianBuilder, Vec3d};
-    ///
-    /// let mut v = CartesianBuilder::with(1.0, 2.0, 3.0).build();
-    /// v /= 2.0;
-    /// assert_eq!(v.x(), 0.5);
-    /// assert_eq!(v.y(), 1.0);
-    /// assert_eq!(v.z(), 1.5);
-    /// ```
-    #[inline(always)]
-    fn div_assign(&mut self, rhs: R) {
-        private::div_assign_c(self, rhs.to_f64().expect("Unconvertible divisor"));
-    }
-}
-
 /// Implements dot product multiplication for Cartesian vectors.
 impl DotMul for Vec3d<Cartesian> {
     /// The output type of the dot product operation.
@@ -1493,6 +1444,46 @@ impl NegativelyProcessable<Vec3d<Cylindrical>> for Cylindrical {
     }
 }
 
+impl MultiplyByScalarProcessable<Vec3d<Cylindrical>> for Cylindrical {
+    type Output = Vec3d<Cylindrical>;
+
+    #[inline]
+    fn mul(lhs: &Vec3d<Cylindrical>, rhs: f64) -> Self::Output {
+        Vec3d::<Cylindrical>(
+            [
+                lhs.0[Cylindrical::RADIUS_IDX] * rhs,
+                lhs.0[Cylindrical::AZIMUTH_IDX],
+                lhs.0[Cylindrical::ALTITUDE_IDX] * rhs,
+            ],
+            PhantomData::<Cylindrical> {},
+        )
+    }
+
+    #[inline]
+    fn mul_assign(lhs: &mut Vec3d<Cylindrical>, rhs: f64) {
+        lhs.0[Cylindrical::RADIUS_IDX] *= rhs;
+        lhs.0[Cylindrical::ALTITUDE_IDX] *= rhs;
+    }
+
+    #[inline]
+    fn div(lhs: &Vec3d<Cylindrical>, rhs: f64) -> Self::Output {
+        Vec3d::<Cylindrical>(
+            [
+                lhs.0[Cylindrical::RADIUS_IDX] / rhs,
+                lhs.0[Cylindrical::AZIMUTH_IDX],
+                lhs.0[Cylindrical::ALTITUDE_IDX] / rhs,
+            ],
+            PhantomData::<Cylindrical> {},
+        )
+    }
+
+    #[inline]
+    fn div_assign(lhs: &mut Vec3d<Cylindrical>, rhs: f64) {
+        lhs.0[Cylindrical::RADIUS_IDX] /= rhs;
+        lhs.0[Cylindrical::ALTITUDE_IDX] /= rhs;
+    }
+}
+
 /// Additional methods for three-dimensional vectors in the cylindrical coordinate system.
 ///
 /// This implementation block adds convenience methods to the `Vec3d` struct when the chosen
@@ -1630,164 +1621,6 @@ where
     #[inline]
     fn from(vector: Vec3d<S>) -> Self {
         vector.to_y()
-    }
-}
-
-/// Implements the multiplication operation between a cylindrical vector and a scalar.
-///
-/// This implementation performs element-wise multiplication of the cylindrical vector's components
-/// by the given scalar value.
-impl Mul<f64> for Vec3d<Cylindrical> {
-    /// The type of the result of the multiplication by a floating-point scalar operation.
-    type Output = Self;
-
-    /// Performs the multiplication operation.
-    ///
-    /// # Parameters
-    ///
-    /// - `self`: The cylindrical vector.
-    /// - `rhs`: The scalar value to multiply by.
-    ///
-    /// # Returns
-    ///
-    /// The resulting cylindrical vector after element-wise multiplication with the scalar.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// use ephem::core::vectors::{Cylindrical, CylindricalBuilder, Vec3d};
-    ///
-    /// let v = CylindricalBuilder::with(2.0, 0.0, 3.0).build();
-    /// let scalar = 2.5;
-    /// let result = v * scalar;
-    /// assert_eq!(result.radius(), 5.0);
-    /// assert_eq!(result.azimuth(), 0.0);
-    /// assert_eq!(result.altitude(), 7.5);
-    /// ```
-    #[inline]
-    fn mul(self, rhs: f64) -> Self::Output {
-        Vec3d::<Cylindrical>(
-            [
-                self.0[Cylindrical::RADIUS_IDX] * rhs,
-                self.0[Cylindrical::AZIMUTH_IDX],
-                self.0[Cylindrical::ALTITUDE_IDX] * rhs,
-            ],
-            PhantomData::<Cylindrical> {},
-        )
-    }
-}
-
-/// Implements the multiplication assignment operation between a cylindrical vector and a scalar.
-///
-/// This implementation performs element-wise multiplication of the cylindrical vector's radius and altitude
-/// components by the given scalar value.
-impl MulAssign<f64> for Vec3d<Cylindrical> {
-    /// Performs the multiplication assignment operation.
-    ///
-    /// # Parameters
-    ///
-    /// - `self`: A mutable reference to the cylindrical vector.
-    /// - `rhs`: The scalar value to multiply by.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// use ephem::core::vectors::{Cylindrical, CylindricalBuilder, Vec3d};
-    ///
-    /// let mut v = CylindricalBuilder::with(2.0, 0.0, 3.0).build();
-    /// let scalar = 2.5;
-    /// v *= scalar;
-    /// assert_eq!(v.radius(), 5.0);
-    /// assert_eq!(v.azimuth(), 0.0);
-    /// assert_eq!(v.altitude(), 7.5);
-    /// ```
-    #[inline]
-    fn mul_assign(&mut self, rhs: f64) {
-        self.0[Cylindrical::RADIUS_IDX] *= rhs;
-        self.0[Cylindrical::ALTITUDE_IDX] *= rhs;
-    }
-}
-
-/// Implements the division operation between a cylindrical vector and a scalar.
-///
-/// This implementation performs element-wise division of the cylindrical vector's radius and altitude
-/// components by the given scalar value.
-impl Div<f64> for Vec3d<Cylindrical> {
-    /// The type of the result of the division by a floating-point scalar operation.
-    type Output = Self;
-
-    /// Performs the division operation.
-    ///
-    /// # Parameters
-    ///
-    /// - `self`: The cylindrical vector.
-    /// - `rhs`: The scalar value to divide by.
-    ///
-    /// # Returns
-    ///
-    /// A new cylindrical vector where each component is divided by the scalar value.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the divisor is zero.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// use ephem::core::vectors::{Cylindrical, CylindricalBuilder, Vec3d};
-    ///
-    /// let v = CylindricalBuilder::with(5.0, 0.0, 7.5).build();
-    /// let scalar = 2.5;
-    /// let result = v / scalar;
-    /// assert_eq!(result.radius(), 2.0);
-    /// assert_eq!(result.azimuth(), 0.0);
-    /// assert_eq!(result.altitude(), 3.0);
-    /// ```
-    #[inline]
-    fn div(self, rhs: f64) -> Self::Output {
-        Vec3d::<Cylindrical>(
-            [
-                self.0[Cylindrical::RADIUS_IDX] / rhs,
-                self.0[Cylindrical::AZIMUTH_IDX],
-                self.0[Cylindrical::ALTITUDE_IDX] / rhs,
-            ],
-            PhantomData::<Cylindrical> {},
-        )
-    }
-}
-
-/// Implements the division assignment operation between a cylindrical vector and a scalar.
-///
-/// This implementation performs element-wise division of the cylindrical vector's radius and altitude
-/// components by the given scalar value, modifying the vector in place.
-impl DivAssign<f64> for Vec3d<Cylindrical> {
-    /// Performs the division assignment operation.
-    ///
-    /// # Parameters
-    ///
-    /// - `self`: A mutable reference to the cylindrical vector.
-    /// - `rhs`: The scalar value to divide by.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the divisor is zero.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// use ephem::core::vectors::{Cylindrical, CylindricalBuilder, Vec3d};
-    ///
-    /// let mut v = CylindricalBuilder::with(5.0, 0.0, 7.5).build();
-    /// let scalar = 2.5;
-    /// v /= scalar;
-    /// assert_eq!(v.radius(), 2.0);
-    /// assert_eq!(v.azimuth(), 0.0);
-    /// assert_eq!(v.altitude(), 3.0);
-    /// ```
-    #[inline]
-    fn div_assign(&mut self, rhs: f64) {
-        self.0[Cylindrical::RADIUS_IDX] /= rhs;
-        self.0[Cylindrical::ALTITUDE_IDX] /= rhs;
     }
 }
 
@@ -2002,6 +1835,44 @@ impl NegativelyProcessable<Vec3d<Spherical>> for Spherical {
     }
 }
 
+impl MultiplyByScalarProcessable<Vec3d<Spherical>> for Spherical {
+    type Output = Vec3d<Spherical>;
+
+    #[inline]
+    fn mul(lhs: &Vec3d<Spherical>, rhs: f64) -> Self::Output {
+        Vec3d::<Spherical>(
+            [
+                lhs.0[Spherical::RADIUS_IDX] * rhs,
+                lhs.0[Spherical::AZIMUTH_IDX],
+                lhs.0[Spherical::LATITUDE_IDX],
+            ],
+            PhantomData::<Spherical> {},
+        )
+    }
+
+    #[inline]
+    fn mul_assign(lhs: &mut Vec3d<Spherical>, rhs: f64) {
+        lhs.0[Spherical::RADIUS_IDX] *= rhs;
+    }
+
+    #[inline]
+    fn div(lhs: &Vec3d<Spherical>, rhs: f64) -> Self::Output {
+        Vec3d::<Spherical>(
+            [
+                lhs.0[Spherical::RADIUS_IDX] / rhs,
+                lhs.0[Spherical::AZIMUTH_IDX],
+                lhs.0[Spherical::LATITUDE_IDX],
+            ],
+            PhantomData::<Spherical> {},
+        )
+    }
+
+    #[inline]
+    fn div_assign(lhs: &mut Vec3d<Spherical>, rhs: f64) {
+        lhs.0[Spherical::RADIUS_IDX] /= rhs;
+    }
+}
+
 /// Additional methods for three-dimensional vectors in the spherical coordinate system.
 ///
 /// This implementation block adds convenience methods to the `Vec3d` struct when the chosen
@@ -2138,167 +2009,6 @@ where
     #[inline]
     fn from(vector: Vec3d<S>) -> Self {
         vector.to_s()
-    }
-}
-
-/// Implements scalar multiplication for Spherical vectors.
-impl Mul<f64> for Vec3d<Spherical> {
-    /// The type of the result of the multiplication by a floating-point scalar operation.
-    type Output = Self;
-
-    /// Multiplies the Spherical vector by a scalar.
-    ///
-    /// This function returns a new Spherical vector where each component is multiplied by the given scalar,
-    /// except for the azimuth and latitude components, which remain unchanged.
-    ///
-    /// # Arguments
-    ///
-    /// * `self` - The Spherical vector to be multiplied.
-    /// * `rhs` - The scalar value to multiply by.
-    ///
-    /// # Returns
-    ///
-    /// A new Spherical vector with each component multiplied by the scalar, except for the azimuth and latitude components
-    /// which remain unchanged.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use std::ops::Mul;
-    /// use ephem::core::vectors::{Spherical, SphericalBuilder, Vec3d};
-    ///
-    /// let vector = SphericalBuilder::with(1.0, 2.0, 3.0).build();
-    /// let multiplied_vector = vector * 2.0;
-    ///
-    /// assert_eq!(multiplied_vector.radius(), 2.0);
-    /// assert_eq!(multiplied_vector.azimuth(), 2.0);
-    /// assert_eq!(multiplied_vector.latitude(), 3.0);
-    /// ```
-    #[inline]
-    fn mul(self, rhs: f64) -> Self::Output {
-        Self(
-            [
-                self.0[Spherical::RADIUS_IDX] * rhs,
-                self.0[Spherical::AZIMUTH_IDX],
-                self.0[Spherical::LATITUDE_IDX],
-            ],
-            PhantomData::<Spherical> {},
-        )
-    }
-}
-
-/// Implements in-place scalar multiplication for Spherical vectors.
-impl MulAssign<f64> for Vec3d<Spherical> {
-    /// Multiplies the Spherical vector in-place by a scalar.
-    ///
-    /// This function multiplies the radius component of the Spherical vector by the given scalar,
-    /// leaving the azimuth and latitude components unchanged.
-    ///
-    /// # Arguments
-    ///
-    /// * `self` - A mutable reference to the Spherical vector to be multiplied.
-    /// * `rhs` - The scalar value to multiply by.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use std::ops::MulAssign;
-    /// use ephem::core::vectors::{Spherical, SphericalBuilder, Vec3d};
-    ///
-    /// let mut vector = SphericalBuilder::with(1.0, 2.0, 3.0).build();
-    /// vector *= 2.0;
-    ///
-    /// assert_eq!(vector.radius(), 2.0);
-    /// assert_eq!(vector.azimuth(), 2.0);
-    /// assert_eq!(vector.latitude(), 3.0);
-    /// ```
-    #[inline]
-    fn mul_assign(&mut self, rhs: f64) {
-        self.0[Spherical::RADIUS_IDX] *= rhs;
-    }
-}
-
-/// Implements scalar division for Spherical vectors.
-impl Div<f64> for Vec3d<Spherical> {
-    /// The type of the result of the division by a floating-point scalar operation.
-    type Output = Self;
-
-    /// Divides the Spherical vector by a scalar.
-    ///
-    /// This function returns a new Spherical vector where the radius component is divided by the given scalar,
-    /// while leaving the azimuth and latitude components unchanged.
-    ///
-    /// # Arguments
-    ///
-    /// * `self` - The Spherical vector to be divided.
-    /// * `rhs` - The scalar value to divide by.
-    ///
-    /// # Returns
-    ///
-    /// A new Spherical vector with the radius component divided by the scalar, and other components unchanged.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the divisor is zero.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use std::ops::Div;
-    /// use ephem::core::vectors::{Spherical, SphericalBuilder, Vec3d};
-    ///
-    /// let vector = SphericalBuilder::with(2.0, 2.0, 3.0).build();
-    /// let divided_vector = vector / 2.0;
-    ///
-    /// assert_eq!(divided_vector.radius(), 1.0);
-    /// assert_eq!(divided_vector.azimuth(), 2.0);
-    /// assert_eq!(divided_vector.latitude(), 3.0);
-    /// ```
-    #[inline]
-    fn div(self, rhs: f64) -> Self::Output {
-        Self(
-            [
-                self.0[Spherical::RADIUS_IDX] / rhs,
-                self.0[Spherical::AZIMUTH_IDX],
-                self.0[Spherical::LATITUDE_IDX],
-            ],
-            PhantomData::<Spherical> {},
-        )
-    }
-}
-
-/// Implements in-place scalar division for Spherical vectors.
-impl DivAssign<f64> for Vec3d<Spherical> {
-    /// Divides the Spherical vector in-place by a scalar.
-    ///
-    /// This function divides the radius component of the Spherical vector by the given scalar,
-    /// leaving the azimuth and latitude components unchanged.
-    ///
-    /// # Arguments
-    ///
-    /// * `self` - A mutable reference to the Spherical vector to be divided.
-    /// * `rhs` - The scalar value to divide by.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the divisor is zero.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use std::ops::DivAssign;
-    /// use ephem::core::vectors::{Spherical, SphericalBuilder, Vec3d};
-    ///
-    /// let mut vector = SphericalBuilder::with(2.0, 2.0, 3.0).build();
-    /// vector /= 2.0;
-    ///
-    /// assert_eq!(vector.radius(), 1.0);
-    /// assert_eq!(vector.azimuth(), 2.0);
-    /// assert_eq!(vector.latitude(), 3.0);
-    /// ```
-    #[inline]
-    fn div_assign(&mut self, rhs: f64) {
-        self.0[Spherical::RADIUS_IDX] /= rhs;
     }
 }
 
@@ -2500,41 +2210,5 @@ where
         }
 
         Self::with(radius, azimuth, latitude)
-    }
-}
-
-mod private {
-    use std::marker::PhantomData;
-
-    use super::{Cartesian, Vec3d};
-
-    #[inline]
-    pub fn mul_c(lhs: &Vec3d<Cartesian>, rhs: f64) -> Vec3d<Cartesian> {
-        Vec3d::<Cartesian>(
-            [lhs.0[0] * rhs, lhs.0[1] * rhs, lhs.0[2] * rhs],
-            PhantomData::<Cartesian> {},
-        )
-    }
-
-    #[inline]
-    pub fn mul_assign_c(lhs: &mut Vec3d<Cartesian>, rhs: f64) {
-        lhs.0[0] *= rhs;
-        lhs.0[1] *= rhs;
-        lhs.0[2] *= rhs;
-    }
-
-    #[inline]
-    pub fn div_c(lhs: &Vec3d<Cartesian>, rhs: f64) -> Vec3d<Cartesian> {
-        Vec3d::<Cartesian>(
-            [lhs.0[0] / rhs, lhs.0[1] / rhs, lhs.0[2] / rhs],
-            PhantomData::<Cartesian> {},
-        )
-    }
-
-    #[inline]
-    pub fn div_assign_c(lhs: &mut Vec3d<Cartesian>, rhs: f64) {
-        lhs.0[0] /= rhs;
-        lhs.0[1] /= rhs;
-        lhs.0[2] /= rhs;
     }
 }

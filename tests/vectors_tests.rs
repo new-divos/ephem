@@ -688,21 +688,18 @@ fn cartesian_vec3d_negation_test() {
         let (x, y, z) = shared::gen_cartesian(&mut rng);
         let v = CartesianBuilder::with(x, y, z).build();
 
+        // The result of the operation
+        let vr = CartesianBuilder::with(-x, -y, -z).build();
+
         // Perform negation
         let n = -&v;
-
         // Verify components of the resulting vector
-        assert_eq!(n.x(), -x);
-        assert_eq!(n.y(), -y);
-        assert_eq!(n.z(), -z);
+        assert_eq!(n, vr);
 
         // Perform negation
         let n = -v;
-
         // Verify components of the resulting vector
-        assert_eq!(n.x(), -x);
-        assert_eq!(n.y(), -y);
-        assert_eq!(n.z(), -z);
+        assert_eq!(n, vr);
     }
 }
 
@@ -718,37 +715,28 @@ fn cartesian_vec3d_addition_test() {
         let (x2, y2, z2) = shared::gen_cartesian(&mut rng);
         let v2 = CartesianBuilder::with(x2, y2, z2).build();
 
+        // The result of the operation
+        let vr = CartesianBuilder::with(x1 + x2, y1 + y2, z1 + z2).build();
+
         // Perform addition
         let r = &v1 + &v2;
-
         // Verify components of the resulting vector
-        assert_eq!(r.x(), x1 + x2);
-        assert_eq!(r.y(), y1 + y2);
-        assert_eq!(r.z(), z1 + z2);
+        assert_eq!(r, vr);
 
         // Perform addition
         let r = &v1 + v2.clone();
-
         // Verify components of the resulting vector
-        assert_eq!(r.x(), x1 + x2);
-        assert_eq!(r.y(), y1 + y2);
-        assert_eq!(r.z(), z1 + z2);
+        assert_eq!(r, vr);
 
         // Perform addition
         let r = v1.clone() + &v2;
-
         // Verify components of the resulting vector
-        assert_eq!(r.x(), x1 + x2);
-        assert_eq!(r.y(), y1 + y2);
-        assert_eq!(r.z(), z1 + z2);
+        assert_eq!(r, vr);
 
         // Perform addition
         let r = v1 + v2;
-
         // Verify components of the resulting vector
-        assert_eq!(r.x(), x1 + x2);
-        assert_eq!(r.y(), y1 + y2);
-        assert_eq!(r.z(), z1 + z2);
+        assert_eq!(r, vr);
     }
 }
 
@@ -764,22 +752,19 @@ fn cartesian_vec3d_addition_with_assignment_test() {
         let (x2, y2, z2) = shared::gen_cartesian(&mut rng);
         let v2 = CartesianBuilder::with(x2, y2, z2).build();
 
+        // The result of the operation
+        let vr = CartesianBuilder::with(x1 + x2, y1 + y2, z1 + z2).build();
+
         // Perform addition with assignment
         let mut v3 = v1.clone();
         v3 += &v2;
-
         // Verify components of the resulting vector
-        assert_eq!(v3.x(), x1 + x2);
-        assert_eq!(v3.y(), y1 + y2);
-        assert_eq!(v3.z(), z1 + z2);
+        assert_eq!(v3, vr);
 
         // Perform addition with assignment
         v1 += v2;
-
         // Verify components of the resulting vector
-        assert_eq!(v1.x(), x1 + x2);
-        assert_eq!(v1.y(), y1 + y2);
-        assert_eq!(v1.z(), z1 + z2);
+        assert_eq!(v1, vr);
     }
 }
 
@@ -795,37 +780,28 @@ fn cartesian_vec3d_substraction_test() {
         let (x2, y2, z2) = shared::gen_cartesian(&mut rng);
         let v2 = CartesianBuilder::with(x2, y2, z2).build();
 
+        // The result of the operation
+        let vr = CartesianBuilder::with(x1 - x2, y1 - y2, z1 - z2).build();
+
         // Perform subtraction
         let r = &v1 - &v2;
-
         // Verify components of the resulting vector
-        assert_eq!(r.x(), x1 - x2);
-        assert_eq!(r.y(), y1 - y2);
-        assert_eq!(r.z(), z1 - z2);
+        assert_eq!(r, vr);
 
         // Perform subtraction
         let r = &v1 - v2.clone();
-
         // Verify components of the resulting vector
-        assert_eq!(r.x(), x1 - x2);
-        assert_eq!(r.y(), y1 - y2);
-        assert_eq!(r.z(), z1 - z2);
+        assert_eq!(r, vr);
 
         // Perform subtraction
         let r = v1.clone() - &v2;
-
         // Verify components of the resulting vector
-        assert_eq!(r.x(), x1 - x2);
-        assert_eq!(r.y(), y1 - y2);
-        assert_eq!(r.z(), z1 - z2);
+        assert_eq!(r, vr);
 
         // Perform subtraction
         let r = v1 - v2;
-
         // Verify components of the resulting vector
-        assert_eq!(r.x(), x1 - x2);
-        assert_eq!(r.y(), y1 - y2);
-        assert_eq!(r.z(), z1 - z2);
+        assert_eq!(r, vr);
     }
 }
 
@@ -841,22 +817,19 @@ fn cartesian_vec3d_substraction_with_assignment_test() {
         let (x2, y2, z2) = shared::gen_cartesian(&mut rng);
         let v2 = CartesianBuilder::with(x2, y2, z2).build();
 
+        // The result of the operation
+        let vr = CartesianBuilder::with(x1 - x2, y1 - y2, z1 - z2).build();
+
         // Perform subtraction with assignment
         let mut v3 = v1.clone();
         v3 -= &v2;
-
         // Verify components of the resulting vector
-        assert_eq!(v3.x(), x1 - x2);
-        assert_eq!(v3.y(), y1 - y2);
-        assert_eq!(v3.z(), z1 - z2);
+        assert_eq!(v3, vr);
 
         // Perform subtraction with assignment
         v1 -= v2;
-
         // Verify components of the resulting vector
-        assert_eq!(v1.x(), x1 - x2);
-        assert_eq!(v1.y(), y1 - y2);
-        assert_eq!(v1.z(), z1 - z2);
+        assert_eq!(v1, vr);
     }
 }
 
@@ -872,21 +845,28 @@ fn cartesian_vec3d_multiplication_by_scalar_test() {
         // Generate floating point scalar
         let scalar = (shared::MAX_VALUE - shared::MIN_VALUE) * rng.gen::<f64>() + shared::MIN_VALUE;
 
+        // The result of the multiplication
+        let vr = CartesianBuilder::with(x * scalar, y * scalar, z * scalar).build();
+
+        // Perform multiplication by the scalar
+        let r = &v * scalar;
+        // Verify components of the resulting vector
+        assert_eq!(r, vr);
+
         // Perform multiplication by the scalar
         let r = v.clone() * scalar;
-
         // Verify components of the resulting vector
-        assert_eq!(r.x(), x * scalar);
-        assert_eq!(r.y(), y * scalar);
-        assert_eq!(r.z(), z * scalar);
+        assert_eq!(r, vr);
+
+        // Perform multiplication by the scalar
+        let r = scalar * &v;
+        // Verify components of the resulting vector
+        assert_eq!(r, vr);
 
         // Perform multiplication by the scalar
         let r = scalar * v;
-
         // Verify components of the resulting vector
-        assert_eq!(r.x(), scalar * x);
-        assert_eq!(r.y(), scalar * y);
-        assert_eq!(r.z(), scalar * z);
+        assert_eq!(r, vr);
     }
 }
 
@@ -927,13 +907,18 @@ fn cartesian_vec3d_divison_by_scalar_test() {
             continue;
         }
 
+        // The result of the operation
+        let vr = CartesianBuilder::with(x / scalar, y / scalar, z / scalar).build();
+
+        // Perform division by the scalar
+        let r = &v / scalar;
+        // Verify components of the resulting vector
+        assert_eq!(r, vr);
+
         // Perform division by the scalar
         let r = v / scalar;
-
         // Verify components of the resulting vector
-        assert_eq!(r.x(), x / scalar);
-        assert_eq!(r.y(), y / scalar);
-        assert_eq!(r.z(), z / scalar);
+        assert_eq!(r, vr);
     }
 }
 
@@ -1057,21 +1042,18 @@ fn cylindrical_vec3d_negation_test() {
         let (radius, azimuth, altitude) = shared::gen_cylindrical(&mut rng);
         let v = CylindricalBuilder::with(radius, azimuth, altitude).build();
 
+        // The result of the operation
+        let vr = CylindricalBuilder::with(-radius, azimuth, -altitude).build();
+
         // Perform negation
         let n = -&v;
-
         // Verify components of the resulting vector
-        assert_eq!(n.radius(), -radius);
-        assert_eq!(n.azimuth(), azimuth);
-        assert_eq!(n.altitude(), -altitude);
+        assert_eq!(n, vr);
 
         // Perform negation
         let n = -v;
-
         // Verify components of the resulting vector
-        assert_eq!(n.radius(), -radius);
-        assert_eq!(n.azimuth(), azimuth);
-        assert_eq!(n.altitude(), -altitude);
+        assert_eq!(n, vr);
     }
 }
 
@@ -1087,21 +1069,28 @@ fn cylindrical_vec3d_multiplication_by_scalar_test() {
         // Generate floating point scalar
         let scalar = (shared::MAX_VALUE - shared::MIN_VALUE) * rng.gen::<f64>() + shared::MIN_VALUE;
 
+        // The result of the operation
+        let vr = CylindricalBuilder::with(radius * scalar, azimuth, altitude * scalar).build();
+
+        // Perform multiplication by the scalar
+        let r = &v * scalar;
+        // Verify components of the resulting vector
+        assert_eq!(r, vr);
+
         // Perform multiplication by the scalar
         let r = v.clone() * scalar;
-
         // Verify components of the resulting vector
-        assert_eq!(r.radius(), radius * scalar);
-        assert_eq!(r.azimuth(), azimuth);
-        assert_eq!(r.altitude(), altitude * scalar);
+        assert_eq!(r, vr);
+
+        // Perform multiplication by the scalar
+        let r = scalar * &v;
+        // Verify components of the resulting vector
+        assert_eq!(r, vr);
 
         // Perform multiplication by the scalar
         let r = scalar * v;
-
         // Verify components of the resulting vector
-        assert_eq!(r.radius(), scalar * radius);
-        assert_eq!(r.azimuth(), azimuth);
-        assert_eq!(r.altitude(), scalar * altitude);
+        assert_eq!(r, vr);
     }
 }
 
@@ -1142,13 +1131,18 @@ fn cylindrical_vec3d_divison_by_scalar_test() {
             continue;
         }
 
+        // The result of the operation
+        let vr = CylindricalBuilder::with(radius / scalar, azimuth, altitude / scalar).build();
+
+        // Perform division by the scalar
+        let r = &v / scalar;
+        // Verify components of the resulting vector
+        assert_eq!(r, vr);
+
         // Perform division by the scalar
         let r = v / scalar;
-
         // Verify components of the resulting vector
-        assert_eq!(r.radius(), radius / scalar);
-        assert_eq!(r.azimuth(), azimuth);
-        assert_eq!(r.altitude(), altitude / scalar);
+        assert_eq!(r, vr);
     }
 }
 
@@ -1186,21 +1180,18 @@ fn spherical_vec3d_negation_test() {
         let (radius, azimuth, latitude) = shared::gen_spherical(&mut rng);
         let v = SphericalBuilder::with(radius, azimuth, latitude).build();
 
+        // The result of the operation
+        let vr = SphericalBuilder::with(-radius, azimuth, latitude).build();
+
         // Perform negation
         let n = -&v;
-
         // Verify components of the resulting vector
-        assert_eq!(n.radius(), -radius);
-        assert_eq!(n.azimuth(), azimuth);
-        assert_eq!(n.latitude(), latitude);
+        assert_eq!(n, vr);
 
         // Perform negation
         let n = -v;
-
         // Verify components of the resulting vector
-        assert_eq!(n.radius(), -radius);
-        assert_eq!(n.azimuth(), azimuth);
-        assert_eq!(n.latitude(), latitude);
+        assert_eq!(n, vr);
     }
 }
 
@@ -1216,21 +1207,28 @@ fn spherical_vec3d_multiplication_by_scalar_test() {
         // Generate floating point scalar
         let scalar = (shared::MAX_VALUE - shared::MIN_VALUE) * rng.gen::<f64>() + shared::MIN_VALUE;
 
+        // The result of the operation
+        let vr = SphericalBuilder::with(radius * scalar, azimuth, latitude).build();
+
+        // Perform multiplication by the scalar
+        let r = &v * scalar;
+        // Verify components of the resulting vector
+        assert_eq!(r, vr);
+
         // Perform multiplication by the scalar
         let r = v.clone() * scalar;
-
         // Verify components of the resulting vector
-        assert_eq!(r.radius(), radius * scalar);
-        assert_eq!(r.azimuth(), azimuth);
-        assert_eq!(r.latitude(), latitude);
+        assert_eq!(r, vr);
 
         // Perform multiplication by the scalar
-        let r = scalar * v;
-
+        let r = scalar * &v;
         // Verify components of the resulting vector
-        assert_eq!(r.radius(), scalar * radius);
-        assert_eq!(r.azimuth(), azimuth);
-        assert_eq!(r.latitude(), latitude);
+        assert_eq!(r, vr);
+
+        // Perform multiplication by the scalar
+        let r = v * scalar;
+        // Verify components of the resulting vector
+        assert_eq!(r, vr);
     }
 }
 
@@ -1271,13 +1269,18 @@ fn spherical_vec3d_divison_by_scalar_test() {
             continue;
         }
 
+        // The result of the operation
+        let vr = SphericalBuilder::with(radius / scalar, azimuth, latitude).build();
+
+        // Perform division by the scalar
+        let r = &v / scalar;
+        // Verify components of the resulting vector
+        assert_eq!(r, vr);
+
         // Perform division by the scalar
         let r = v / scalar;
-
         // Verify components of the resulting vector
-        assert_eq!(r.radius(), radius / scalar);
-        assert_eq!(r.azimuth(), azimuth);
-        assert_eq!(r.latitude(), latitude);
+        assert_eq!(r, vr);
     }
 }
 
